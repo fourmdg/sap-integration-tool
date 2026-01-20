@@ -188,20 +188,50 @@
         .result-area { margin-top: 30px; position: relative; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* --- MOBILE ADJUSTMENTS --- */
+        @media (max-width: 768px) {
+            #menuToggle { display: block !important; }
+            
+            .global-context-bar {
+                padding: 10px 15px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .global-title-box { width: 100%; font-size: 0.75rem; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px; }
+            
+            .scrollable-content { padding: 15px; height: calc(100vh - 180px); }
+            
+            .flex-row { flex-direction: column; gap: 15px; }
+            
+            .cw-row { flex-direction: column; align-items: stretch; }
+            .cw-row .btn-danger { width: 100%; margin-top: 10px; height: 35px; }
+            
+            .logic-block .radio-group { display: flex; flex-direction: column; gap: 10px; }
+            
+            textarea.code-editor { font-size: 0.8rem; min-height: 150px; }
+        }
+
     </style>
 </head>
 <body>
 
     <header>
-        <div class="brand">FERRAMENTA <span>SQL Builder</span></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-outline-light" id="menuToggle" style="padding: 8px; display: none;" onclick="toggleSidebar()">
+                ☰
+            </button>
+            <div class="brand">FERRAMENTA <span>SQL Builder</span></div>
+        </div>
         <div class="header-actions">
              <a href="index.html" class="btn-back">🏠 Voltar</a>
         </div>
     </header>
 
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <div class="workspace">
         
-        <aside>
+        <aside id="mainSidebar">
             <div class="history-container">
                 <div class="history-header"><span class="history-title">Vistos Recentemente</span><button class="btn-clear-history" onclick="clearHistory()">Limpar</button></div>
                 <div id="history-list" class="history-list"></div>
@@ -228,17 +258,17 @@
 
         <div style="flex: 1; display: flex; flex-direction: column;">
             
-            <div class="global-context-bar">
-                <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem; margin-right: 10px;">
-                    CONTEXTO<br>GLOBAL
+            <div class="global-context-bar" id="globalBar">
+                <div class="global-title-box">
+                    CONTEXTO GLOBAL
                 </div>
-                <div class="global-item" style="flex: 0 0 100px;">
-                    <label>Etapa (Step)</label>
-                    <input type="text" id="globalStep" placeholder="Ex: 1">
+                <div class="global-item" style="flex: 0 0 80px;">
+                    <label>Etapa</label>
+                    <input type="text" id="globalStep" placeholder="Stp">
                 </div>
                 <div class="global-item">
-                    <label>GUID Principal (Campo)</label>
-                    <input type="text" id="globalGuid" placeholder="Cole o GUID aqui...">
+                    <label>GUID Principal</label>
+                    <input type="text" id="globalGuid" placeholder="Cole o GUID...">
                 </div>
             </div>
 
@@ -332,7 +362,7 @@
                             </div>
 
                             <div id="whenClausesContainer"></div>
-                            <button class="btn-action btn-success" onclick="addWhenClause()">+ Adicionar Condição</button>
+                            <button class="btn btn-success" onclick="addWhenClause()">+ Adicionar Condição</button>
 
                             <hr style="margin: 20px 0; border-top: 1px solid #e2e8f0;">
 
@@ -372,7 +402,7 @@
                             </p>
                             
                             <div id="concatItemsContainer"></div>
-                            <button class="btn-action btn-success" onclick="addConcatItem()">+ Adicionar Item</button>
+                            <button class="btn btn-success" onclick="addConcatItem()">+ Adicionar Item</button>
                             
                             <button class="btn btn-primary" style="width:100%; margin-top:20px;" onclick="generateQuery('concat')">Gerar SQL</button>
                             <div class="result-area">
@@ -486,12 +516,21 @@
 
     <script>
         // --- NAVEGAÇÃO ---
+        function toggleSidebar() {
+            document.getElementById('mainSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
         function switchTool(toolId, element) {
             document.querySelectorAll('.node-item').forEach(el => el.classList.remove('active'));
             if(element) element.classList.add('active');
             document.querySelectorAll('.tool-container').forEach(el => el.classList.remove('active'));
             const target = document.getElementById(toolId + 'Tool');
             if(target) target.classList.add('active');
+
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
         }
 
         function toggleSpecificInputs(prefix) {
@@ -597,7 +636,7 @@
                     </div>
                 </div>
 
-                <button class="btn-danger" onclick="this.parentElement.remove()" style="height: 40px; margin-top: 24px;">X</button>
+                <button class="btn btn-danger" onclick="this.parentElement.remove()" style="margin-top: 24px;">✕</button>
             `;
             container.appendChild(div);
         }
@@ -616,7 +655,7 @@
                         </div>
                     </div>
                     <div class="cw-type-selector" onclick="toggleInputType(this, 'concat')" style="width: 100px; text-align: center;">Mudar p/ Campo</div>
-                    <button class="btn-danger" onclick="this.parentElement.parentElement.remove()" style="padding: 5px 10px;">X</button>
+                    <button class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">✕</button>
                 </div>
             `;
             container.appendChild(div);
@@ -788,10 +827,28 @@
         addConcatItem(); 
     </script>
 
-<script>
-    
-    
-</script>
-
+    <script>
+        // --- HISTÓRICO DE NAVEGAÇÃO ---
+        (function() {
+            const MAX_HISTORY = 10;
+            const HISTORY_KEY = 'sap_docs_history';
+            if (!window.location.pathname.endsWith('index.html')) {
+                const pageTitle = document.title.split('-')[0].trim();
+                const currentPage = { title: pageTitle, url: window.location.pathname.split('/').pop() };
+                let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+                history = history.filter(h => h.url !== currentPage.url);
+                history.unshift(currentPage);
+                if (history.length > MAX_HISTORY) history.pop();
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            }
+            const container = document.getElementById('history-list');
+            if (container) {
+                const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+                if (history.length === 0) container.innerHTML = '<div style="padding:5px 12px; font-size:0.75rem; color:#64748b;">Nenhum item recente.</div>';
+                else { container.innerHTML = history.map(h => `<a href="${h.url}" class="history-link">${h.title}</a>`).join(''); }
+            }
+            window.clearHistory = function() { localStorage.removeItem(HISTORY_KEY); if(document.getElementById('history-list')) document.getElementById('history-list').innerHTML = ''; }
+        })();
+    </script>
 </body>
 </html>

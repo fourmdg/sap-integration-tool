@@ -127,10 +127,17 @@
 <body>
 
     <header>
-        <div class="brand">
-            PORTAL SAP <span>Documentação & Integração</span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-outline-light" id="menuToggle" style="padding: 8px; display: none;" onclick="toggleSidebar()">
+                ☰
+            </button>
+            <div class="brand">
+                PORTAL SAP <span>Documentação & Integração</span>
+            </div>
         </div>
     </header>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <div class="workspace">
         
@@ -432,7 +439,36 @@
         </main>
     </div>
 
+    <style>
+        /* CSS Adicional para Responsividade do Dashboard */
+        @media (max-width: 768px) {
+            #menuToggle { display: block !important; }
+            main { padding: 15px !important; }
+            
+            .welcome-section {
+                padding: 25px 20px;
+                margin-bottom: 25px;
+            }
+            .welcome-title { font-size: 1.4rem; }
+            .welcome-text { font-size: 0.9rem; }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr; /* Um card por linha no mobile */
+                gap: 15px;
+            }
+
+            .nav-card { padding: 15px; }
+            .nc-title { font-size: 1rem; }
+            .nc-desc { font-size: 0.8rem; }
+        }
+    </style>
+
     <script>
+        function toggleSidebar() {
+            document.getElementById('mainSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
         function scrollToSection(id) {
             document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
             
@@ -440,6 +476,11 @@
             document.querySelectorAll('.node-item').forEach(el => el.classList.remove('active'));
             const activeNode = Array.from(document.querySelectorAll('.node-item')).find(el => el.getAttribute('onclick')?.includes(id));
             if(activeNode) activeNode.classList.add('active');
+
+            // Fecha sidebar no mobile
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
         }
     </script>
 

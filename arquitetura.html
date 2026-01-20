@@ -26,14 +26,21 @@
 <body>
 
     <header>
-        <div class="brand">FERRAMENTA <span>Arquitetura</span></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-outline-light" id="menuToggle" style="padding: 8px; display: none;" onclick="toggleSidebar()">
+                ☰
+            </button>
+            <div class="brand">FERRAMENTA <span>Arquitetura</span></div>
+        </div>
         <div class="header-actions">
              <a href="index.html" class="btn-back">🏠 Voltar</a>
         </div>
     </header>
 
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <div class="workspace">
-        <aside>
+        <aside id="mainSidebar">
             <div class="history-container">
                 <div class="history-header"><span class="history-title">Vistos Recentemente</span><button class="btn-clear-history" onclick="clearHistory()">Limpar</button></div>
                 <div id="history-list" class="history-list"></div>
@@ -59,26 +66,28 @@
                     Neste fluxo moderno, os dados trafegam inteiramente em <strong>JSON</strong>. O portal envia para o Gateway do cliente, que repassa ao SAP CPI. O CPI orquestra a entrega no SAP S/4HANA ou ECC e retorna a confirmação (Devolução) pelo mesmo caminho.
                 </p>
                 
-                <div class="mermaid">
-                sequenceDiagram
-                    participant Portal as Portal
-                    participant GW as Gateway
-                    participant CPI as SAP CPI
-                    participant SAP as SAP Backend
+                <div class="table-wrapper">
+                    <div class="mermaid">
+                    sequenceDiagram
+                        participant Portal as Portal
+                        participant GW as Gateway
+                        participant CPI as SAP CPI
+                        participant SAP as SAP Backend
 
-                    Note over Portal, SAP: Fluxo JSON (Sem conversão XML)
+                        Note over Portal, SAP: Fluxo JSON (Sem conversão XML)
 
-                    Portal->>GW: Envia Dados (JSON)
-                    GW->>CPI: Repassa (JSON)
-                    CPI->>SAP: Integração (JSON/OData/RFC)
-                    
-                    activate SAP
-                    SAP->>SAP: Processa Dados
-                    SAP-->>CPI: Retorno/Devolução (JSON)
-                    deactivate SAP
-                    
-                    CPI-->>GW: Response
-                    GW-->>Portal: Confirmação Final
+                        Portal->>GW: Envia Dados (JSON)
+                        GW->>CPI: Repassa (JSON)
+                        CPI->>SAP: Integração (JSON/OData/RFC)
+                        
+                        activate SAP
+                        SAP->>SAP: Processa Dados
+                        SAP-->>CPI: Retorno/Devolução (JSON)
+                        deactivate SAP
+                        
+                        CPI-->>GW: Response
+                        GW-->>Portal: Confirmação Final
+                    </div>
                 </div>
             </div>
 
@@ -91,29 +100,31 @@
                     No fluxo legado/on-premise, ocorre a <strong>transformação de formato</strong>. O Portal envia JSON, mas o SAP PI/PO converte para <strong>XML (IDoc)</strong> antes de entregar ao SAP.
                 </p>
 
-                <div class="mermaid">
-                sequenceDiagram
-                    participant Portal as Portal
-                    participant GW as Gateway
-                    participant PI as SAP PI/PO
-                    participant SAP as SAP Backend
+                <div class="table-wrapper">
+                    <div class="mermaid">
+                    sequenceDiagram
+                        participant Portal as Portal
+                        participant GW as Gateway
+                        participant PI as SAP PI/PO
+                        participant SAP as SAP Backend
 
-                    Portal->>GW: Envia Dados (JSON)
-                    GW->>PI: Repassa (JSON)
-                    
-                    Note right of PI: Conversão: JSON -> XML
-                    
-                    PI->>SAP: Envia IDoc (XML)
-                    
-                    activate SAP
-                    SAP->>SAP: Processa IDoc
-                    SAP-->>PI: Status 53/51 (XML)
-                    deactivate SAP
-                    
-                    Note right of PI: Conversão: XML -> JSON
-                    
-                    PI-->>GW: Response (JSON)
-                    GW-->>Portal: Devolução/Status
+                        Portal->>GW: Envia Dados (JSON)
+                        GW->>PI: Repassa (JSON)
+                        
+                        Note right of PI: Conversão: JSON -> XML
+                        
+                        PI->>SAP: Envia IDoc (XML)
+                        
+                        activate SAP
+                        SAP->>SAP: Processa IDoc
+                        SAP-->>PI: Status 53/51 (XML)
+                        deactivate SAP
+                        
+                        Note right of PI: Conversão: XML -> JSON
+                        
+                        PI-->>GW: Response (JSON)
+                        GW-->>Portal: Devolução/Status
+                    </div>
                 </div>
             </div>
 
@@ -126,34 +137,58 @@
                     Cenário onde o SAP inicia a comunicação (ex: envio de notas fiscais, atualização de status). O tráfego é <strong>JSON</strong> direto, passando pelo Gateway até chegar ao Portal, que devolve o recebimento.
                 </p>
 
-                <div class="mermaid">
-                sequenceDiagram
-                    participant SAP as SAP Backend
-                    participant GW as Gateway
-                    participant Portal as Portal
+                <div class="table-wrapper">
+                    <div class="mermaid">
+                    sequenceDiagram
+                        participant SAP as SAP Backend
+                        participant GW as Gateway
+                        participant Portal as Portal
 
-                    Note over SAP, Portal: Fluxo JSON
+                        Note over SAP, Portal: Fluxo JSON
 
-                    SAP->>GW: Chamada HTTP POST (JSON)
-                    GW->>Portal: Entrega Dados (JSON)
-                    
-                    activate Portal
-                    Portal->>Portal: Processa/Atualiza
-                    Portal-->>GW: Devolução (OK/Erro)
-                    deactivate Portal
-                    
-                    GW-->>SAP: Retorno ao SAP
+                        SAP->>GW: Chamada HTTP POST (JSON)
+                        GW->>Portal: Entrega Dados (JSON)
+                        
+                        activate Portal
+                        Portal->>Portal: Processa/Atualiza
+                        Portal-->>GW: Devolução (OK/Erro)
+                        deactivate Portal
+                        
+                        GW-->>SAP: Retorno ao SAP
+                    </div>
                 </div>
             </div>
 
         </main>
     </div>
 
+    <style>
+        @media (max-width: 768px) {
+            #menuToggle { display: block !important; }
+            main { padding: 15px !important; }
+            .card { padding: 15px !important; }
+            .diagram-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
+    </style>
+
     <script>
+        function toggleSidebar() {
+            document.getElementById('mainSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
         function scrollToSection(id) {
             document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
             document.querySelectorAll('.node-item').forEach(el => el.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            
+            // Se for mobile, fecha a sidebar ao clicar
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+            
+            // Tenta achar o link que foi clicado para ativar (se não for via evento direto)
+            const activeNode = Array.from(document.querySelectorAll('.node-item')).find(el => el.getAttribute('onclick')?.includes(id));
+            if(activeNode) activeNode.classList.add('active');
         }
 
         // --- HISTÓRICO ---

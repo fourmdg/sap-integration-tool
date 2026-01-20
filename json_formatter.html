@@ -9,7 +9,8 @@
         /* --- GLOBAL --- */
         body { 
             overflow: hidden; 
-            height: 100vh; 
+            height: 100vh;
+            height: 100dvh; /* Suporte melhor para mobile (barra de endereço) */
             background-color: var(--body-bg);
             display: flex;
             flex-direction: column;
@@ -26,6 +27,7 @@
             max-width: 100%;
             height: 100%;
             box-sizing: border-box;
+            overflow: hidden; /* Garante que o scroll seja interno */
         }
 
         /* --- EDITOR PANES (Estados) --- */
@@ -39,6 +41,7 @@
             border: 1px solid var(--border);
             overflow: hidden;
             animation: fadeIn 0.3s ease;
+            height: 100%; /* Força altura total */
         }
 
         .editor-pane.active {
@@ -56,6 +59,7 @@
             align-items: center;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
+            gap: 15px;
         }
 
         .chrome-title {
@@ -67,14 +71,33 @@
             gap: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            white-space: nowrap;
         }
 
         .chrome-actions {
             display: flex;
-            gap: 15px;
+            gap: 10px;
         }
 
         /* --- BOTÕES --- */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .btn-primary { background: var(--brand-blue); color: white; border: none; }
+        .btn-primary:hover { background: var(--brand-blue-hover); }
+        
+        .btn-secondary { background: white; color: var(--text-main); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #f8fafc; }
+
         .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
         .btn-ghost:hover { color: var(--primary); background: #f1f5f9; }
 
@@ -84,17 +107,18 @@
             position: relative;
             overflow: hidden; /* Scroll interno */
             display: flex;
+            flex-direction: column;
         }
 
         textarea.code-area {
             width: 100%;
-            height: 100%;
+            height: 100%; /* Ocupa tudo */
             background: white;
             color: var(--text-main);
             border: none;
             padding: 30px;
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 1.1rem; /* Fonte maior */
+            font-size: 1rem;
             resize: none;
             outline: none;
             box-sizing: border-box;
@@ -108,10 +132,38 @@
             background: #fafafa;
             color: var(--text-main);
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 1.1rem; /* Fonte maior */
+            font-size: 1rem;
             overflow: auto;
             white-space: pre-wrap;
             box-sizing: border-box;
+        }
+
+        /* --- MOBILE TWEAKS --- */
+        @media (max-width: 768px) {
+            .tool-wrapper { padding: 10px; }
+            
+            .editor-chrome {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 15px;
+            }
+            
+            .chrome-title { 
+                justify-content: center; 
+                margin-bottom: 5px;
+            }
+            
+            .chrome-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr; /* Botões distribuídos */
+            }
+            
+            .btn { width: 100%; padding: 10px 5px; font-size: 0.8rem; }
+            
+            textarea.code-area, .code-output {
+                padding: 15px; /* Menos padding para ganhar espaço */
+                font-size: 0.9rem; /* Fonte ligeiramente menor */
+            }
         }
 
         /* --- SYNTAX HIGHLIGHTING (Light Mode) --- */

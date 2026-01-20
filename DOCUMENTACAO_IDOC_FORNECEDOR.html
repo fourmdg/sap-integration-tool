@@ -9,7 +9,12 @@
 </head>
 <body>
     <header>
-        <div class="brand">DOCUMENTAÇÃO <span>CREMAS - Mestre de Fornecedores</span></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-outline-light" id="menuToggle" style="padding: 8px; display: none;" onclick="toggleSidebar()">
+                ☰
+            </button>
+            <div class="brand">DOCUMENTAÇÃO <span>CREMAS - Mestre de Fornecedores</span></div>
+        </div>
         <div class="search-box"><input type="text" id="searchInput" placeholder="Filtrar campos..."></div>
         <div class="header-actions">
             <button onclick="exportFullCSV()" class="btn-outline-light">📊 Baixar CSV Completo</button>
@@ -17,14 +22,56 @@
             <a href="index.html" class="btn-back">🏠 Voltar</a>
         </div>
     </header>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <div class="workspace">
-        <aside>
+        <aside id="mainSidebar">
             <div class="tree-container"><div class="tree-label">Estrutura Hierárquica</div><a href="#E1LFA1M" class="node-item" style="padding-left:15px" onclick="activateNode(this)"><strong>E1LFA1M</strong></a><a href="#E1LFA1B" class="node-item" style="padding-left:35px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFA1B</strong></a><a href="#E1LFA1A" class="node-item" style="padding-left:35px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFA1A</strong></a><a href="#E1LFA1H" class="node-item" style="padding-left:35px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFA1H</strong></a><a href="#E1LFA1L" class="node-item" style="padding-left:55px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFA1L</strong></a><a href="#E1LFB1M" class="node-item" style="padding-left:35px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFB1M</strong></a><a href="#E1LFBWM" class="node-item" style="padding-left:55px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFBWM</strong></a><a href="#E1LFB5M" class="node-item" style="padding-left:55px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFB5M</strong></a><a href="#E1LFB1H" class="node-item" style="padding-left:55px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFB1H</strong></a><a href="#E1LFB1L" class="node-item" style="padding-left:75px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFB1L</strong></a><a href="#E1LFM1M" class="node-item" style="padding-left:35px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFM1M</strong></a><a href="#E1LFM2M" class="node-item" style="padding-left:55px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFM2M</strong></a><a href="#E1WYT3M" class="node-item" style="padding-left:55px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1WYT3M</strong></a><a href="#E1LFM1H" class="node-item" style="padding-left:55px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFM1H</strong></a><a href="#E1LFM1L" class="node-item" style="padding-left:75px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFM1L</strong></a><a href="#E1LFBKM" class="node-item" style="padding-left:35px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFBKM</strong></a><a href="#E1LFASM" class="node-item" style="padding-left:35px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1LFASM</strong></a><a href="#E1KNVKM" class="node-item" style="padding-left:35px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1KNVKM</strong></a><a href="#E1WYT1M" class="node-item" style="padding-left:35px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1WYT1M</strong></a><a href="#E1WYTTM" class="node-item" style="padding-left:55px" onclick="activateNode(this)"><strong><span style="opacity:0.4">└─</span> E1WYTTM</strong></a></div>
             <div style="padding:10px; font-size:0.7rem; color:#64748b; border-top:1px solid #334155;">
                 Arquivo Gerado em:<br><strong>16/12/2025</strong>
             </div>
         </aside>
         <main id="mainContent">
+
+            <style>
+                @media (max-width: 768px) {
+                    #menuToggle { display: block !important; }
+                    main { padding: 10px !important; }
+                    
+                    table, thead, tbody, th, td, tr { display: block; }
+                    thead tr { position: absolute; top: -9999px; left: -9999px; }
+                    
+                    tr { 
+                        margin-bottom: 15px; 
+                        border: 1px solid #e2e8f0; 
+                        border-radius: 8px; 
+                        padding: 15px; 
+                        background: white; 
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.03); 
+                    }
+                    
+                    td { 
+                        border: none; 
+                        border-bottom: 1px solid #f1f5f9; 
+                        position: relative; 
+                        padding-left: 0; 
+                        padding-top: 10px;
+                        padding-bottom: 10px;
+                    }
+                    
+                    td:last-child { border-bottom: none; }
+
+                    td:nth-of-type(1) { font-size: 1.1rem; font-weight: 800; color: var(--brand-blue); font-family: 'Consolas', monospace; padding-bottom: 5px; }
+                    td:nth-of-type(3) { display: inline-block; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; color: #64748b; border: 1px solid #e2e8f0; margin-top: 5px; }
+
+                    .header-actions button { display: none; }
+                    .header-actions .btn-back { display: inline-flex; }
+                    .card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+                    .search-box { display: none; }
+                }
+            </style>
+
         <div id="E1LFA1M" class="segment-card">
             <div class="card-header">
                 <div class="card-title"><h2>E1LFA1M <span class="desc">Segmento para dados gerais de fornecedores</span></h2></div>
@@ -314,8 +361,18 @@
             <div class="modal-footer"><button onclick="copyCurrentPayload()" style="background:#2563eb;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Copiar</button></div>
     </div></div>
     <div id="toast">Copiado!</div>
-    
     <script>
+        function toggleSidebar() {
+            document.getElementById('mainSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        function activateNode(e) { 
+            document.querySelectorAll('.node-item').forEach(i => i.classList.remove('active')); 
+            e.classList.add('active');
+            if(window.innerWidth <= 768) toggleSidebar();
+        };
+
         function copy(e){navigator.clipboard.writeText(e.innerText).then(()=>{document.getElementById('toast').classList.add('show');setTimeout(()=>document.getElementById('toast').classList.remove('show'),2000)})};
         function activateNode(e){document.querySelectorAll('.node-item').forEach(i=>i.classList.remove('active'));e.classList.add('active')};
         document.getElementById('searchInput').addEventListener('keyup',e=>{let t=e.target.value.toUpperCase();document.querySelectorAll('.segment-card').forEach(c=>{let s=c.querySelector('.card-header').innerText.toUpperCase().includes(t);c.querySelectorAll('tbody tr').forEach(r=>{if(r.innerText.toUpperCase().includes(t)){r.classList.remove('hidden');s=true}else r.classList.add('hidden')});c.style.display=s?'block':'none'})});

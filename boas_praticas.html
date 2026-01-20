@@ -64,14 +64,21 @@
 <body>
 
     <header>
-        <div class="brand">CONHECIMENTO <span>Boas Práticas</span></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-outline-light" id="menuToggle" style="padding: 8px; display: none;" onclick="toggleSidebar()">
+                ☰
+            </button>
+            <div class="brand">CONHECIMENTO <span>Boas Práticas</span></div>
+        </div>
         <div class="header-actions">
              <a href="index.html" class="btn-back">🏠 Voltar</a>
         </div>
     </header>
 
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <div class="workspace">
-        <aside>
+        <aside id="mainSidebar">
             <div class="history-container">
                 <div class="history-header"><span class="history-title">Vistos Recentemente</span><button class="btn-clear-history" onclick="clearHistory()">Limpar</button></div>
                 <div id="history-list" class="history-list"></div>
@@ -205,7 +212,47 @@
         </main>
     </div>
 
+    <style>
+        @media (max-width: 768px) {
+            #menuToggle { display: block !important; }
+            main { padding: 15px !important; }
+            
+            .grid-rules {
+                grid-template-columns: 1fr; /* Lista vertical */
+                padding: 0;
+                margin-top: 20px;
+            }
+
+            .card {
+                flex-direction: column; /* Empilha ícone e texto */
+                padding: 20px;
+                gap: 15px;
+            }
+
+            .rule-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.5rem;
+                align-self: flex-start; /* Alinha à esquerda */
+            }
+
+            .rule-content h3 { font-size: 1rem; }
+            
+            .comparison {
+                flex-direction: column; /* Empilha Certo/Errado */
+                gap: 5px;
+            }
+            
+            .do, .dont { width: 100%; } /* Ocupa largura total */
+        }
+    </style>
+
     <script>
+        function toggleSidebar() {
+            document.getElementById('mainSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
         // --- HISTÓRICO DE NAVEGAÇÃO ---
         (function() {
             const MAX_HISTORY = 10;

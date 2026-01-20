@@ -57,6 +57,10 @@
             background: white;
         }
 
+        @media (max-width: 768px) {
+            .input-area { height: 80px; }
+        }
+
         .field-list {
             flex: 1;
             overflow-y: auto;
@@ -235,7 +239,7 @@
         <div class="mapper-container" style="flex:1;">
         
         <!-- COLUNA ESQUERDA: ORIGEM -->
-        <div class="column">
+        <div class="column mobile-active" id="colSource">
             <div class="col-header">
                 <div class="col-title">📂 Origem (Source)</div>
                 <button class="btn-action btn-secondary" onclick="clearSource()">Limpar</button>
@@ -253,7 +257,7 @@
         </div>
 
         <!-- COLUNA CENTRAL: MAPEAMENTO -->
-        <div class="mapping-area">
+        <div class="mapping-area" id="colMapping">
             <div class="col-header" style="padding: 20px 20px 0;">
                 <div class="col-title">🔗 Mapeamentos (<span id="mapCount">0</span>)</div>
                 <button class="btn-action btn-secondary" style="font-size: 0.8rem;" onclick="clearMappings()">Resetar</button>
@@ -270,7 +274,7 @@
         </div>
 
         <!-- COLUNA DIREITA: DESTINO (SAP) -->
-        <div class="column">
+        <div class="column" id="colTarget">
             <div class="col-header">
                 <div class="col-title">🏢 Destino SAP (Target)</div>
             </div>
@@ -284,6 +288,26 @@
 
         </div>
     </div>
+
+    <div id="selectionFloater" class="selection-floater">
+        <div class="floater-text">
+            <span style="opacity:0.7; font-size:0.75rem;">Selecionado:</span> <strong id="floaterField">--</strong>
+        </div>
+        <div class="floater-action">Toque no Destino SAP 👉</div>
+        <button onclick="cancelSelection()" style="background:none; border:none; color:white; font-size:1.2rem; padding:0 0 0 10px;">&times;</button>
+    </div>
+
+    <nav class="mobile-nav-mapper">
+        <button class="mnm-btn active" onclick="switchMobileTab('source')">
+            <span class="mnm-icon">📂</span> Origem
+        </button>
+        <button class="mnm-btn" onclick="switchMobileTab('target')">
+            <span class="mnm-icon">🏢</span> SAP (Destino)
+        </button>
+        <button class="mnm-btn" onclick="switchMobileTab('mapping')">
+            <span class="mnm-icon">🔗</span> Mapeados <span id="mobileMapCount" class="badge badge-info" style="font-size:0.6rem;">0</span>
+        </button>
+    </nav>
 
     <script>
         // --- ESTADO ---
@@ -372,6 +396,9 @@
                 // Eventos Drag
                 div.addEventListener('dragstart', handleDragStart);
                 
+                // Evento Click (Mobile/Tap)
+                div.onclick = () => handleSourceClick(field, div);
+                
                 container.appendChild(div);
             });
         }
@@ -425,6 +452,9 @@
                 div.ondragover = (e) => { e.preventDefault(); div.style.background = '#eff6ff'; };
                 div.ondragleave = () => { div.style.background = 'white'; };
                 div.ondrop = (e) => handleDropOnTarget(e, key, meta.desc, segments);
+                
+                // Click (Mobile/Tap target)
+                div.onclick = () => handleTargetClick(key, meta.desc, segments);
 
                 div.innerHTML = `
                     <div style="flex:1;">
@@ -555,6 +585,81 @@
                 // Reset visual state of source items
                 document.querySelectorAll('.field-item.mapped').forEach(el => el.classList.remove('mapped'));
             }
+        }
+
+        // --- MOBILE LOGIC (TAP TO MAP) ---
+        let mobileSelectedSource = null;
+
+        function switchMobileTab(tab) {
+            // Remove active from all columns
+            document.getElementById('colSource').classList.remove('mobile-active');
+            document.getElementById('colTarget').classList.remove('mobile-active');
+            document.getElementById('colMapping').classList.remove('mobile-active');
+            
+            // Remove active from nav buttons
+            document.querySelectorAll('.mnm-btn').forEach(btn => btn.classList.remove('active'));
+
+            // Activate specific
+            if (tab === 'source') {
+                document.getElementById('colSource').classList.add('mobile-active');
+                document.querySelectorAll('.mnm-btn')[0].classList.add('active');
+            } else if (tab === 'target') {
+                document.getElementById('colTarget').classList.add('mobile-active');
+                document.querySelectorAll('.mnm-btn')[1].classList.add('active');
+            } else {
+                document.getElementById('colMapping').classList.add('mobile-active');
+                document.querySelectorAll('.mnm-btn')[2].classList.add('active');
+            }
+        }
+
+        function handleSourceClick(field, element) {
+            // Apenas ativa fluxo se for tela pequena (<768px)
+            if (window.innerWidth > 768) return;
+
+            mobileSelectedSource = field;
+            
+            // Visual Feedback
+            document.getElementById('floaterField').innerText = field;
+            document.getElementById('selectionFloater').style.display = 'flex';
+            
+            // Highlight item list
+            document.querySelectorAll('.field-item').forEach(el => el.style.borderColor = '#e2e8f0');
+            element.style.borderColor = '#2563eb';
+
+            // Auto switch to Target tab to help user
+            // Delay para o usuário ver o clique
+            setTimeout(() => {
+                switchMobileTab('target');
+            }, 300);
+        }
+
+        function handleTargetClick(targetField, targetDesc, targetSegment) {
+            if (window.innerWidth > 768) return; // Desktop ignore click
+
+            if (mobileSelectedSource) {
+                // Confirm mapping
+                addMapping(mobileSelectedSource, targetField, targetDesc, targetSegment);
+                
+                // Feedback
+                cancelSelection(); // Limpa seleção
+                switchMobileTab('mapping'); // Leva para lista
+                
+                // Toast simples (reusando logica existente se possivel, ou alertando)
+                // alert(`Mapeado: ${mobileSelectedSource} -> ${targetField}`);
+            }
+        }
+
+        function cancelSelection() {
+            mobileSelectedSource = null;
+            document.getElementById('selectionFloater').style.display = 'none';
+            document.querySelectorAll('.field-item').forEach(el => el.style.borderColor = '#e2e8f0');
+        }
+
+        // Atualizar contador no menu mobile
+        const originalRenderMappings = renderMappings;
+        renderMappings = function() {
+            originalRenderMappings(); // Chama original
+            document.getElementById('mobileMapCount').innerText = mappings.length;
         }
 
         // --- EXPORT ---

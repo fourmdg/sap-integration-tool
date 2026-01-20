@@ -49,14 +49,21 @@
 <body>
 
     <header>
-        <div class="brand">HUB DE CONHECIMENTO <span>Glossário</span></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-outline-light" id="menuToggle" style="padding: 8px; display: none;" onclick="toggleSidebar()">
+                ☰
+            </button>
+            <div class="brand">HUB DE CONHECIMENTO <span>Glossário</span></div>
+        </div>
         <div class="header-actions">
              <a href="index.html" class="btn-back">🏠 Voltar</a>
         </div>
     </header>
 
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <div class="workspace">
-        <aside>
+        <aside id="mainSidebar">
             <div class="history-container">
                 <div class="history-header"><span class="history-title">Vistos Recentemente</span><button class="btn-clear-history" onclick="clearHistory()">Limpar</button></div>
                 <div id="history-list" class="history-list"></div>
@@ -222,7 +229,34 @@
         </main>
     </div>
 
+    <style>
+        @media (max-width: 768px) {
+            #menuToggle { display: block !important; }
+            main { padding: 15px !important; }
+            
+            .term-grid {
+                grid-template-columns: 1fr;
+                padding: 0;
+                margin-top: 20px;
+            }
+
+            .glossary-search-input {
+                width: 100%;
+                font-size: 1rem;
+                padding: 12px 20px;
+            }
+
+            .hero h1 { font-size: 1.8rem; }
+            .hero p { font-size: 1rem; padding: 0 10px; }
+        }
+    </style>
+
     <script>
+        function toggleSidebar() {
+            document.getElementById('mainSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
         document.getElementById('termSearch').addEventListener('keyup', function(e) {
             const term = e.target.value.toUpperCase().trim();
             let visibleCount = 0;

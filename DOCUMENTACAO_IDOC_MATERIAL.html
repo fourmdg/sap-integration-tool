@@ -11,12 +11,20 @@
 
 <body>
     <header>
-        <div class="brand">DOCUMENTAÇÃO <span>MATMAS - Mestre de Materiais</span></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-outline-light" id="menuToggle" style="padding: 8px; display: none;" onclick="toggleSidebar()">
+                ☰
+            </button>
+            <div class="brand">DOCUMENTAÇÃO <span>MATMAS - Mestre de Materiais</span></div>
+        </div>
         <div class="search-box"><input type="text" id="searchInput" placeholder="Filtrar campos..."></div>
         <div class="header-actions"><button onclick="exportFullCSV()" class="btn-outline-light">📊 Baixar CSV Completo</button><button onclick="openFullPayloadModal()" class="btn-outline-light">📦 Payload Completo</button><a href="index.html" class="btn-back">🏠 Voltar</a></div>
     </header>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <div class="workspace">
-        <aside>
+        <aside id="mainSidebar">
             <div class="history-container">
                 <div class="history-header"><span class="history-title">Vistos Recentemente</span><button
                         class="btn-clear-history" onclick="clearHistory()">Limpar</button></div>
@@ -67,6 +75,45 @@
             </div>
         </aside>
         <main id="mainContent">
+
+            <style>
+                @media (max-width: 768px) {
+                    #menuToggle { display: block !important; }
+                    main { padding: 10px !important; }
+                    
+                    table, thead, tbody, th, td, tr { display: block; }
+                    thead tr { position: absolute; top: -9999px; left: -9999px; }
+                    
+                    tr { 
+                        margin-bottom: 15px; 
+                        border: 1px solid #e2e8f0; 
+                        border-radius: 8px; 
+                        padding: 15px; 
+                        background: white; 
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.03); 
+                    }
+                    
+                    td { 
+                        border: none; 
+                        border-bottom: 1px solid #f1f5f9; 
+                        position: relative; 
+                        padding-left: 0; 
+                        padding-top: 10px;
+                        padding-bottom: 10px;
+                    }
+                    
+                    td:last-child { border-bottom: none; }
+
+                    td:nth-of-type(1) { font-size: 1.1rem; font-weight: 800; color: var(--brand-blue); font-family: 'Consolas', monospace; padding-bottom: 5px; }
+                    td:nth-of-type(3) { display: inline-block; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; color: #64748b; border: 1px solid #e2e8f0; margin-top: 5px; }
+
+                    .header-actions button { display: none; }
+                    .header-actions .btn-back { display: inline-flex; }
+                    .card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+                    .search-box { display: none; }
+                }
+            </style>
+
             <div id="E1MARAM" class="segment-card">
                 <div class="card-header">
                     <div class="card-title">
@@ -5107,7 +5154,19 @@
         </div>
     </div>
     <div id="toast">Copiado!</div>
-    <script>function copy(e) { navigator.clipboard.writeText(e.innerText).then(() => { document.getElementById('toast').classList.add('show'); setTimeout(() => document.getElementById('toast').classList.remove('show'), 2000) }) }; function activateNode(e) { document.querySelectorAll('.node-item').forEach(i => i.classList.remove('active')); e.classList.add('active') }; document.getElementById('searchInput').addEventListener('keyup', e => { let t = e.target.value.toUpperCase(); document.querySelectorAll('.segment-card').forEach(c => { let s = c.querySelector('.card-header').innerText.toUpperCase().includes(t); c.querySelectorAll('tbody tr').forEach(r => { if (r.innerText.toUpperCase().includes(t)) { r.classList.remove('hidden'); s = true } else r.classList.add('hidden') }); c.style.display = s ? 'block' : 'none' }) }); function exportFullCSV() { let c = "Segmento;Campo;Descrição;Tipo;Tamanho\n"; for (let [k, v] of Object.entries(SEGMENT_DEFINITIONS)) v.fields.forEach(f => c += `${k};${f.name};${f.desc};${f.type};${f.len}\n`); downloadCSV(c, "IDoc_Completo.csv") }; function exportToCSV(n) { let d = SEGMENT_DEFINITIONS[n]; if (!d) return; let c = "Campo;Descrição;Tipo;Tamanho\n"; d.fields.forEach(f => c += `${f.name};${f.desc};${f.type};${f.len}\n`); downloadCSV(c, n + ".csv") }; function downloadCSV(c, n) { let b = new Blob(["\uFEFF" + c], { type: 'text/csv;charset=utf-8;' }), l = document.createElement("a"); l.href = URL.createObjectURL(b); l.download = n; document.body.appendChild(l); l.click(); document.body.removeChild(l) }; function genVal(t, n) { if (!t) return "text"; if (t.includes('NUMC') || t.includes('INT') || t.includes('DEC')) return 123; if (t.includes('DATS')) return "20251231"; if (t.includes('TIMS')) return "235959"; return "text" }; function getSeg(n) { let d = SEGMENT_DEFINITIONS[n]; if (!d) return {}; let o = {}; d.fields.forEach(f => o[f.name] = genVal(f.type, f.name)); return o }; function buildJson(nodes) { let r = {}, l = Array.isArray(nodes) ? nodes : [nodes]; l.forEach(n => { let c = getSeg(n.segment); if (n.children) Object.assign(c, buildJson(n.children)); if (n.max > 1) r[n.segment] = [c]; else r[n.segment] = c }); return r }; function jsonToXml(o, d = 0) { let x = "", i = "  ".repeat(d); for (let k in o) { let v = o[k]; if (Array.isArray(v)) v.forEach(it => x += `${i}<${k}>\n${jsonToXml(it, d + 1)}${i}</${k}>\n`); else if (typeof v === 'object') x += `${i}<${k}>\n${jsonToXml(v, d + 1)}${i}</${k}>\n`; else x += `${i}<${k}>${v}</${k}>\n` } return x }; function openPayloadModal(n) { document.getElementById('modalSegName').innerText = n; let d = getSeg(n); document.getElementById('jsonContent').innerText = JSON.stringify(d, null, 2); document.getElementById('xmlContent').innerText = `<${n}>\n${jsonToXml(d, 1)}</${n}>`; document.getElementById('payloadModal').classList.add('open') }; function openFullPayloadModal() { document.getElementById('modalSegName').innerText = "COMPLETO"; let d = typeof IDOC_TREE !== 'undefined' ? buildJson(IDOC_TREE) : {}; document.getElementById('jsonContent').innerText = JSON.stringify(d, null, 2); document.getElementById('xmlContent').innerText = `<IDOC>\n${jsonToXml(d, 1)}</IDOC>`; document.getElementById('payloadModal').classList.add('open') }; function closePayloadModal() { document.getElementById('payloadModal').classList.remove('open') }; function switchTab(t) { document.querySelectorAll('.payload-tab').forEach(e => e.classList.remove('active')); document.querySelectorAll('.payload-content').forEach(e => e.classList.remove('active')); event.target.classList.add('active'); document.getElementById(t + 'Content').classList.add('active') }; function copyCurrentPayload() { navigator.clipboard.writeText(document.querySelector('.payload-content.active').innerText).then(() => { document.getElementById('toast').classList.add('show'); setTimeout(() => document.getElementById('toast').classList.remove('show'), 2000) }) }; (function () { const H = 'sap_docs_history'; if (!window.location.pathname.endsWith('index.html')) { let h = JSON.parse(localStorage.getItem(H) || '[]'); h = h.filter(x => x.url !== window.location.pathname.split('/').pop()); h.unshift({ title: document.title, url: window.location.pathname.split('/').pop() }); if (h.length > 10) h.pop(); localStorage.setItem(H, JSON.stringify(h)) } let c = document.getElementById('history-list'); if (c) { let h = JSON.parse(localStorage.getItem(H) || '[]'); c.innerHTML = h.length ? h.map(x => `<a href="${x.url}" class="history-link">${x.title}</a>`).join('') : '<div style="padding:5px;font-size:0.7rem;opacity:0.7">Vazio</div>' } window.clearHistory = function () { localStorage.removeItem(H); if (document.getElementById('history-list')) document.getElementById('history-list').innerHTML = '' } })();</script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('mainSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        function activateNode(e) { 
+            document.querySelectorAll('.node-item').forEach(i => i.classList.remove('active')); 
+            e.classList.add('active');
+            if(window.innerWidth <= 768) toggleSidebar();
+        };
+
+        function copy(e) { navigator.clipboard.writeText(e.innerText).then(() => { document.getElementById('toast').classList.add('show'); setTimeout(() => document.getElementById('toast').classList.remove('show'), 2000) }) }; function activateNode(e) { document.querySelectorAll('.node-item').forEach(i => i.classList.remove('active')); e.classList.add('active') }; document.getElementById('searchInput').addEventListener('keyup', e => { let t = e.target.value.toUpperCase(); document.querySelectorAll('.segment-card').forEach(c => { let s = c.querySelector('.card-header').innerText.toUpperCase().includes(t); c.querySelectorAll('tbody tr').forEach(r => { if (r.innerText.toUpperCase().includes(t)) { r.classList.remove('hidden'); s = true } else r.classList.add('hidden') }); c.style.display = s ? 'block' : 'none' }) }); function exportFullCSV() { let c = "Segmento;Campo;Descrição;Tipo;Tamanho\n"; for (let [k, v] of Object.entries(SEGMENT_DEFINITIONS)) v.fields.forEach(f => c += `${k};${f.name};${f.desc};${f.type};${f.len}\n`); downloadCSV(c, "IDoc_Completo.csv") }; function exportToCSV(n) { let d = SEGMENT_DEFINITIONS[n]; if (!d) return; let c = "Campo;Descrição;Tipo;Tamanho\n"; d.fields.forEach(f => c += `${f.name};${f.desc};${f.type};${f.len}\n`); downloadCSV(c, n + ".csv") }; function downloadCSV(c, n) { let b = new Blob(["\uFEFF" + c], { type: 'text/csv;charset=utf-8;' }), l = document.createElement("a"); l.href = URL.createObjectURL(b); l.download = n; document.body.appendChild(l); l.click(); document.body.removeChild(l) }; function genVal(t, n) { if (!t) return "text"; if (t.includes('NUMC') || t.includes('INT') || t.includes('DEC')) return 123; if (t.includes('DATS')) return "20251231"; if (t.includes('TIMS')) return "235959"; return "text" }; function getSeg(n) { let d = SEGMENT_DEFINITIONS[n]; if (!d) return {}; let o = {}; d.fields.forEach(f => o[f.name] = genVal(f.type, f.name)); return o }; function buildJson(nodes) { let r = {}, l = Array.isArray(nodes) ? nodes : [nodes]; l.forEach(n => { let c = getSeg(n.segment); if (n.children) Object.assign(c, buildJson(n.children)); if (n.max > 1) r[n.segment] = [c]; else r[n.segment] = c }); return r }; function jsonToXml(o, d = 0) { let x = "", i = "  ".repeat(d); for (let k in o) { let v = o[k]; if (Array.isArray(v)) v.forEach(it => x += `${i}<${k}>\n${jsonToXml(it, d + 1)}${i}</${k}>\n`); else if (typeof v === 'object') x += `${i}<${k}>\n${jsonToXml(v, d + 1)}${i}</${k}>\n`; else x += `${i}<${k}>${v}</${k}>\n` } return x }; function openPayloadModal(n) { document.getElementById('modalSegName').innerText = n; let d = getSeg(n); document.getElementById('jsonContent').innerText = JSON.stringify(d, null, 2); document.getElementById('xmlContent').innerText = `<${n}>\n${jsonToXml(d, 1)}</${n}>`; document.getElementById('payloadModal').classList.add('open') }; function openFullPayloadModal() { document.getElementById('modalSegName').innerText = "COMPLETO"; let d = typeof IDOC_TREE !== 'undefined' ? buildJson(IDOC_TREE) : {}; document.getElementById('jsonContent').innerText = JSON.stringify(d, null, 2); document.getElementById('xmlContent').innerText = `<IDOC>\n${jsonToXml(d, 1)}</IDOC>`; document.getElementById('payloadModal').classList.add('open') }; function closePayloadModal() { document.getElementById('payloadModal').classList.remove('open') }; function switchTab(t) { document.querySelectorAll('.payload-tab').forEach(e => e.classList.remove('active')); document.querySelectorAll('.payload-content').forEach(e => e.classList.remove('active')); event.target.classList.add('active'); document.getElementById(t + 'Content').classList.add('active') }; function copyCurrentPayload() { navigator.clipboard.writeText(document.querySelector('.payload-content.active').innerText).then(() => { document.getElementById('toast').classList.add('show'); setTimeout(() => document.getElementById('toast').classList.remove('show'), 2000) }) }; (function () { const H = 'sap_docs_history'; if (!window.location.pathname.endsWith('index.html')) { let h = JSON.parse(localStorage.getItem(H) || '[]'); h = h.filter(x => x.url !== window.location.pathname.split('/').pop()); h.unshift({ title: document.title, url: window.location.pathname.split('/').pop() }); if (h.length > 10) h.pop(); localStorage.setItem(H, JSON.stringify(h)) } let c = document.getElementById('history-list'); if (c) { let h = JSON.parse(localStorage.getItem(H) || '[]'); c.innerHTML = h.length ? h.map(x => `<a href="${x.url}" class="history-link">${x.title}</a>`).join('') : '<div style="padding:5px;font-size:0.7rem;opacity:0.7">Vazio</div>' } window.clearHistory = function () { localStorage.removeItem(H); if (document.getElementById('history-list')) document.getElementById('history-list').innerHTML = '' } })();</script>
     <script>
         // --- HISTÓRICO DE NAVEGAÇÃO ---
         (function() {

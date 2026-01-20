@@ -170,12 +170,28 @@ aside {
 .node-item strong { font-family: monospace; font-size: 0.9rem; }
 
 /* Histórico */
-.history-container { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); }
+.history-container { 
+    padding: 1rem; 
+    border-bottom: 1px solid rgba(255,255,255,0.05); 
+    background: rgba(0,0,0,0.2); 
+    flex-shrink: 0; /* Garante que não seja comprimido */
+    min-height: 80px;
+}
 .history-header { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; }
 .history-title { font-size: 0.65rem; text-transform: uppercase; color: #64748b; font-weight: 700; }
 .btn-clear-history { background: none; border: none; color: #ef4444; font-size: 0.65rem; cursor: pointer; padding: 0; }
-.history-link { display: block; color: #94a3b8; text-decoration: none; font-size: 0.8rem; padding: 3px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.history-link:hover { color: white; text-decoration: underline; }
+.history-link { 
+    display: block; 
+    color: #94a3b8; 
+    text-decoration: none; 
+    font-size: 0.8rem; 
+    padding: 5px 0; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+    transition: color 0.2s;
+}
+.history-link:hover { color: white; }
 
 main {
     flex: 1;
@@ -217,6 +233,27 @@ body.scrollable-body main { overflow: visible; padding: 0; height: auto; }
 .btn-secondary:hover { 
     background: #f8fafc; 
     border-color: #cbd5e1; 
+}
+
+/* Success Button (Adicionar) */
+.btn-success {
+    background: #10b981;
+    color: white;
+    border: none;
+}
+.btn-success:hover {
+    background: #059669;
+}
+
+/* Danger Button (Remover/X) */
+.btn-danger {
+    background: #fee2e2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+.btn-danger:hover {
+    background: #ef4444;
+    color: white;
 }
 
 /* Botões de Contorno para Header/Fundo Escuro */
@@ -427,4 +464,102 @@ tr:hover td { background: #f8fafc; }
     
     .segment-card td:nth-of-type(1) { font-size: 1.1rem; font-weight: 800; color: var(--brand-blue); font-family: 'Consolas', monospace; border-bottom: 1px solid #f1f5f9; margin-bottom: 8px; padding-bottom: 8px; }
     .segment-card td:nth-of-type(3) { display: inline-block; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-top: 8px; color: #64748b; border: 1px solid #e2e8f0; }
+}
+
+/* =========================================
+   11. MAPPER MOBILE (UX OTIMIZADA)
+   ========================================= */
+.mobile-nav-mapper {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px; /* Altura fixa para previsibilidade */
+    background: white;
+    border-top: 1px solid var(--border);
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+}
+
+.mnm-btn {
+    flex: 1;
+    padding: 8px 5px; /* Mais compacto */
+    text-align: center;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.75rem; /* Fonte levemente menor */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+}
+
+.mnm-btn.active {
+    color: var(--brand-blue);
+    background: #f8fafc;
+}
+
+.mnm-icon { font-size: 1.1rem; }
+
+/* Indicador Flutuante de Seleção (Contexto) */
+.selection-floater {
+    display: none; /* JS ativa */
+    position: fixed;
+    bottom: 60px; /* Exatamente acima do menu de 60px */
+    left: 0;
+    right: 0;
+    background: var(--brand-navy);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 0; /* Ocupa a largura toda para parecer parte da UI */
+    z-index: 990;
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+    align-items: center;
+    justify-content: space-between;
+    animation: slideUp 0.3s ease;
+    font-size: 0.85rem;
+}
+
+.floater-text { flex: 1; margin-right: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.floater-action { color: #93c5fd; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; }
+
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* Adaptação do Layout Mapper para Mobile */
+@media (max-width: 768px) {
+    .mapper-container {
+        flex-direction: column;
+        overflow: hidden; /* Controlado pelas abas */
+        padding-bottom: 60px; /* Espaço para nav */
+    }
+
+    .mapper-container .column, 
+    .mapper-container .mapping-area {
+        display: none; /* Esconde todos por padrão */
+        width: 100%;
+        border-right: none;
+        padding: 15px;
+        height: 100%;
+        overflow-y: auto;
+    }
+
+    .mapper-container .column.mobile-active,
+    .mapper-container .mapping-area.mobile-active {
+        display: flex;
+    }
+
+    .mobile-nav-mapper { display: flex; }
+    
+    /* Ajustes visuais nos itens */
+    .field-item { padding: 15px; font-size: 1rem; } /* Touch friendly */
+    .sap-item { padding: 15px; }
+    
+    /* Esconder elementos desnecessários no mobile */
+    .drop-zone { display: none; } 
+    .col-header { margin-bottom: 10px; padding: 0 !important; }
 }

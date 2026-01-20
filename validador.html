@@ -139,6 +139,50 @@
         .copy-btn:hover { background: rgba(255,255,255,0.2); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- MOBILE ADJUSTMENTS --- */
+        @media (max-width: 768px) {
+            .validator-wrapper {
+                margin: 10px auto;
+                padding: 0 10px 30px 10px;
+            }
+
+            .validator-card {
+                padding: 20px;
+                border-radius: 12px;
+            }
+
+            .val-title {
+                font-size: 1.25rem;
+                padding-bottom: 15px;
+                margin-bottom: 20px;
+            }
+
+            .val-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .val-search-box {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+
+            .payload-output {
+                font-size: 1rem;
+                padding: 15px 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .copy-btn {
+                position: static;
+                transform: none;
+                width: 100%;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>

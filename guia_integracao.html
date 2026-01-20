@@ -142,11 +142,18 @@
 <body>
 
     <header>
-        <div class="brand">PORTAL SAP <span>Integration Guide</span></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-outline-light" id="menuToggle" style="padding: 8px; display: none;" onclick="toggleSidebar()">
+                ☰
+            </button>
+            <div class="brand">PORTAL SAP <span>Integration Guide</span></div>
+        </div>
         <div class="header-actions">
              <a href="index.html" class="btn-back">🏠 Voltar</a>
         </div>
     </header>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <div class="workspace">
         <aside id="mainSidebar">
@@ -157,9 +164,9 @@
             <div class="tree-container">
                 <div class="tree-label">Navegação</div>
                 <div style="margin-left: 0;">
-                    <a href="#fluxo" class="node-item active"><strong>Fluxo de Dados</strong></a>
-                    <a href="#middleware" class="node-item"><strong>CPI vs PI</strong></a>
-                    <a href="#sap" class="node-item"><strong>O Lado do SAP</strong></a>
+                    <a href="#fluxo" class="node-item active" onclick="scrollToSection('fluxo')"><strong>Fluxo de Dados</strong></a>
+                    <a href="#middleware" class="node-item" onclick="scrollToSection('middleware')"><strong>CPI vs PI</strong></a>
+                    <a href="#sap" class="node-item" onclick="scrollToSection('sap')"><strong>O Lado do SAP</strong></a>
                 </div>
             </div>
             <div style="padding: 20px; font-size: 0.75rem; color: #64748b; border-top: 1px solid #1e293b;">
@@ -169,7 +176,7 @@
 
         <main id="mainContent" style="padding:0; overflow-y:auto;">
             
-            <div class="hero hero-dark">
+            <div class="hero hero-dark" id="fluxo">
                 <h1>Como funciona a Integração SAP?</h1>
                 <p>Entenda a jornada do dado: do seu site/app até virar um registro oficial dentro do ERP.</p>
             </div>
@@ -285,7 +292,42 @@
         </main>
     </div>
 
+    <style>
+        @media (max-width: 768px) {
+            #menuToggle { display: block !important; }
+            .timeline-container::before { left: 18px; }
+            .timeline-container .card { margin-left: 45px; margin-right: 15px; }
+            .step-icon { 
+                left: -42px; 
+                width: 32px; 
+                height: 32px; 
+                font-size: 0.9rem;
+                top: 15px;
+            }
+            .step-title { font-size: 1.1rem; }
+            .step-desc { font-size: 0.9rem; }
+            .hero h1 { font-size: 1.6rem; padding: 0 10px; }
+        }
+    </style>
+
     <script>
+        function toggleSidebar() {
+            document.getElementById('mainSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+            document.querySelectorAll('.node-item').forEach(el => el.classList.remove('active'));
+            
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+            
+            const activeNode = Array.from(document.querySelectorAll('.node-item')).find(el => el.getAttribute('onclick')?.includes(id));
+            if(activeNode) activeNode.classList.add('active');
+        }
+
         // --- HISTÓRICO DE NAVEGAÇÃO ---
         (function() {
             const MAX_HISTORY = 10;
