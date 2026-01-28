@@ -577,15 +577,34 @@
             const parent = element.parentElement; // .cw-col
             const input = parent.querySelector(`.${type}-input`);
             const fields = parent.querySelector('.field-inputs');
-            
-            if (element.innerText === "Mudar para Campo") {
-                input.classList.add('hidden');
-                fields.classList.remove('hidden');
+
+            // Para CONCAT queremos permitir também valores fixos mesmo quando
+            // o usuário opta por 'Campo'. Assim, não escondemos o input de texto
+            // para concat; apenas mostramos/ocultamos os campos Step/GUID e
+            // atualizamos o data-type para orientar a geração.
+            const btnText = (element.innerText || '').toLowerCase();
+            const wantsField = btnText.indexOf('campo') !== -1; // aceita 'Mudar p/ Campo' e 'Mudar para Campo'
+
+            if (wantsField) {
+                // comportamento unificado: ao mudar para Campo, esconder input
+                // de texto e mostrar os campos Step/GUID. Limpa o input para
+                // evitar que o mesmo valor seja considerado duas vezes.
+                if (input) {
+                    input.classList.add('hidden');
+                    try { input.value = ''; } catch(e) {}
+                }
+                if (fields) fields.classList.remove('hidden');
                 element.innerText = "Mudar para Valor";
                 parent.dataset.type = 'field'; 
             } else {
-                input.classList.remove('hidden');
-                fields.classList.add('hidden');
+                // Ao voltar para Valor, mostra o input de texto e esconde campos
+                // Step/GUID; limpa os campos Step/GUID para evitar resíduos.
+                if (input) input.classList.remove('hidden');
+                if (fields) {
+                    fields.classList.add('hidden');
+                    const s = fields.querySelectorAll('input');
+                    s.forEach(i => i.value = '');
+                }
                 element.innerText = "Mudar para Campo";
                 parent.dataset.type = 'value'; 
             }
@@ -646,7 +665,7 @@
             const div = document.createElement('div');
             div.className = 'cw-row concat-item';
             div.innerHTML = `
-                <div class="cw-col" style="flex-direction: row; align-items: center; gap: 10px; width: 100%;">
+                <div class="cw-col" data-type="value" style="flex-direction: row; align-items: center; gap: 10px; width: 100%;">
                     <div style="flex: 1;">
                         <input type="text" class="concat-input" placeholder="Texto, 'GLOBAL' ou Variável...">
                         <div class="hidden field-inputs" style="display:flex; gap:5px;">
@@ -698,24 +717,40 @@
                     items.forEach(item => {
                         const col = item.querySelector('.cw-col'); // Pega o container do input
                         const isField = col.dataset.type === 'field';
-                        
+
                         if (isField) {
-                            const s = col.querySelector('.concat-step').value;
-                            const g = col.querySelector('.concat-guid').value;
-                            if(s && g) parts.push(`ans${s}.data->'values'->>'${g}'`);
-                        } else {
-                            let val = col.querySelector('.concat-input').value.trim();
-                            if(val === 'GLOBAL') {
-                                const g = getBaseField('fake'); // Tenta pegar global
-                                if(g) parts.push(g);
-                            } else if(val) {
-                                // Se parece SQL ou variável, não põe aspas. Se texto simples, põe.
-                                if(val.startsWith('ans') || val.startsWith('\'') || val.startsWith('"')) parts.push(val);
-                                else parts.push(`'${val}'`);
+                            const s = (col.querySelector('.concat-step') || {}).value || '';
+                            const g = (col.querySelector('.concat-guid') || {}).value || '';
+                            if (s && g) {
+                                parts.push(`ans${s}.data->'values'->>'${g}'`);
+                                return;
                             }
+                            // Se não informou step/guid, permite fallback para valor fixo
+                        }
+
+                        // Tenta ler o valor puro (sem trim) para respeitar espaços
+                        const rawInput = (col.querySelector('.concat-input') || {}).value || '';
+                        const raw = rawInput; // mantém espaços intencionais
+                        if (raw.length === 0) return; // ignora item vazio
+
+                        // Token GLOBAL refere-se ao contexto base
+                        if (raw === 'GLOBAL') {
+                            const g = getBaseField('fake'); // tenta pegar global
+                            if (g) parts.push(g);
+                            return;
+                        }
+
+                        const startsWithAns = raw.startsWith('ans');
+                        const startsWithQuote = raw.startsWith("'") || raw.startsWith('"');
+                        if (startsWithAns || startsWithQuote) {
+                            parts.push(raw);
+                        } else {
+                            // Escapa aspas simples para SQL e envolve em aspas
+                            const escaped = raw.replace(/'/g, "''");
+                            parts.push(`'${escaped}'`);
                         }
                     });
-                    if(parts.length > 0) result = `CONCAT(${parts.join(', ')})`;
+                    if (parts.length > 0) result = `CONCAT(${parts.join(', ')})`;
                 }
 
                 // 4. LPAD
@@ -757,7 +792,8 @@
 
                     let lines = [`CASE`];
                     
-                    document.querySelectorAll('.cw-row').forEach(row => {
+                    // iterar apenas sobre as linhas dentro do container de WHEN
+                    document.querySelectorAll('#whenClausesContainer .cw-row').forEach(row => {
                         // Lógica da Esquerda (WHEN)
                         let leftVal = '';
                         const whenCol = row.querySelector('.cw-col:first-child');
