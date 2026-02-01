@@ -1,217 +1,489 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Validador de Campos JSON</title>
-  <link rel="stylesheet" href="estilos.css">
-  <style>
-    .validator-container { max-width: 1000px; margin: 2rem auto; padding: 1.25rem; background:#fff; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
-    textarea.code-editor { min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace; font-size:13px; border:1px solid #e6e6e6; border-radius:6px; padding:10px; }
-    .result-list { margin-top: 12px; max-height:260px; overflow:auto; border-top:1px solid #f0f0f0; padding-top:10px; }
-    .result-item { padding:8px 10px; margin:6px 0; border-radius:6px; display:flex; justify-content:space-between; align-items:center; }
-    .result-item.pass { background: #eef9f1; color: #0b6b2f; border: 1px solid #dff3df; }
-    .result-item.fail { background: #fff4f4; color: #a10b0b; border: 1px solid #ffd6d6; }
-    .toolbar { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
-    .toolbar .left { flex:1; display:flex; gap:8px; align-items:center; }
-    .toolbar .right { display:flex; gap:8px; }
-    .badge { padding:4px 8px; border-radius:999px; font-size:12px; }
-    .badge.pass { background:#e6f6ea; color:#0b6b2f; border:1px solid #dff3df; }
-    .badge.fail { background:#fff0f0; color:#a10b0b; border:1px solid #ffd6d6; }
-    .controls { display:flex; gap:8px; align-items:center; }
-    .muted { color:#666; font-size:13px; }
-    .small { font-size:13px; padding:6px 10px; }
-    .select-doc { min-width:320px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador de Campos - Portal SAP</title>
+    <link rel="stylesheet" href="estilos.css">
+    <style>
+        .validator-container {
+            display: flex;
+            height: calc(100vh - 70px);
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+        .input-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            border-right: 1px solid var(--border);
+        }
+
+        .result-column {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background: white;
+            overflow-y: auto;
+        }
+
+        .json-input {
+            flex: 1;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            resize: none;
+            margin-bottom: 10px;
+        }
+
+        .validator-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            gap: 15px;
+        }
+
+        .btn-action {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .btn-action:hover { background: #1e40af; }
+        .btn-outline { background: white; border: 1px solid #cbd5e1; color: #475569; }
+        .btn-outline:hover { background: #f1f5f9; }
+
+        /* Result Items */
+        .log-item {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.9rem;
+            border: 1px solid transparent;
+        }
+        
+        .log-item.pass { background-color: #f0fdf4; border-color: #dcfce7; }
+        .log-item.fail { background-color: #fef2f2; border-color: #fee2e2; }
+        .log-item.hidden { display: none !important; }
+
+        .log-icon { font-weight: bold; }
+        .log-item.pass .log-icon { color: #166534; }
+        .log-item.fail .log-icon { color: #991b1b; }
+
+        .log-content { flex: 1; }
+        .log-key { font-family: 'Consolas', monospace; font-weight: 700; color: #334155; }
+        .log-msg { color: #64748b; font-size: 0.85rem; margin-top: 2px; }
+        .log-val { color: #dc2626; font-family: 'Consolas', monospace; font-size: 0.8rem; margin-top: 4px; background: rgba(255,255,255,0.5); padding: 2px 4px; border-radius: 3px; display:inline-block;}
+        
+        .badge-tech { 
+            font-family: 'Consolas', monospace; font-size: 0.75rem; 
+            background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; 
+            color: #475569; margin-left: 8px;
+        }
+
+        .summary-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            align-items: center;
+        }
+        
+        .filter-btn {
+            border: 1px solid transparent;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            user-select: none;
+        }
+        .filter-btn:hover { background: #f8fafc; }
+        .filter-btn.inactive { opacity: 0.5; filter: grayscale(1); }
+        
+        .badge-count { font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+        .bg-green { background: #dcfce7; color: #166534; }
+        .bg-red { background: #fee2e2; color: #991b1b; }
+
+        /* --- MOBILE --- */
+        .mobile-nav-validator {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: white;
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+        }
+
+        .mnv-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .mnv-btn.active { color: var(--brand-blue); background: #f8fafc; }
+
+        @media (max-width: 768px) {
+            .validator-controls { flex-direction: column; align-items: stretch; gap: 10px; }
+            .validator-container { flex-direction: column; height: calc(100vh - 180px); padding-bottom: 60px; }
+            .input-column, .result-column { display: none; width: 100%; height: 100%; border-right: none; }
+            .input-column.mobile-active, .result-column.mobile-active { display: flex; }
+            .mobile-nav-validator { display: flex; }
+            .summary-bar { flex-wrap: wrap; }
+        }
+    </style>
 </head>
 <body>
-  <header style="display:flex; justify-content:space-between; align-items:center; padding:12px 24px;">
-    <div class="brand">Validador <span>JSON -> Campos</span></div>
-    <a href="index.html" class="btn-back">🏠 Voltar</a>
-  </header>
 
-  <main class="validator-container">
-    <h2>Analisar JSON por documentação de campos</h2>
-    <p>Cole um JSON (objeto com chaves técnicas) e pressione <b>Validar</b>. O validador verificará comprimento e formato básico de acordo com <i>dados_campos.js</i>.</p>
-
-    <div class="diff-container" style="height:auto; min-height:420px;">
-
-      <div class="input-column" style="min-width:420px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <label class="muted" style="font-weight:700;">Documento:</label>
-            <select id="docSelect" class="select-doc" style="padding:8px; border-radius:6px; border:1px solid var(--border);"></select>
-            <span class="muted" style="font-size:13px;">Filtrar por doc</span>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-secondary" onclick="formatJson()">Formatar</button>
-            <button class="btn btn-primary" onclick="runValidation()">Validar</button>
-            <button class="btn btn-secondary" onclick="downloadJson()">Baixar</button>
-          </div>
+    <header>
+        <div class="brand">FERRAMENTA <span>JSON Validator</span></div>
+        <div class="header-actions">
+            <a href="index.html" class="btn-back">🏠 Voltar</a>
         </div>
+    </header>
 
-        <textarea id="jsonInput" class="json-input" placeholder='{"BBBNR":"123","ANTLF":"1.5"}'></textarea>
-      </div>
+    <div class="workspace">
+        <aside>
+            <div class="history-container">
+                <div class="history-header">
+                    <span class="history-title">Vistos Recentemente</span>
+                    <button class="btn-clear-history" onclick="clearHistory()">Limpar</button>
+                </div>
+                <div id="history-list" class="history-list"></div>
+            </div>
+        </aside>
 
-      <div class="result-column">
-        <h3>Resultados</h3>
-        <div id="summaryBar" class="summary-bar" style="display:none;">
-          <div>OK: <span id="sumOk" class="badge badge-success">0</span></div>
-          <div>Erros: <span id="sumErr" class="badge badge-danger">0</span></div>
+        <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+            
+            <div class="validator-controls">
+                <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                    <label style="font-weight:600; color:#475569;">Documento:</label>
+                    <select id="docSelect" style="padding:8px; border-radius:6px; border:1px solid var(--border); flex:1; max-width:300px;">
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-action btn-outline" onclick="formatJson()">Format</button>
+                    <button class="btn-action" onclick="runValidation()">VALIDAR CAMPOS ⚡</button>
+                </div>
+            </div>
+
+            <div class="validator-container">
+                
+                <div class="input-column mobile-active" id="colInput">
+                    <h3>JSON de Entrada</h3>
+                    <textarea id="jsonInput" class="json-input" placeholder='{"CREMAS06": { ... }}'></textarea>
+                </div>
+
+                <div class="result-column" id="colRes">
+                    <h3>Relatório de Validação</h3>
+                    
+                    <div id="summaryBar" class="summary-bar" style="display:none;">
+                        <div class="filter-btn" id="btnFilterPass" onclick="toggleFilter('pass')" title="Clique para ocultar/exibir">
+                            Válidos <span id="sumOk" class="badge-count bg-green">0</span>
+                        </div>
+                        <div class="filter-btn" id="btnFilterFail" onclick="toggleFilter('fail')" title="Clique para ocultar/exibir">
+                            Erros <span id="sumErr" class="badge-count bg-red">0</span>
+                        </div>
+                        <span style="font-size:0.75rem; color:#94a3b8; margin-left:auto;">(Clique nos botões para filtrar)</span>
+                    </div>
+
+                    <div id="results">
+                        <div style="color:#94a3b8; text-align:center; margin-top:40px;">
+                            Cole o JSON ao lado e clique em VALIDAR.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin:10px 0 6px 0;">
-          <div class="muted">Lista de validações</div>
-          <div>
-            <button class="btn btn-secondary" onclick="copyResults()">Copiar</button>
-            <button class="btn btn-secondary" onclick="clearResults()">Limpar</button>
-          </div>
-        </div>
-
-        <div id="results" class="result-list" aria-live="polite"></div>
-      </div>
-
     </div>
-  </main>
 
-  <script src="dados_campos.js"></script>
-  <script src="scripts/doc_labels.js"></script>
-  <script>
-    function formatJson(){
-      try{
-        const v = JSON.parse(document.getElementById('jsonInput').value);
-        document.getElementById('jsonInput').value = JSON.stringify(v, null, 2);
-      }catch(e){ alert('JSON inválido'); }
-    }
+    <!-- Mobile Nav -->
+    <nav class="mobile-nav-validator">
+        <button class="mnv-btn active" onclick="switchTab('Input')">
+            <span style="font-size:1.2rem;">📝</span> Editor
+        </button>
+        <button class="mnv-btn" onclick="switchTab('Res')">
+            <span style="font-size:1.2rem;">✅</span> Resultado
+        </button>
+    </nav>
 
-    function validateValueByMeta(key, val, meta){
-      const type = (meta && meta.type) || 'CHAR';
-      const maxLen = meta && meta.len ? parseInt(meta.len,10) : null;
-      const s = (val===null||val===undefined)?'':String(val);
+    <script src="dados_campos.js"></script>
+    <script src="scripts/doc_labels.js"></script>
+    <script>
+        // --- Filter Logic ---
+        const visibility = { pass: true, fail: true };
 
-      // Type-specific checks
-      if (/^NUMC$/.test(type)){
-        if (!/^\d+$/.test(s)) return {ok:false, msg:'Valor deve conter apenas dígitos (NUMC)'};
-        if (maxLen && s.length > maxLen) return {ok:false, msg:`Excede comprimento máximo ${maxLen} (tamanho ${s.length})`} ;
-        return {ok:true};
-      }
-      if (/^(DEC|CURR)$/.test(type)){
-        if (!/^\d+(\.\d+)?$/.test(s)) return {ok:false, msg:'Valor decimal inválido — use ponto como separador'};
-        // For DEC types, `len` typically defines the maximum integer digits
-        if (maxLen) {
-          const intPart = s.split('.')[0];
-          if (intPart.length > maxLen) return {ok:false, msg:`Parte inteira excede ${maxLen} dígitos`};
+        function toggleFilter(type) {
+            visibility[type] = !visibility[type];
+            
+            // Toggle Classes
+            const items = document.querySelectorAll(`.log-item.${type}`);
+            items.forEach(el => {
+                if(visibility[type]) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+
+            // Visual Feedback on Button
+            const btn = document.getElementById(type === 'pass' ? 'btnFilterPass' : 'btnFilterFail');
+            if(visibility[type]) btn.classList.remove('inactive');
+            else btn.classList.add('inactive');
         }
-        return {ok:true};
-      }
 
-      // Basic length check (string length for CHAR-like types)
-      if (maxLen && s.length > maxLen) return {ok:false, msg:`Excede comprimento máximo ${maxLen} (tamanho ${s.length})`} ;
-
-      // default: accept
-      return {ok:true};
-    }
-
-    function populateDocSelect(){
-      const sel = document.getElementById('docSelect');
-      if (!sel || typeof GLOBAL_FIELDS === 'undefined') return;
-      const files = new Set();
-      for (const k in GLOBAL_FIELDS){
-        let metas = GLOBAL_FIELDS[k];
-        if (!metas) continue;
-        if (!Array.isArray(metas)) metas = [metas];
-        metas.forEach(m => {
-          if (m && Array.isArray(m.sources)) m.sources.forEach(s => { if (s && s.file) files.add(s.file); });
-        });
-      }
-      sel.innerHTML = '';
-      const optAll = document.createElement('option'); optAll.value = ''; optAll.text = '(Todos) - padrão'; sel.appendChild(optAll);
-      Array.from(files).sort().forEach(f => {
-        const o = document.createElement('option');
-        o.value = f;
-        // prefer external mapping if available
-        try{ if (typeof getDocLabel === 'function') o.text = getDocLabel(f); else if (typeof DOC_LABELS !== 'undefined' && DOC_LABELS[f]) o.text = DOC_LABELS[f]; else o.text = f; }catch(e){ o.text = f; }
-        sel.appendChild(o);
-      });
-    }
-
-    function clearResults(){
-      document.getElementById('results').innerHTML = '';
-      const sb = document.getElementById('summaryBar'); if (sb) sb.style.display = 'none';
-      const so = document.getElementById('sumOk'); if (so) so.textContent = '0';
-      const se = document.getElementById('sumErr'); if (se) se.textContent = '0';
-    }
-
-    function updateResultsSummary(){
-      const out = document.getElementById('results');
-      const pass = out.querySelectorAll('.result-item.pass').length;
-      const fail = out.querySelectorAll('.result-item.fail').length;
-      const sb = document.getElementById('summaryBar'); if (sb) sb.style.display = (pass+fail)>0 ? 'flex' : 'none';
-      const so = document.getElementById('sumOk'); if (so) so.textContent = String(pass);
-      const se = document.getElementById('sumErr'); if (se) se.textContent = String(fail);
-    }
-
-    function downloadJson(){
-      try{
-        const v = JSON.parse(document.getElementById('jsonInput').value);
-        const blob = new Blob([JSON.stringify(v, null, 2)], {type:'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'dados.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-      }catch(e){ alert('JSON inválido: ' + e.message); }
-    }
-
-    async function copyResults(){
-      const out = document.getElementById('results');
-      const texts = Array.from(out.children).map(n => n.textContent.trim()).join('\n');
-      try{ if (navigator && navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(texts); else alert('Clipboard não disponível'); }catch(e){ /* ignore in headless */ }
-    }
-
-    function runValidation(){
-      const out = document.getElementById('results');
-      out.innerHTML = '';
-      let parsed;
-      try{ parsed = JSON.parse(document.getElementById('jsonInput').value); }
-      catch(e){ out.innerHTML = '<div class="result-item fail">JSON inválido: ' + e.message + '</div>'; return; }
-
-      if (typeof parsed !== 'object' || parsed === null) { out.innerHTML = '<div class="result-item fail">Esperado um objeto JSON no nível superior</div>'; return; }
-
-      const keys = Object.keys(parsed);
-      if (keys.length === 0) { out.innerHTML = '<div class="result-item fail">Objeto vazio</div>'; return; }
-
-      const selectedDoc = document.getElementById('docSelect') ? document.getElementById('docSelect').value : null;
-
-      keys.forEach(k => {
-        let metas = (typeof GLOBAL_FIELDS !== 'undefined' && GLOBAL_FIELDS[k]) ? GLOBAL_FIELDS[k] : null;
-        if (!metas) {
-          const node = document.createElement('div');
-          node.className = 'result-item fail';
-          node.textContent = `${k}: Sem metadado (ignorado)`;
-          out.appendChild(node);
-          return;
+        // --- Tab Logic ---
+        function switchTab(tab) {
+            document.querySelectorAll('.input-column, .result-column').forEach(el => el.classList.remove('mobile-active'));
+            if(tab === 'Input') document.getElementById('colInput').classList.add('mobile-active');
+            if(tab === 'Res') document.getElementById('colRes').classList.add('mobile-active');
+            
+            document.querySelectorAll('.mnv-btn').forEach(btn => btn.classList.remove('active'));
+            const idx = tab === 'Input' ? 0 : 1;
+            document.querySelectorAll('.mnv-btn')[idx].classList.add('active');
         }
-        if (!Array.isArray(metas)) metas = [metas];
-        let meta = metas[0];
-        if (selectedDoc) {
-          const found = metas.find(m => Array.isArray(m.sources) && m.sources.some(s => s.file === selectedDoc));
-          if (found) meta = found;
-        }
-        const res = validateValueByMeta(k, parsed[k], meta);
-        const node = document.createElement('div');
-        node.className = 'result-item ' + (res.ok ? 'pass' : 'fail');
-        const left = document.createElement('div'); left.style.flex = '1';
-        left.textContent = `${k}: ${res.ok ? 'OK' : 'ERRO'}${res.msg? ' — ' + res.msg : (meta? ` (tipo ${meta.type} len ${meta.len})` : ' (sem meta)')}`;
-        const right = document.createElement('div'); right.style.marginLeft = '12px'; right.style.flex = '0 0 auto';
-        const copyBtn = document.createElement('button'); copyBtn.className = 'btn small'; copyBtn.textContent = 'Copiar';
-        copyBtn.onclick = () => { try{ navigator.clipboard.writeText(left.textContent); }catch(e){ alert('Falha ao copiar'); } };
-        right.appendChild(copyBtn);
-        node.appendChild(left); node.appendChild(right);
-        out.appendChild(node);
-      });
-      updateResultsSummary();
-    }
 
-    // populate doc select once dados_campos.js is loaded
-    try{ populateDocSelect(); }catch(e){}
-  </script>
+        // --- Business Logic ---
+
+        function formatJson(){
+            const el = document.getElementById('jsonInput');
+            try {
+                const v = JSON.parse(el.value);
+                el.value = JSON.stringify(v, null, 2);
+            } catch(e){ alert('JSON Inválido'); }
+        }
+
+        function populateDocSelect(){
+            const sel = document.getElementById('docSelect');
+            if (!sel || typeof GLOBAL_FIELDS === 'undefined') return;
+            const files = new Set();
+            for (const k in GLOBAL_FIELDS){
+                let metas = GLOBAL_FIELDS[k];
+                if (!metas) continue;
+                if (!Array.isArray(metas)) metas = [metas];
+                metas.forEach(m => {
+                    if (m && Array.isArray(m.sources)) m.sources.forEach(s => { if (s && s.file) files.add(s.file); });
+                });
+            }
+            sel.innerHTML = '';
+            const optAll = document.createElement('option'); optAll.value = ''; optAll.text = '(Todos os Documentos)'; sel.appendChild(optAll);
+            Array.from(files).sort().forEach(f => {
+                const o = document.createElement('option');
+                o.value = f;
+                try{ 
+                    if (typeof getDocLabel === 'function') o.text = getDocLabel(f); 
+                    else if (typeof DOC_LABELS !== 'undefined' && DOC_LABELS[f]) o.text = DOC_LABELS[f]; 
+                    else o.text = f; 
+                }catch(e){ o.text = f; }
+                sel.appendChild(o);
+            });
+        }
+
+        function validateValueByMeta(key, val, meta){
+            const type = (meta && meta.type) || 'CHAR';
+            const maxLen = meta && meta.len ? parseInt(meta.len,10) : null;
+            const s = (val===null||val===undefined)?'':String(val);
+
+            if (/^NUMC$/.test(type)){
+                if (!/^\d+$/.test(s)) return {ok:false, msg:'Apenas números (NUMC)'};
+                if (maxLen && s.length > maxLen) return {ok:false, msg:`Tam. max ${maxLen} (atual: ${s.length})`};
+                return {ok:true};
+            }
+            if (/^(DEC|CURR)$/.test(type)){
+                if (!/^\d+(\.\d+)?$/.test(s) && s !== '') return {ok:false, msg:'Decimal inválido (use ponto)'};
+                if (maxLen) {
+                    const intPart = s.split('.')[0];
+                    if (intPart.length > maxLen) return {ok:false, msg:`Inteiro excede ${maxLen}`};
+                }
+                return {ok:true};
+            }
+            if (maxLen && s.length > maxLen) return {ok:false, msg:`Tam. max ${maxLen} (atual: ${s.length})`};
+            return {ok:true};
+        }
+
+        function runValidation(){
+            const out = document.getElementById('results');
+            const inputVal = document.getElementById('jsonInput').value.trim();
+            const sb = document.getElementById('summaryBar');
+            
+            // Reset filters to visible on new run
+            visibility.pass = true; visibility.fail = true;
+            document.getElementById('btnFilterPass').classList.remove('inactive');
+            document.getElementById('btnFilterFail').classList.remove('inactive');
+
+            if (!inputVal) { out.innerHTML = '<div style="color:red; padding:10px;">Insira um JSON.</div>'; sb.style.display='none'; return; }
+
+            let parsed;
+            try { parsed = JSON.parse(inputVal); } 
+            catch(e){ out.innerHTML = `<div class="log-item fail"><div class="log-icon">!</div><div class="log-content">Erro JSON: ${e.message}</div></div>`; sb.style.display='none'; return; }
+
+            if (typeof parsed !== 'object' || parsed === null) { out.innerHTML = '<div class="log-item fail">Não é um objeto.</div>'; sb.style.display='none'; return; }
+
+            out.innerHTML = '';
+            
+            // --- RECURSIVE VALIDATION START ---
+            let countOk = 0;
+            let countErr = 0;
+            const selectedDoc = document.getElementById('docSelect').value;
+
+            function traverse(obj, path = '') {
+                // If it's an array, iterate items
+                if (Array.isArray(obj)) {
+                    obj.forEach((item, idx) => {
+                        traverse(item, `${path}[${idx}]`);
+                    });
+                    return;
+                }
+
+                // If it's an object, iterate keys
+                if (typeof obj === 'object' && obj !== null) {
+                    Object.keys(obj).forEach(key => {
+                        const val = obj[key];
+                        const currentPath = path ? `${path} > ${key}` : key;
+
+                        let metas = (typeof GLOBAL_FIELDS !== 'undefined' && GLOBAL_FIELDS[key]) ? GLOBAL_FIELDS[key] : null;
+
+                        if (metas) {
+                            if (typeof val === 'object' && val !== null) {
+                                traverse(val, currentPath); 
+                            } else {
+                                if (!Array.isArray(metas)) metas = [metas];
+                                let meta = metas[0];
+                                if (selectedDoc) {
+                                    const found = metas.find(m => Array.isArray(m.sources) && m.sources.some(s => s.file === selectedDoc));
+                                    if (found) meta = found;
+                                }
+
+                                const res = validateValueByMeta(key, val, meta);
+                                if (res.ok) countOk++; else countErr++;
+                                renderItem(out, currentPath, res.ok, res.msg, meta, val);
+                            }
+                        } else {
+                            if (typeof val === 'object' && val !== null) {
+                                traverse(val, currentPath);
+                            } else {
+                                countErr++;
+                                renderItem(out, currentPath, false, 'Campo desconhecido (sem metadados)', null, val);
+                            }
+                        }
+                    });
+                }
+            }
+
+            traverse(parsed);
+            
+            if (out.innerHTML === '') {
+                 out.innerHTML = '<div class="log-item fail">Nenhum campo validável encontrado.</div>';
+            }
+            // --- RECURSIVE VALIDATION END ---
+
+            sb.style.display = 'flex';
+            document.getElementById('sumOk').innerText = countOk;
+            document.getElementById('sumErr').innerText = countErr;
+            
+            if(window.innerWidth <= 768) switchTab('Res');
+        }
+
+        function renderItem(container, key, isOk, msg, meta, val){
+            const div = document.createElement('div');
+            div.className = 'log-item ' + (isOk ? 'pass' : 'fail');
+            const typeInfo = meta ? `${meta.type}(${meta.len})` : '';
+            
+            const parts = key.split(' > ');
+            const leaf = parts.pop();
+            const pathStr = parts.length > 0 ? parts.join(' > ') + ' > ' : '';
+
+            // Safe value display (escape basic html chars if needed, though innerText usually handles it, but here we construct HTML)
+            // Using a simple logic to show value on error
+            let valHtml = '';
+            if (!isOk && val !== undefined && val !== null) {
+                // Ensure string
+                const sVal = String(val);
+                // Truncate if too long
+                const displayVal = sVal.length > 50 ? sVal.substring(0, 50) + '...' : sVal;
+                // Basic escaping for HTML injection safety (minimal)
+                const safeVal = displayVal.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                valHtml = `<div class="log-val">Valor: "${safeVal}"</div>`;
+            }
+
+            div.innerHTML = `
+                <div class="log-icon">${isOk ? '✓' : '✕'}</div>
+                <div class="log-content">
+                    <div>
+                        <span style="color:#94a3b8; font-size:0.8rem;">${pathStr}</span>
+                        <span class="log-key">${leaf}</span>
+                        ${typeInfo ? `<span class="badge-tech">${typeInfo}</span>` : ''}
+                    </div>
+                    ${msg ? `<div class="log-msg">${msg}</div>` : ''}
+                    ${valHtml}
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        window.onload = function() {
+            setTimeout(populateDocSelect, 100);
+        };
+    </script>
+
+    <!-- History Logic -->
+    <script>
+        (function() {
+            const MAX_HISTORY = 10;
+            const HISTORY_KEY = 'sap_docs_history';
+            if (!window.location.pathname.endsWith('index.html')) {
+                const pageTitle = document.title.split('-')[0].trim();
+                const currentPage = { title: pageTitle, url: window.location.pathname.split('/').pop() };
+                let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+                history = history.filter(h => h.url !== currentPage.url);
+                history.unshift(currentPage);
+                if (history.length > MAX_HISTORY) history.pop();
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            }
+            const container = document.getElementById('history-list');
+            if (container) {
+                const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+                if (history.length === 0) container.innerHTML = '<div style="padding:5px 12px; font-size:0.75rem; color:#64748b;">Nenhum item recente.</div>';
+                else { container.innerHTML = history.map(h => `<a href="${h.url}" class="history-link">${h.title}</a>`).join(''); }
+            }
+            window.clearHistory = function() { localStorage.removeItem(HISTORY_KEY); if(document.getElementById('history-list')) document.getElementById('history-list').innerHTML = ''; }
+        })();
+    </script>
 </body>
 </html>
