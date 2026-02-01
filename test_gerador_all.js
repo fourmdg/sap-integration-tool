@@ -123,6 +123,52 @@ function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
     console.log('\n[CASE WHEN] ' + caseOut);
     if (!caseOut.includes('CASE') || !caseOut.includes("WHEN ans01.data->'values'->>'GUID1' = 'A'")) throw new Error('CASE WHEN inválido');
 
+    console.log('\n[JSON VALIDATOR] Iniciando testes do validador de campos...');
+
+    // ---------- JSON FIELD VALIDATOR ----------
+    const validatorHtml = fs.readFileSync(path.resolve(__dirname, 'json_field_validator.html'), 'utf8');
+    const vdom = new JSDOM(validatorHtml, { runScripts: 'dangerously', resources: 'usable', url: 'file://' + path.resolve(__dirname, 'json_field_validator.html') });
+    const vwin = vdom.window;
+    vwin.alert = (m)=>{};
+    vwin.navigator = vwin.navigator || {}; vwin.navigator.clipboard = { writeText: async ()=>{} };
+    // expose GLOBAL_FIELDS by loading dados_campos.js contents into the vdom
+    const dados = fs.readFileSync(path.resolve(__dirname, 'dados_campos.js'), 'utf8');
+    vwin.eval(dados);
+    // also load doc_labels mapping into the vdom so selector labels are available
+    try{
+      const dlabels = fs.readFileSync(path.resolve(__dirname, 'scripts', 'doc_labels.js'), 'utf8');
+      vwin.eval(dlabels);
+    }catch(e){}
+    // attempt to populate selector now that GLOBAL_FIELDS exists
+    try{ if (typeof vwin.populateDocSelect === 'function') vwin.populateDocSelect(); }catch(e){}
+    // esperar carregamento dos scripts inline
+    await wait(200);
+
+    const vdoc = vwin.document;
+    vdoc.getElementById('jsonInput').value = JSON.stringify({ BBBNR: '1234567', ANTLF: '1.5', BBBNR_bad: '12A' });
+    // selecionar documento de referência conhecido para estes campos
+    const sel = vdoc.getElementById('docSelect');
+    if (sel) {
+      // escolha um arquivo presente em dados_campos.js
+      sel.value = 'DOCUMENTACAO_IDOC_CLIENTES.html';
+    }
+    // run validation (verifica função disponível)
+    if (typeof vwin.runValidation !== 'function') {
+      // tentar avaliar o script inline extraindo do HTML caso não tenha sido executado
+      const match = /<script>([\s\S]*?)<\/script>/i.exec(validatorHtml);
+      if (match && match[1]) vwin.eval(match[1]);
+      await wait(50);
+    }
+    vwin.runValidation();
+    await wait(20);
+    const resultsEl = vdoc.getElementById('results');
+    const items = Array.from(resultsEl.children).map(c => ({text: c.textContent.trim(), html: c.outerHTML}));
+    console.log('\n[JSON VALIDATOR] items:', items.map(i=>i.text));
+    console.log('\n[JSON VALIDATOR] outerHTMLs:', items.map(i=>i.html).join('\n---\n'));
+    const vout = items.map(i=>i.text).join(' | ');
+    if (!vout.includes('BBBNR: OK')) throw new Error('JSON Validator: BBBNR deveria ser OK');
+    if (!vout.includes("ANTLF: OK")) throw new Error('JSON Validator: ANTLF (DEC) deveria ser OK');
+
     console.log('\nTodos os testes passaram.');
     process.exit(0);
 
