@@ -3,13 +3,19 @@
  * Suporta detecção de: adicionados, removidos, tipo alterado, valor alterado
  */
 
+/** Tipo que representa qualquer valor JSON válido */
+export type JsonValue = string | number | boolean | null | undefined | JsonValue[] | JsonObject;
+
+/** Tipo que representa um objeto JSON */
+export type JsonObject = { [key: string]: JsonValue };
+
 export type DiffType = 'added' | 'removed' | 'type-changed' | 'value-changed' | 'unchanged';
 
 export interface DiffItem {
   path: string;
   type: DiffType;
-  leftValue?: any;
-  rightValue?: any;
+  leftValue?: JsonValue;
+  rightValue?: JsonValue;
   leftType?: string;
   rightType?: string;
 }
@@ -47,7 +53,7 @@ export interface DiffResult {
 /**
  * Obtém o tipo JavaScript de um valor de forma detalhada
  */
-function getType(value: any): string {
+function getType(value: JsonValue): string {
   if (value === null) return 'null';
   if (value === undefined) return 'undefined';
   if (Array.isArray(value)) return 'array';
@@ -57,7 +63,7 @@ function getType(value: any): string {
 /**
  * Compara dois valores primitivos
  */
-function comparePrimitives(left: any, right: any, options: DiffOptions): DiffType {
+function comparePrimitives(left: JsonValue, right: JsonValue, options: DiffOptions): DiffType {
   const leftType = getType(left);
   const rightType = getType(right);
 
@@ -80,7 +86,7 @@ function comparePrimitives(left: any, right: any, options: DiffOptions): DiffTyp
 /**
  * Normaliza array para comparação (se ignoreArrayOrder)
  */
-function normalizeArray(arr: any[], options: DiffOptions): any[] {
+function normalizeArray(arr: JsonValue[], options: DiffOptions): JsonValue[] {
   if (!options.ignoreArrayOrder) return arr;
 
   // Tenta ordenar por JSON stringified para comparação
@@ -99,8 +105,8 @@ function normalizeArray(arr: any[], options: DiffOptions): any[] {
  * Motor principal de diff recursivo
  */
 function diffRecursive(
-  left: any,
-  right: any,
+  left: JsonValue,
+  right: JsonValue,
   path: string,
   options: DiffOptions,
   items: DiffItem[]
@@ -140,8 +146,8 @@ function diffRecursive(
 
   // Arrays
   if (leftType === 'array') {
-    const leftArr = normalizeArray(left as any[], options);
-    const rightArr = normalizeArray(right as any[], options);
+    const leftArr = normalizeArray(left as JsonValue[], options);
+    const rightArr = normalizeArray(right as JsonValue[], options);
 
     const maxLen = Math.max(leftArr.length, rightArr.length);
 
@@ -172,8 +178,10 @@ function diffRecursive(
 
   // Objetos
   if (leftType === 'object') {
-    const leftKeys = new Set(Object.keys(left || {}));
-    const rightKeys = new Set(Object.keys(right || {}));
+    const leftObj = (left || {}) as JsonObject;
+    const rightObj = (right || {}) as JsonObject;
+    const leftKeys = new Set(Object.keys(leftObj));
+    const rightKeys = new Set(Object.keys(rightObj));
     const allKeys = new Set([...leftKeys, ...rightKeys]);
 
     for (const key of allKeys) {
@@ -184,18 +192,18 @@ function diffRecursive(
         items.push({
           path: keyPath,
           type: 'added',
-          rightValue: right[key],
+          rightValue: rightObj[key],
         });
       } else if (!rightKeys.has(key)) {
         // Chave removida
         items.push({
           path: keyPath,
           type: 'removed',
-          leftValue: left[key],
+          leftValue: leftObj[key],
         });
       } else {
         // Comparar recursivamente
-        diffRecursive(left[key], right[key], keyPath, options, items);
+        diffRecursive(leftObj[key], rightObj[key], keyPath, options, items);
       }
     }
     return;
@@ -220,7 +228,11 @@ function diffRecursive(
 /**
  * Função principal de comparação de JSONs
  */
-export function deepDiff(left: any, right: any, options: Partial<DiffOptions> = {}): DiffResult {
+export function deepDiff(
+  left: JsonValue,
+  right: JsonValue,
+  options: Partial<DiffOptions> = {}
+): DiffResult {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const items: DiffItem[] = [];
 
@@ -253,13 +265,13 @@ export function deepDiff(left: any, right: any, options: Partial<DiffOptions> = 
 /**
  * Formata um valor para exibição
  */
-export function formatValue(value: any, maxLen = 50): string {
+export function formatValue(value: JsonValue, maxLen = 50): string {
   if (value === undefined) return 'undefined';
   if (value === null) return 'null';
 
   const str = JSON.stringify(value);
   if (str.length > maxLen) {
-    return str.substring(0, maxLen - 3) + '...';
+    return `${str.substring(0, maxLen - 3)}...`;
   }
   return str;
 }
@@ -336,7 +348,7 @@ export function diffToMarkdown(result: DiffResult): string {
   const lines: string[] = [];
 
   lines.push('# JSON Diff Report\n');
-  lines.push(`## Resumo`);
+  lines.push('## Resumo');
   lines.push(`- ✅ Adicionados: ${result.stats.added}`);
   lines.push(`- ❌ Removidos: ${result.stats.removed}`);
   lines.push(`- ⚡ Tipo alterado: ${result.stats.typeChanged}`);
