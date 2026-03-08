@@ -1,0 +1,250 @@
+---
+/**
+ * DiffJsonViewer - Componente de visualização de JSON com highlighting de diferenças
+ * Baseado no JsonViewer, mas com suporte a cores por tipo de diff
+ */
+interface Props {
+  id: string;
+  label?: string;
+  height?: string;
+  side?: 'left' | 'right';
+}
+
+const { id, label = '', height = '400px', side = 'left' } = Astro.props;
+---
+
+<div class="djv-container" id={`${id}Container`} data-djv-id={id} data-side={side}>
+  {label && (
+    <div class="djv-header">
+      <span class="djv-label">{label}</span>
+    </div>
+  )}
+  <div class="djv-content" style={`height: ${height};`} data-djv-scroll={id}>
+    <div class="djv-lines" id={`${id}Lines`}></div>
+  </div>
+</div>
+
+<style is:global>
+  /* ========== CONTAINER ========== */
+  .djv-container {
+    background: #171717;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .djv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #111111;
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .djv-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #e5e5e5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .djv-info {
+    font-size: 0.7rem;
+    color: #737373;
+  }
+
+  /* ========== CONTENT ========== */
+  .djv-content {
+    overflow: auto;
+    flex: 1;
+  }
+
+  .djv-lines {
+    display: table;
+    width: 100%;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: #e5e5e5;
+  }
+
+  /* ========== LINE ========== */
+  .djv-line {
+    display: table-row;
+  }
+
+  .djv-line:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .djv-line-num {
+    display: table-cell;
+    width: 50px;
+    min-width: 50px;
+    padding: 0 12px;
+    text-align: right;
+    color: #737373;
+    user-select: none;
+    background: #111111;
+    border-right: 1px solid #2a2a2a;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  .djv-line-indicator {
+    display: table-cell;
+    width: 24px;
+    min-width: 24px;
+    text-align: center;
+    font-weight: bold;
+    user-select: none;
+  }
+
+  .djv-line-content {
+    display: table-cell;
+    padding: 0 16px;
+    white-space: pre;
+  }
+
+  /* ========== DIFF HIGHLIGHTS ========== */
+  .djv-line.djv-added {
+    background: rgba(166, 227, 161, 0.15);
+  }
+  .djv-line.djv-added .djv-line-indicator {
+    color: #a6e3a1;
+  }
+  .djv-line.djv-added .djv-line-num {
+    background: rgba(166, 227, 161, 0.2);
+    color: #a6e3a1;
+  }
+
+  .djv-line.djv-removed {
+    background: rgba(243, 139, 168, 0.15);
+  }
+  .djv-line.djv-removed .djv-line-indicator {
+    color: #f38ba8;
+  }
+  .djv-line.djv-removed .djv-line-num {
+    background: rgba(243, 139, 168, 0.2);
+    color: #f38ba8;
+  }
+
+  .djv-line.djv-type-changed {
+    background: rgba(250, 204, 21, 0.15);
+  }
+  .djv-line.djv-type-changed .djv-line-indicator {
+    color: #facc15;
+  }
+  .djv-line.djv-type-changed .djv-line-num {
+    background: rgba(250, 204, 21, 0.2);
+    color: #facc15;
+  }
+
+  .djv-line.djv-value-changed {
+    background: rgba(139, 92, 246, 0.15);
+  }
+  .djv-line.djv-value-changed .djv-line-indicator {
+    color: #a78bfa;
+  }
+  .djv-line.djv-value-changed .djv-line-num {
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+  }
+
+  .djv-line.djv-unchanged {
+    opacity: 0.5;
+  }
+
+  /* ========== SYNTAX HIGHLIGHTING ========== */
+  .djv-key {
+    color: #89b4fa;
+  }
+
+  .djv-string {
+    color: #a6e3a1;
+  }
+
+  .djv-number {
+    color: #fab387;
+  }
+
+  .djv-boolean {
+    color: #cba6f7;
+  }
+
+  .djv-null {
+    color: #f38ba8;
+  }
+
+  .djv-bracket {
+    color: #f9e2af;
+  }
+
+  .djv-colon {
+    color: #6c7086;
+  }
+
+  .djv-comma {
+    color: #6c7086;
+  }
+
+  /* ========== EMPTY/ERROR STATES ========== */
+  .djv-empty {
+    color: #6c7086;
+    font-style: italic;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .djv-error {
+    color: #f38ba8;
+    padding: 16px;
+    display: block;
+  }
+
+  /* ========== FOLDING ========== */
+  .djv-fold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    background: #313244;
+    border: none;
+    border-radius: 3px;
+    color: #6c7086;
+    cursor: pointer;
+    font-size: 10px;
+    vertical-align: middle;
+    transition: all 0.15s ease;
+  }
+
+  .djv-fold:hover {
+    background: #45475a;
+    color: #cdd6f4;
+  }
+
+  .djv-fold.collapsed {
+    transform: rotate(-90deg);
+  }
+
+  .djv-line.collapsed-line {
+    display: none !important;
+  }
+
+  .djv-ellipsis {
+    color: #6c7086;
+    font-style: italic;
+    cursor: pointer;
+  }
+
+  .djv-ellipsis:hover {
+    color: #89b4fa;
+  }
+</style>

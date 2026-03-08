@@ -1,14 +1,24 @@
 {
-  "name": "idoc-test",
-  "version": "1.0.0",
-  "description": "Test harness for gerador_queries.html using jsdom",
-  "main": "test_case_when.js",
+  "name": "4mdg-hub",
+  "version": "2.0.0",
+  "description": "Portal de documentação e ferramentas para integração SAP (IDoc, master data, mapeamento, validação)",
+  "type": "module",
   "scripts": {
-    "test": "node test_gerador_all.js"
+    "dev": "astro dev --port 4321",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "test": "bun tests/sql-builder.test.js"
   },
+  "keywords": ["sap", "idoc", "integration", "documentation", "mdm"],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-   "jsdom": "^27.4.0"
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "@biomejs/biome": "^1.9.0",
+    "astro": "^5.18.0",
+    "typescript": "^5.9.3"
   }
 }

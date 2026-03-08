@@ -1,0 +1,2062 @@
+---
+import DiffJsonViewer from '@features/tools/components/DiffJsonViewer.astro';
+/**
+ * JSON Diff - Comparador Visual de JSONs
+ * Compara JSON de referência com JSON de comparação e identifica diferenças
+ */
+import ToolLayout from '@features/tools/layouts/ToolLayout.astro';
+---
+
+<ToolLayout 
+  title="JSON Diff" 
+  description="Compare JSONs e identifique diferenças de estrutura, tipos e valores"
+  icon="⚖️"
+>
+  <div class="jd-container">
+    <!-- Input Section -->
+    <div class="jd-input-section" id="inputSection">
+      <div class="jd-input-grid">
+        <!-- JSON Referência -->
+        <div class="jd-input-panel">
+          <div class="jd-input-header">
+            <label class="jd-field-label" for="jsonRef">JSON Referência</label>
+            <div class="jd-actions">
+              <button class="jd-btn-action" id="sampleRefBtn" title="Carregar exemplo">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                Exemplo
+              </button>
+              <button class="jd-btn-action" id="clearRefBtn" title="Limpar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                Limpar
+              </button>
+              <button class="jd-btn-action" id="pasteRefBtn" title="Colar do clipboard">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Colar
+              </button>
+            </div>
+          </div>
+          <textarea 
+            id="jsonRef" 
+            class="jd-textarea" 
+            placeholder='Cole o JSON de referência aqui...
+
+Este é o JSON "correto" que será usado como base para comparação.'
+            spellcheck="false"
+          ></textarea>
+        </div>
+        
+        <!-- JSON Comparação -->
+        <div class="jd-input-panel">
+          <div class="jd-input-header">
+            <label class="jd-field-label" for="jsonComp">JSON Comparação</label>
+            <div class="jd-actions">
+              <button class="jd-btn-action" id="sampleCompBtn" title="Carregar exemplo">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                Exemplo
+              </button>
+              <button class="jd-btn-action" id="clearCompBtn" title="Limpar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                Limpar
+              </button>
+              <button class="jd-btn-action" id="pasteCompBtn" title="Colar do clipboard">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Colar
+              </button>
+            </div>
+          </div>
+          <textarea 
+            id="jsonComp" 
+            class="jd-textarea" 
+            placeholder='Cole o JSON para comparar aqui...
+
+Este JSON será comparado com a referência para identificar diferenças.'
+            spellcheck="false"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Swap Button -->
+      <div class="jd-swap-container">
+        <button class="jd-swap-btn" id="swapBtn" title="Inverter JSONs">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 7H3m0 0l4-4M3 7l4 4M16 17h5m0 0l-4 4m4-4l-4-4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Resize Handle -->
+    <div class="jd-resize-handle" id="resizeHandle">
+      <div class="jd-resize-grip">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- Error Box -->
+    <div class="jd-error" id="errorBox"></div>
+
+    <!-- Results Section -->
+    <div class="jd-results" id="resultsSection">
+      <!-- Options Bar (moved here) -->
+      <div class="jd-options-bar">
+        <span class="jd-options-label">Opções:</span>
+        <div class="jd-options">
+          <label class="jd-toggle">
+            <input type="checkbox" id="optIgnoreArrayOrder" />
+            <span class="jd-toggle-slider"></span>
+            <span class="jd-toggle-label">Ignorar ordem de arrays</span>
+          </label>
+        </div>
+        <div class="jd-view-selector">
+          <button class="jd-view-btn jd-view-btn-active" data-view="side-by-side">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="18" rx="1"></rect>
+              <rect x="14" y="3" width="7" height="18" rx="1"></rect>
+            </svg>
+            <span>Lado a Lado</span>
+          </button>
+          <button class="jd-view-btn" data-view="unified">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="8" y1="13" x2="16" y2="13"></line>
+              <line x1="8" y1="17" x2="16" y2="17"></line>
+            </svg>
+            <span>Técnico</span>
+          </button>
+          <button class="jd-view-btn" data-view="report">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            <span>Humano</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- View: Side-by-Side -->
+      <div class="jd-view jd-view-active" id="viewSideBySide">
+        <div class="jd-sbs-toolbar">
+          <div class="jd-stats">
+            <button class="jd-stat jd-stat-extra jd-stat-active" data-filter="extra" title="Clique para filtrar">
+              <span class="jd-stat-icon">+</span>
+              <strong id="statExtra">0</strong>
+              <span class="jd-stat-label">propriedades extras</span>
+            </button>
+            <button class="jd-stat jd-stat-missing jd-stat-active" data-filter="missing" title="Clique para filtrar">
+              <span class="jd-stat-icon">−</span>
+              <strong id="statMissing">0</strong>
+              <span class="jd-stat-label">propriedades faltantes</span>
+            </button>
+            <button class="jd-stat jd-stat-type jd-stat-active" data-filter="type-wrong" title="Clique para filtrar">
+              <span class="jd-stat-icon">⚡</span>
+              <strong id="statType">0</strong>
+              <span class="jd-stat-label">tipos diferentes</span>
+            </button>
+            <button class="jd-stat jd-stat-value jd-stat-active" data-filter="value-diff" title="Clique para filtrar">
+              <span class="jd-stat-icon">≠</span>
+              <strong id="statValue">0</strong>
+              <span class="jd-stat-label">valores diferentes</span>
+            </button>
+          </div>
+          <button class="jd-btn-action" id="fullscreenBtn" title="Tela cheia">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+            Expandir
+          </button>
+        </div>
+        <div class="jd-side-by-side" id="sideBySideContainer">
+          <DiffJsonViewer id="diffRef" label="Referência" height="450px" side="left" />
+          <DiffJsonViewer id="diffComp" label="Comparação" height="450px" side="right" />
+        </div>
+      </div>
+
+      <!-- View: Unified (Relatório Técnico) -->
+      <div class="jd-view" id="viewUnified">
+        <div class="jd-unified-container">
+          <div class="jd-unified-header">
+            <span class="jd-unified-label">Relatório Técnico</span>
+            <button class="jd-btn-action" id="copyUnifiedBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copiar
+            </button>
+          </div>
+          <div class="jd-unified-content" id="unifiedContent"></div>
+        </div>
+      </div>
+
+      <!-- View: Report (Relatório Humano) -->
+      <div class="jd-view" id="viewReport">
+        <div class="jd-report-container">
+          <div class="jd-report-header">
+            <span class="jd-report-label">Relatório Humano</span>
+            <div class="jd-report-actions">
+              <button class="jd-btn-action" id="copyJsonBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                JSON
+              </button>
+              <button class="jd-btn-action" id="copyMarkdownBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16v16H4z"></path>
+                  <path d="M7 15V9l2 2 2-2v6M17 9v6l-2-2-2 2"></path>
+                </svg>
+                Markdown
+              </button>
+            </div>
+          </div>
+          <div class="jd-report-content" id="reportContent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ToolLayout>
+
+<script>
+  // ========== TYPES ==========
+  type DiffType = 'extra' | 'missing' | 'type-wrong' | 'value-diff' | 'unchanged';
+
+  interface DiffItem {
+    path: string;
+    type: DiffType;
+    refValue?: any;
+    compValue?: any;
+    refType?: string;
+    compType?: string;
+  }
+
+  interface DiffOptions {
+    ignoreArrayOrder: boolean;
+  }
+
+  interface DiffResult {
+    items: DiffItem[];
+    stats: {
+      extra: number;
+      missing: number;
+      typeWrong: number;
+      valueDiff: number;
+      unchanged: number;
+    };
+  }
+
+  // ========== DIFF ENGINE ==========
+  function getType(value: any): string {
+    if (value === null) return 'null';
+    if (value === undefined) return 'undefined';
+    if (Array.isArray(value)) return 'array';
+    return typeof value;
+  }
+
+  function normalizeArray(arr: any[], options: DiffOptions): any[] {
+    if (!options.ignoreArrayOrder) return arr;
+    try {
+      return [...arr].sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    } catch {
+      return arr;
+    }
+  }
+
+  function diffRecursive(
+    ref: any,
+    comp: any,
+    path: string,
+    options: DiffOptions,
+    items: DiffItem[]
+  ): void {
+    const refType = getType(ref);
+    const compType = getType(comp);
+
+    if (ref === comp) {
+      return;
+    }
+
+    // Tipos diferentes
+    if (refType !== compType) {
+      items.push({ path, type: 'type-wrong', refValue: ref, compValue: comp, refType, compType });
+      return;
+    }
+
+    // Arrays
+    if (refType === 'array') {
+      const refArr = normalizeArray(ref as any[], options);
+      const compArr = normalizeArray(comp as any[], options);
+      const maxLen = Math.max(refArr.length, compArr.length);
+
+      for (let i = 0; i < maxLen; i++) {
+        const itemPath = `${path}[${i}]`;
+        if (i >= refArr.length) {
+          // Extra no comparação
+          items.push({ path: itemPath, type: 'extra', compValue: compArr[i] });
+        } else if (i >= compArr.length) {
+          // Faltando no comparação
+          items.push({ path: itemPath, type: 'missing', refValue: refArr[i] });
+        } else {
+          diffRecursive(refArr[i], compArr[i], itemPath, options, items);
+        }
+      }
+      return;
+    }
+
+    // Objetos
+    if (refType === 'object') {
+      const refKeys = new Set(Object.keys(ref || {}));
+      const compKeys = new Set(Object.keys(comp || {}));
+      const allKeys = new Set([...refKeys, ...compKeys]);
+
+      for (const key of allKeys) {
+        const keyPath = path ? `${path}.${key}` : key;
+        if (!refKeys.has(key)) {
+          // Extra no comparação
+          items.push({ path: keyPath, type: 'extra', compValue: comp[key] });
+        } else if (!compKeys.has(key)) {
+          // Faltando no comparação
+          items.push({ path: keyPath, type: 'missing', refValue: ref[key] });
+        } else {
+          diffRecursive(ref[key], comp[key], keyPath, options, items);
+        }
+      }
+      return;
+    }
+
+    // Primitivos com valores diferentes
+    if (ref !== comp) {
+      items.push({ path, type: 'value-diff', refValue: ref, compValue: comp });
+    }
+  }
+
+  function deepDiff(ref: any, comp: any, options: DiffOptions): DiffResult {
+    const items: DiffItem[] = [];
+    diffRecursive(ref, comp, '$', options, items);
+
+    return {
+      items,
+      stats: {
+        extra: items.filter(i => i.type === 'extra').length,
+        missing: items.filter(i => i.type === 'missing').length,
+        typeWrong: items.filter(i => i.type === 'type-wrong').length,
+        valueDiff: items.filter(i => i.type === 'value-diff').length,
+        unchanged: items.filter(i => i.type === 'unchanged').length,
+      },
+    };
+  }
+
+  // ========== DOM ELEMENTS ==========
+  const jsonRef = document.getElementById('jsonRef') as HTMLTextAreaElement;
+  const jsonComp = document.getElementById('jsonComp') as HTMLTextAreaElement;
+  const swapBtn = document.getElementById('swapBtn') as HTMLButtonElement;
+  const sampleRefBtn = document.getElementById('sampleRefBtn') as HTMLButtonElement;
+  const sampleCompBtn = document.getElementById('sampleCompBtn') as HTMLButtonElement;
+  const clearRefBtn = document.getElementById('clearRefBtn') as HTMLButtonElement;
+  const clearCompBtn = document.getElementById('clearCompBtn') as HTMLButtonElement;
+  const pasteRefBtn = document.getElementById('pasteRefBtn') as HTMLButtonElement;
+  const pasteCompBtn = document.getElementById('pasteCompBtn') as HTMLButtonElement;
+  const errorBox = document.getElementById('errorBox') as HTMLDivElement;
+  const resultsSection = document.getElementById('resultsSection') as HTMLDivElement;
+
+  // Options
+  const optIgnoreArrayOrder = document.getElementById('optIgnoreArrayOrder') as HTMLInputElement;
+
+  // Stats (agora são botões filtros)
+  const statExtra = document.getElementById('statExtra') as HTMLElement;
+  const statMissing = document.getElementById('statMissing') as HTMLElement;
+  const statType = document.getElementById('statType') as HTMLElement;
+  const statValue = document.getElementById('statValue') as HTMLElement;
+  const filterBtns = document.querySelectorAll('.jd-stat[data-filter]') as NodeListOf<HTMLButtonElement>;
+  
+  // Filtros ativos (todos começam ativos)
+  const activeFilters = new Set(['extra', 'missing', 'type-wrong', 'value-diff']);
+
+  // Views
+  const viewBtns = document.querySelectorAll('.jd-view-btn');
+  const viewSideBySide = document.getElementById('viewSideBySide') as HTMLDivElement;
+  const viewUnified = document.getElementById('viewUnified') as HTMLDivElement;
+  const viewReport = document.getElementById('viewReport') as HTMLDivElement;
+  const unifiedContent = document.getElementById('unifiedContent') as HTMLDivElement;
+  const reportContent = document.getElementById('reportContent') as HTMLDivElement;
+
+  // Diff viewers
+  const diffRefLines = document.getElementById('diffRefLines') as HTMLDivElement;
+  const diffCompLines = document.getElementById('diffCompLines') as HTMLDivElement;
+  const diffRefScroll = document.querySelector('[data-djv-scroll="diffRef"]') as HTMLDivElement;
+  const diffCompScroll = document.querySelector('[data-djv-scroll="diffComp"]') as HTMLDivElement;
+
+  // Export buttons
+  const copyUnifiedBtn = document.getElementById('copyUnifiedBtn') as HTMLButtonElement;
+  const copyJsonBtn = document.getElementById('copyJsonBtn') as HTMLButtonElement;
+  const copyMarkdownBtn = document.getElementById('copyMarkdownBtn') as HTMLButtonElement;
+
+  // ========== STATE ==========
+  let currentResult: DiffResult | null = null;
+  let refParsed: any = null;
+  let compParsed: any = null;
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // ========== HELPERS ==========
+  function escapeHtml(str: string): string {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function formatValue(value: any, maxLen = 60): string {
+    if (value === undefined) return 'undefined';
+    if (value === null) return 'null';
+    const str = JSON.stringify(value);
+    return str.length > maxLen ? str.substring(0, maxLen - 3) + '...' : str;
+  }
+
+  function showError(msg: string) {
+    errorBox.textContent = `❌ ${msg}`;
+    errorBox.classList.add('show');
+    resultsSection.classList.remove('show');
+  }
+
+  function hideError() {
+    errorBox.classList.remove('show');
+  }
+
+  function getOptions(): DiffOptions {
+    return {
+      ignoreArrayOrder: optIgnoreArrayOrder.checked,
+    };
+  }
+
+  function saveOptions() {
+    localStorage.setItem('jd-options', JSON.stringify(getOptions()));
+  }
+
+  function loadOptions() {
+    try {
+      const saved = localStorage.getItem('jd-options');
+      if (saved) {
+        const opts = JSON.parse(saved);
+        optIgnoreArrayOrder.checked = opts.ignoreArrayOrder ?? false;
+      }
+    } catch {}
+  }
+
+  // ========== JSON RENDERING ==========
+  function syntaxHighlight(json: string): string {
+    return json
+      .replace(/"([^"]+)":/g, '<span class="djv-key">"$1"</span><span class="djv-colon">:</span>')
+      .replace(/: "([^"]*)"/g, ': <span class="djv-string">"$1"</span>')
+      .replace(/: (\d+\.?\d*)/g, ': <span class="djv-number">$1</span>')
+      .replace(/: (true|false)/g, ': <span class="djv-boolean">$1</span>')
+      .replace(/: (null)/g, ': <span class="djv-null">$1</span>')
+      .replace(/([{}\[\]])/g, '<span class="djv-bracket">$1</span>')
+      .replace(/,$/gm, '<span class="djv-comma">,</span>');
+  }
+
+  function renderJsonWithDiff(
+    json: any,
+    diffItems: DiffItem[],
+    side: 'ref' | 'comp'
+  ): string {
+    const formatted = JSON.stringify(json, null, 2);
+    const lines = formatted.split('\n');
+    
+    const diffMap = new Map<string, DiffType>();
+    for (const item of diffItems) {
+      diffMap.set(item.path, item.type);
+    }
+
+    let html = '';
+    let lineNum = 0;
+
+    for (const line of lines) {
+      lineNum++;
+      const highlighted = syntaxHighlight(escapeHtml(line));
+      
+      let diffClass = '';
+      let indicator = ' ';
+      
+      const keyMatch = line.match(/^\s*"([^"]+)":/);
+      if (keyMatch) {
+        const key = keyMatch[1];
+        for (const [path, type] of diffMap) {
+          const pathKey = path.split('.').pop()?.replace(/\[\d+\]$/, '');
+          if (pathKey === key) {
+            if (type === 'extra' && side === 'comp') {
+              diffClass = 'djv-added';
+              indicator = '+';
+            } else if (type === 'missing' && side === 'ref') {
+              diffClass = 'djv-removed';
+              indicator = '−';
+            } else if (type === 'type-wrong') {
+              diffClass = 'djv-type-changed';
+              indicator = '⚡';
+            } else if (type === 'value-diff') {
+              diffClass = 'djv-value-changed';
+              indicator = '≠';
+            }
+            break;
+          }
+        }
+      }
+
+      html += `<div class="djv-line ${diffClass}">`;
+      html += `<span class="djv-line-num">${lineNum}</span>`;
+      html += `<span class="djv-line-indicator">${indicator}</span>`;
+      html += `<span class="djv-line-content">${highlighted}</span>`;
+      html += '</div>';
+    }
+
+    return html;
+  }
+
+  // ========== UNIFIED VIEW ==========
+  function renderUnifiedView(diffItems: DiffItem[]): string {
+    const filtered = diffItems.filter(i => i.type !== 'unchanged');
+    
+    if (filtered.length === 0) {
+      return '<div class="djv-empty">✅ Os JSONs são idênticos!</div>';
+    }
+
+    let html = '';
+
+    for (const item of filtered) {
+      let cls = '';
+      let icon = '';
+      let label = '';
+      let content = '';
+
+      switch (item.type) {
+        case 'extra':
+          cls = 'djv-added';
+          icon = '+';
+          label = 'EXTRA';
+          content = `<span class="djv-key">${escapeHtml(item.path)}</span>: ${escapeHtml(formatValue(item.compValue))}`;
+          break;
+        case 'missing':
+          cls = 'djv-removed';
+          icon = '−';
+          label = 'FALTANTE';
+          content = `<span class="djv-key">${escapeHtml(item.path)}</span>: ${escapeHtml(formatValue(item.refValue))}`;
+          break;
+        case 'type-wrong':
+          cls = 'djv-type-changed';
+          icon = '⚡';
+          label = 'TIPO';
+          content = `<span class="djv-key">${escapeHtml(item.path)}</span>: esperado <span class="djv-boolean">${item.refType}</span>, encontrado <span class="djv-null">${item.compType}</span>`;
+          break;
+        case 'value-diff':
+          cls = 'djv-value-changed';
+          icon = '≠';
+          label = 'VALOR';
+          content = `<span class="djv-key">${escapeHtml(item.path)}</span>: ${escapeHtml(formatValue(item.refValue))} → ${escapeHtml(formatValue(item.compValue))}`;
+          break;
+      }
+
+      html += `<div class="djv-line ${cls}">`;
+      html += `<span class="djv-line-indicator">${icon}</span>`;
+      html += `<span class="jd-unified-tag">${label}</span>`;
+      html += `<span class="djv-line-content">${content}</span>`;
+      html += '</div>';
+    }
+
+    return html;
+  }
+
+  // ========== REPORT VIEW ==========
+  function renderReportView(diffItems: DiffItem[]): string {
+    const grouped = {
+      extra: diffItems.filter(i => i.type === 'extra'),
+      missing: diffItems.filter(i => i.type === 'missing'),
+      typeWrong: diffItems.filter(i => i.type === 'type-wrong'),
+      valueDiff: diffItems.filter(i => i.type === 'value-diff'),
+    };
+
+    if (grouped.extra.length === 0 && grouped.missing.length === 0 && 
+        grouped.typeWrong.length === 0 && grouped.valueDiff.length === 0) {
+      return '<div class="jd-report-empty">✅ Os JSONs são idênticos!</div>';
+    }
+
+    let html = '';
+
+    if (grouped.extra.length > 0) {
+      html += `<div class="jd-report-section jd-report-extra">`;
+      html += `<div class="jd-report-section-header">+ Propriedades Extras (${grouped.extra.length})</div>`;
+      html += `<div class="jd-report-section-desc">Propriedades que existem no JSON de comparação mas não na referência</div>`;
+      html += `<div class="jd-report-section-content">`;
+      for (const item of grouped.extra) {
+        html += `<div class="jd-report-item">`;
+        html += `<code class="jd-report-path">${escapeHtml(item.path)}</code>`;
+        html += `<span class="jd-report-value">${escapeHtml(formatValue(item.compValue))}</span>`;
+        html += `</div>`;
+      }
+      html += `</div></div>`;
+    }
+
+    if (grouped.missing.length > 0) {
+      html += `<div class="jd-report-section jd-report-missing">`;
+      html += `<div class="jd-report-section-header">− Propriedades Faltantes (${grouped.missing.length})</div>`;
+      html += `<div class="jd-report-section-desc">Propriedades que existem na referência mas faltam no JSON de comparação</div>`;
+      html += `<div class="jd-report-section-content">`;
+      for (const item of grouped.missing) {
+        html += `<div class="jd-report-item">`;
+        html += `<code class="jd-report-path">${escapeHtml(item.path)}</code>`;
+        html += `<span class="jd-report-value">${escapeHtml(formatValue(item.refValue))}</span>`;
+        html += `</div>`;
+      }
+      html += `</div></div>`;
+    }
+
+    if (grouped.typeWrong.length > 0) {
+      html += `<div class="jd-report-section jd-report-type">`;
+      html += `<div class="jd-report-section-header">⚡ Tipos Incorretos (${grouped.typeWrong.length})</div>`;
+      html += `<div class="jd-report-section-desc">Propriedades com tipo de dado diferente do esperado</div>`;
+      html += `<div class="jd-report-section-content">`;
+      for (const item of grouped.typeWrong) {
+        html += `<div class="jd-report-item">`;
+        html += `<code class="jd-report-path">${escapeHtml(item.path)}</code>`;
+        html += `<span class="jd-report-change">`;
+        html += `<span class="jd-report-expected">esperado: <strong>${item.refType}</strong></span>`;
+        html += `<span class="jd-report-arrow">→</span>`;
+        html += `<span class="jd-report-found">encontrado: <strong>${item.compType}</strong></span>`;
+        html += `</span></div>`;
+      }
+      html += `</div></div>`;
+    }
+
+    if (grouped.valueDiff.length > 0) {
+      html += `<div class="jd-report-section jd-report-value">`;
+      html += `<div class="jd-report-section-header">≠ Valores Diferentes (${grouped.valueDiff.length})</div>`;
+      html += `<div class="jd-report-section-desc">Propriedades com valores diferentes do esperado</div>`;
+      html += `<div class="jd-report-section-content">`;
+      for (const item of grouped.valueDiff) {
+        html += `<div class="jd-report-item">`;
+        html += `<code class="jd-report-path">${escapeHtml(item.path)}</code>`;
+        html += `<span class="jd-report-change">`;
+        html += `<span class="jd-report-expected">${escapeHtml(formatValue(item.refValue, 40))}</span>`;
+        html += `<span class="jd-report-arrow">→</span>`;
+        html += `<span class="jd-report-found">${escapeHtml(formatValue(item.compValue, 40))}</span>`;
+        html += `</span></div>`;
+      }
+      html += `</div></div>`;
+    }
+
+    return html;
+  }
+
+  // ========== EXPORT ==========
+  function diffToMarkdown(result: DiffResult): string {
+    const lines: string[] = [];
+    lines.push('# Relatório de Diferenças JSON\n');
+    lines.push(`## Resumo`);
+    lines.push(`- **Propriedades extras:** ${result.stats.extra}`);
+    lines.push(`- **Propriedades faltantes:** ${result.stats.missing}`);
+    lines.push(`- **Tipos incorretos:** ${result.stats.typeWrong}`);
+    lines.push(`- **Valores diferentes:** ${result.stats.valueDiff}`);
+    lines.push('');
+
+    const grouped = {
+      extra: result.items.filter(i => i.type === 'extra'),
+      missing: result.items.filter(i => i.type === 'missing'),
+      typeWrong: result.items.filter(i => i.type === 'type-wrong'),
+      valueDiff: result.items.filter(i => i.type === 'value-diff'),
+    };
+
+    if (grouped.extra.length) {
+      lines.push(`## + Propriedades Extras (${grouped.extra.length})`);
+      for (const item of grouped.extra) {
+        lines.push(`- \`${item.path}\`: ${formatValue(item.compValue)}`);
+      }
+      lines.push('');
+    }
+
+    if (grouped.missing.length) {
+      lines.push(`## − Propriedades Faltantes (${grouped.missing.length})`);
+      for (const item of grouped.missing) {
+        lines.push(`- \`${item.path}\`: ${formatValue(item.refValue)}`);
+      }
+      lines.push('');
+    }
+
+    if (grouped.typeWrong.length) {
+      lines.push(`## ⚡ Tipos Incorretos (${grouped.typeWrong.length})`);
+      for (const item of grouped.typeWrong) {
+        lines.push(`- \`${item.path}\`: esperado \`${item.refType}\`, encontrado \`${item.compType}\``);
+      }
+      lines.push('');
+    }
+
+    if (grouped.valueDiff.length) {
+      lines.push(`## ≠ Valores Diferentes (${grouped.valueDiff.length})`);
+      for (const item of grouped.valueDiff) {
+        lines.push(`- \`${item.path}\`: ${formatValue(item.refValue)} → ${formatValue(item.compValue)}`);
+      }
+      lines.push('');
+    }
+
+    return lines.join('\n');
+  }
+
+  // ========== MAIN COMPARE ==========
+  function compare() {
+    hideError();
+
+    const refText = jsonRef.value.trim();
+    const compText = jsonComp.value.trim();
+
+    if (!refText && !compText) {
+      resultsSection.classList.remove('show');
+      return;
+    }
+
+    if (!refText) {
+      showError('Cole o JSON de referência');
+      return;
+    }
+
+    if (!compText) {
+      showError('Cole o JSON de comparação');
+      return;
+    }
+
+    try {
+      refParsed = JSON.parse(refText);
+    } catch (e: any) {
+      showError(`JSON Referência inválido: ${e.message}`);
+      return;
+    }
+
+    try {
+      compParsed = JSON.parse(compText);
+    } catch (e: any) {
+      showError(`JSON Comparação inválido: ${e.message}`);
+      return;
+    }
+
+    const options = getOptions();
+    currentResult = deepDiff(refParsed, compParsed, options);
+
+    // Update stats
+    statExtra.textContent = String(currentResult.stats.extra);
+    statMissing.textContent = String(currentResult.stats.missing);
+    statType.textContent = String(currentResult.stats.typeWrong);
+    statValue.textContent = String(currentResult.stats.valueDiff);
+
+    // Render views
+    renderSideBySide();
+    renderUnified();
+    renderReport();
+
+    resultsSection.classList.add('show');
+  }
+
+  function renderSideBySide() {
+    if (!currentResult || !refParsed || !compParsed) return;
+
+    // Formatar os JSONs
+    const refFormatted = JSON.stringify(refParsed, null, 2);
+    const compFormatted = JSON.stringify(compParsed, null, 2);
+    const refLines = refFormatted.split('\n');
+    const compLines = compFormatted.split('\n');
+
+    // Criar mapa de diffs para lookup rápido
+    const diffsByPath = new Map<string, DiffItem>();
+    for (const item of currentResult.items) {
+      // Só adiciona se o filtro estiver ativo
+      if (activeFilters.has(item.type)) {
+        diffsByPath.set(item.path, item);
+      }
+    }
+
+    // Usar algoritmo LCS simplificado para alinhar linhas
+    const syncedRef: { line: string; empty: boolean; diffType?: DiffType }[] = [];
+    const syncedComp: { line: string; empty: boolean; diffType?: DiffType }[] = [];
+
+    let ri = 0, ci = 0;
+    
+    while (ri < refLines.length || ci < compLines.length) {
+      const refLine = ri < refLines.length ? refLines[ri] : null;
+      const compLine = ci < compLines.length ? compLines[ci] : null;
+
+      // Se ambas as linhas existem e são iguais, avança ambas
+      if (refLine !== null && compLine !== null && refLine === compLine) {
+        syncedRef.push({ line: refLine, empty: false });
+        syncedComp.push({ line: compLine, empty: false });
+        ri++;
+        ci++;
+        continue;
+      }
+
+      // Linhas diferentes - tentar encontrar correspondência
+      if (refLine !== null && compLine !== null) {
+        // Verificar se a linha do ref existe mais adiante no comp
+        let foundInComp = -1;
+        for (let k = ci + 1; k < Math.min(ci + 10, compLines.length); k++) {
+          if (compLines[k] === refLine) {
+            foundInComp = k;
+            break;
+          }
+        }
+
+        // Verificar se a linha do comp existe mais adiante no ref
+        let foundInRef = -1;
+        for (let k = ri + 1; k < Math.min(ri + 10, refLines.length); k++) {
+          if (refLines[k] === compLine) {
+            foundInRef = k;
+            break;
+          }
+        }
+
+        // Linha do comp está extra (não existe no ref)
+        if (foundInRef === -1 && foundInComp >= 0) {
+          // Linhas extras no comp até encontrar a correspondência
+          while (ci < foundInComp) {
+            syncedRef.push({ line: '', empty: true, diffType: 'extra' });
+            syncedComp.push({ line: compLines[ci], empty: false, diffType: 'extra' });
+            ci++;
+          }
+          continue;
+        }
+
+        // Linha do ref está faltando (não existe no comp)
+        if (foundInComp === -1 && foundInRef >= 0) {
+          // Linhas faltantes no ref até encontrar a correspondência
+          while (ri < foundInRef) {
+            syncedRef.push({ line: refLines[ri], empty: false, diffType: 'missing' });
+            syncedComp.push({ line: '', empty: true, diffType: 'missing' });
+            ri++;
+          }
+          continue;
+        }
+
+        // Ambas as linhas existem mas são diferentes - determinar tipo de diff
+        let diffType: DiffType | undefined;
+        
+        // Verificar se as linhas têm a mesma chave
+        const refKeyMatch = refLine.match(/^\s*"([^"]+)":/);
+        const compKeyMatch = compLine.match(/^\s*"([^"]+)":/);
+        
+        if (refKeyMatch && compKeyMatch && refKeyMatch[1] === compKeyMatch[1]) {
+          // Mesma chave, valor diferente
+          const key = refKeyMatch[1];
+          for (const [path, item] of diffsByPath) {
+            if (path.endsWith(`.${key}`) || path.endsWith(`["${key}"]`)) {
+              diffType = item.type;
+              break;
+            }
+          }
+        }
+
+        syncedRef.push({ line: refLine, empty: false, diffType });
+        syncedComp.push({ line: compLine, empty: false, diffType });
+        ri++;
+        ci++;
+      } else if (refLine !== null) {
+        // Linha extra no ref (faltando no comp)
+        syncedRef.push({ line: refLine, empty: false, diffType: 'missing' });
+        syncedComp.push({ line: '', empty: true, diffType: 'missing' });
+        ri++;
+      } else if (compLine !== null) {
+        // Linha extra no comp
+        syncedRef.push({ line: '', empty: true, diffType: 'extra' });
+        syncedComp.push({ line: compLine, empty: false, diffType: 'extra' });
+        ci++;
+      } else {
+        break;
+      }
+    }
+
+    // Renderizar linhas
+    function renderSyncedLines(lines: typeof syncedRef, side: 'ref' | 'comp'): string {
+      let html = '';
+      let lineNum = 0;
+
+      for (const item of lines) {
+        lineNum++;
+        
+        // Verifica se o filtro está ativo para este tipo de diff
+        const shouldHideDiff = item.diffType && !activeFilters.has(item.diffType);
+        
+        if (item.empty) {
+          // Se o filtro não está ativo, mostra linha vazia sem estilo de diff
+          if (shouldHideDiff) {
+            html += `<div class="djv-line djv-empty-line djv-hidden-diff">`;
+            html += `<span class="djv-line-num">${lineNum}</span>`;
+            html += `<span class="djv-line-indicator"> </span>`;
+            html += `<span class="djv-line-content">&nbsp;</span>`;
+            html += '</div>';
+            continue;
+          }
+          
+          html += `<div class="djv-line djv-empty-line">`;
+          html += `<span class="djv-line-num">${lineNum}</span>`;
+          html += `<span class="djv-line-indicator">~</span>`;
+          html += `<span class="djv-line-content">&nbsp;</span>`;
+          html += '</div>';
+          continue;
+        }
+
+        const highlighted = syntaxHighlight(escapeHtml(item.line));
+        let diffClass = '';
+        let indicator = ' ';
+
+        // Se o filtro não está ativo, não aplica o highlight
+        if (item.diffType && !shouldHideDiff) {
+          if (item.diffType === 'extra' && side === 'comp') {
+            diffClass = 'djv-added';
+            indicator = '+';
+          } else if (item.diffType === 'missing' && side === 'ref') {
+            diffClass = 'djv-removed';
+            indicator = '−';
+          } else if (item.diffType === 'type-wrong') {
+            diffClass = 'djv-type-changed';
+            indicator = '⚡';
+          } else if (item.diffType === 'value-diff') {
+            diffClass = 'djv-value-changed';
+            indicator = '≠';
+          }
+        }
+
+        html += `<div class="djv-line ${diffClass}">`;
+        html += `<span class="djv-line-num">${lineNum}</span>`;
+        html += `<span class="djv-line-indicator">${indicator}</span>`;
+        html += `<span class="djv-line-content">${highlighted}</span>`;
+        html += '</div>';
+      }
+
+      return html;
+    }
+
+    const refHtml = renderSyncedLines(syncedRef, 'ref');
+    const compHtml = renderSyncedLines(syncedComp, 'comp');
+
+    diffRefLines.innerHTML = refHtml;
+    diffCompLines.innerHTML = compHtml;
+  }
+
+  function renderUnified() {
+    if (!currentResult) return;
+    unifiedContent.innerHTML = renderUnifiedView(currentResult.items);
+  }
+
+  function renderReport() {
+    if (!currentResult) return;
+    reportContent.innerHTML = renderReportView(currentResult.items);
+  }
+
+  // ========== SCROLL SYNC ==========
+  let syncingScroll = false;
+
+  function setupScrollSync() {
+    if (!diffRefScroll || !diffCompScroll) return;
+
+    diffRefScroll.addEventListener('scroll', () => {
+      if (syncingScroll) return;
+      syncingScroll = true;
+      diffCompScroll.scrollTop = diffRefScroll.scrollTop;
+      diffCompScroll.scrollLeft = diffRefScroll.scrollLeft;
+      requestAnimationFrame(() => { syncingScroll = false; });
+    });
+
+    diffCompScroll.addEventListener('scroll', () => {
+      if (syncingScroll) return;
+      syncingScroll = true;
+      diffRefScroll.scrollTop = diffCompScroll.scrollTop;
+      diffRefScroll.scrollLeft = diffCompScroll.scrollLeft;
+      requestAnimationFrame(() => { syncingScroll = false; });
+    });
+  }
+
+  // ========== VIEW BUTTONS ==========
+  function switchView(viewName: string) {
+    viewBtns.forEach(btn => {
+      const isActive = btn.getAttribute('data-view') === viewName;
+      btn.classList.toggle('jd-view-btn-active', isActive);
+    });
+
+    viewSideBySide.classList.toggle('jd-view-active', viewName === 'side-by-side');
+    viewUnified.classList.toggle('jd-view-active', viewName === 'unified');
+    viewReport.classList.toggle('jd-view-active', viewName === 'report');
+  }
+
+  // ========== DEBOUNCED COMPARE ==========
+  function scheduleCompare() {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(compare, 400);
+  }
+
+  // ========== EVENT LISTENERS ==========
+  // Auto-compare on input
+  jsonRef.addEventListener('input', scheduleCompare);
+  jsonComp.addEventListener('input', scheduleCompare);
+
+  swapBtn.addEventListener('click', () => {
+    const temp = jsonRef.value;
+    jsonRef.value = jsonComp.value;
+    jsonComp.value = temp;
+    compare();
+  });
+
+  sampleRefBtn.addEventListener('click', () => {
+    jsonRef.value = JSON.stringify({
+      id: 1,
+      codigo: "PROD-001",
+      nome: "Smartphone Galaxy S24 Ultra",
+      descricao: "Smartphone Samsung de última geração com câmera de 200MP",
+      preco: 7499.90,
+      precoPromocional: null,
+      ativo: true,
+      destaque: false,
+      estoque: 150,
+      categorias: ["eletrônicos", "smartphones", "samsung"],
+      especificacoes: {
+        tela: "6.8 polegadas",
+        resolucao: "3088 x 1440",
+        processador: "Snapdragon 8 Gen 3",
+        ram: "12GB",
+        armazenamento: "256GB",
+        camera: {
+          principal: "200MP",
+          ultrawide: "12MP",
+          telefoto: "50MP",
+          frontal: "12MP"
+        },
+        bateria: "5000mAh",
+        carregamento: "45W"
+      },
+      dimensoes: {
+        altura: 162.3,
+        largura: 79.0,
+        espessura: 8.6,
+        peso: 232
+      },
+      cores: [
+        { id: 1, nome: "Preto", hex: "#000000", disponivel: true },
+        { id: 2, nome: "Cinza", hex: "#808080", disponivel: true },
+        { id: 3, nome: "Violeta", hex: "#7F00FF", disponivel: false }
+      ],
+      fornecedor: {
+        id: 42,
+        razaoSocial: "Samsung Brasil LTDA",
+        cnpj: "00.280.273/0001-37",
+        contato: {
+          email: "comercial@samsung.com.br",
+          telefone: "+55 11 5644-2500"
+        }
+      },
+      metadata: {
+        criadoEm: "2024-01-15T10:30:00Z",
+        atualizadoEm: "2024-03-01T14:22:00Z",
+        criadoPor: "admin@loja.com",
+        versao: "1.0"
+      },
+      seo: {
+        titulo: "Smartphone Galaxy S24 Ultra 256GB",
+        descricao: "Compre o novo Samsung Galaxy S24 Ultra",
+        keywords: ["samsung", "galaxy", "s24", "ultra", "smartphone"]
+      }
+    }, null, 2);
+    scheduleCompare();
+  });
+
+  sampleCompBtn.addEventListener('click', () => {
+    jsonComp.value = JSON.stringify({
+      id: 1,
+      codigo: "PROD-001",
+      nome: "Smartphone Galaxy S24 Ultra - ATUALIZADO",
+      descricao: "Smartphone Samsung de última geração com câmera de 200MP",
+      preco: "6999.90",
+      ativo: true,
+      destaque: true,
+      estoque: 85,
+      emPromocao: true,
+      categorias: ["eletrônicos", "smartphones", "samsung", "promoção"],
+      especificacoes: {
+        tela: "6.8 polegadas",
+        resolucao: "3088 x 1440",
+        processador: "Snapdragon 8 Gen 3",
+        ram: 12,
+        armazenamento: "512GB",
+        camera: {
+          principal: "200MP",
+          ultrawide: "12MP",
+          telefoto: "50MP",
+          frontal: "12MP",
+          macro: "5MP"
+        },
+        bateria: "5000mAh",
+        carregamento: "65W"
+      },
+      dimensoes: {
+        altura: 162.3,
+        largura: 79.0,
+        espessura: 8.6,
+        peso: 232
+      },
+      cores: [
+        { id: 1, nome: "Preto", hex: "#000000", disponivel: true },
+        { id: 2, nome: "Cinza", hex: "#808080", disponivel: false },
+        { id: 4, nome: "Azul", hex: "#0066CC", disponivel: true }
+      ],
+      fornecedor: {
+        id: 42,
+        razaoSocial: "Samsung Electronics Brasil",
+        cnpj: "00.280.273/0001-37",
+        contato: {
+          email: "vendas@samsung.com.br",
+          telefone: "+55 11 5644-2500",
+          whatsapp: "+55 11 99999-0000"
+        }
+      },
+      metadata: {
+        criadoEm: "2024-01-15T10:30:00Z",
+        atualizadoEm: "2024-06-15T09:45:00Z",
+        criadoPor: "admin@loja.com",
+        atualizadoPor: "gerente@loja.com",
+        versao: "2.1"
+      },
+      seo: {
+        titulo: "Galaxy S24 Ultra 512GB - Promoção",
+        descricao: "Aproveite o desconto no Samsung Galaxy S24 Ultra",
+        keywords: ["samsung", "galaxy", "s24", "ultra", "promoção", "desconto"]
+      },
+      avaliacoes: {
+        media: 4.8,
+        total: 1250
+      }
+    }, null, 2);
+    scheduleCompare();
+  });
+
+  clearRefBtn.addEventListener('click', () => {
+    jsonRef.value = '';
+    scheduleCompare();
+  });
+
+  clearCompBtn.addEventListener('click', () => {
+    jsonComp.value = '';
+    scheduleCompare();
+  });
+
+  pasteRefBtn.addEventListener('click', async () => {
+    try {
+      jsonRef.value = await navigator.clipboard.readText();
+      scheduleCompare();
+    } catch {}
+  });
+
+  pasteCompBtn.addEventListener('click', async () => {
+    try {
+      jsonComp.value = await navigator.clipboard.readText();
+      scheduleCompare();
+    } catch {}
+  });
+
+  // Options change triggers re-compare
+  optIgnoreArrayOrder.addEventListener('change', () => {
+    saveOptions();
+    compare();
+  });
+  
+  // Filter buttons toggle
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.getAttribute('data-filter');
+      if (!filter) return;
+      
+      if (activeFilters.has(filter)) {
+        activeFilters.delete(filter);
+        btn.classList.remove('jd-stat-active');
+      } else {
+        activeFilters.add(filter);
+        btn.classList.add('jd-stat-active');
+      }
+      
+      // Re-render with current filters
+      renderSideBySide();
+    });
+  });
+
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.getAttribute('data-view');
+      if (view) switchView(view);
+    });
+  });
+
+  copyUnifiedBtn?.addEventListener('click', () => {
+    if (!currentResult) return;
+    const text = currentResult.items
+      .filter(i => i.type !== 'unchanged')
+      .map(i => `${i.type}: ${i.path}`)
+      .join('\n');
+    navigator.clipboard.writeText(text);
+    (window as any).showToast?.('Copiado!');
+  });
+
+  copyJsonBtn?.addEventListener('click', () => {
+    if (!currentResult) return;
+    navigator.clipboard.writeText(JSON.stringify(currentResult, null, 2));
+    (window as any).showToast?.('JSON copiado!');
+  });
+
+  copyMarkdownBtn?.addEventListener('click', () => {
+    if (!currentResult) return;
+    navigator.clipboard.writeText(diffToMarkdown(currentResult));
+    (window as any).showToast?.('Markdown copiado!');
+  });
+
+  // ========== FULLSCREEN ==========
+  const fullscreenBtn = document.getElementById('fullscreenBtn') as HTMLButtonElement;
+  const sideBySideView = document.getElementById('viewSideBySide') as HTMLDivElement;
+  let isFullscreen = false;
+
+  function toggleFullscreen() {
+    isFullscreen = !isFullscreen;
+    sideBySideView.classList.toggle('jd-fullscreen', isFullscreen);
+    
+    if (fullscreenBtn) {
+      fullscreenBtn.innerHTML = isFullscreen
+        ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+          </svg> Sair`
+        : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+          </svg> Tela Cheia`;
+    }
+    
+    document.body.style.overflow = isFullscreen ? 'hidden' : '';
+  }
+
+  fullscreenBtn?.addEventListener('click', toggleFullscreen);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isFullscreen) {
+      toggleFullscreen();
+    }
+  });
+
+  // ========== RESIZE HANDLE ==========
+  const resizeHandle = document.getElementById('resizeHandle') as HTMLDivElement;
+  const inputSection = document.getElementById('inputSection') as HTMLDivElement;
+  let isResizing = false;
+  let startY = 0;
+  let startHeight = 0;
+
+  resizeHandle?.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startY = e.clientY;
+    startHeight = inputSection.offsetHeight;
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const delta = e.clientY - startY;
+    const newHeight = Math.max(150, startHeight + delta);
+    inputSection.style.height = `${newHeight}px`;
+    
+    const textareas = inputSection.querySelectorAll('.jd-textarea') as NodeListOf<HTMLTextAreaElement>;
+    textareas.forEach(ta => {
+      ta.style.height = `${newHeight - 50}px`;
+    });
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
+
+  // ========== INIT ==========
+  loadOptions();
+  setupScrollSync();
+</script>
+
+<style is:global>
+  /* ========== CONTAINER ========== */
+  .jd-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  /* ========== OPTIONS BAR ========== */
+  .jd-options-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: 10px var(--spacing-md);
+    background: var(--meta-bg);
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+  }
+
+  .jd-options-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .jd-options {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  .jd-view-selector {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  .jd-view-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .jd-view-btn:hover {
+    background: var(--meta-bg);
+    color: var(--text-main);
+  }
+
+  .jd-view-btn-active {
+    background: var(--brand-blue);
+    color: white;
+  }
+
+  .jd-view-btn-active:hover {
+    background: var(--brand-blue);
+    color: white;
+  }
+
+  /* ========== TOGGLE SWITCH ========== */
+  .jd-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .jd-toggle input {
+    display: none;
+  }
+
+  .jd-toggle-slider {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    background: var(--meta-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    transition: all 0.2s ease;
+  }
+
+  .jd-toggle-slider::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  .jd-toggle input:checked + .jd-toggle-slider {
+    background: var(--brand-blue);
+    border-color: var(--brand-blue);
+  }
+
+  .jd-toggle input:checked + .jd-toggle-slider::after {
+    left: 18px;
+    background: white;
+  }
+
+  .jd-toggle-label {
+    font-size: 0.85rem;
+    color: var(--text-main);
+  }
+
+  /* ========== INPUT SECTION ========== */
+  .jd-input-section {
+    position: relative;
+  }
+
+  .jd-input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  .jd-input-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .jd-input-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .jd-field-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .jd-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+
+  .jd-btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--meta-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .jd-btn-action:hover {
+    background: var(--card-bg);
+    color: var(--text-main);
+    border-color: var(--text-muted);
+  }
+
+  .jd-btn-action svg {
+    flex-shrink: 0;
+  }
+
+  .jd-textarea {
+    width: 100%;
+    height: 150px;
+    padding: var(--spacing-md);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    resize: none;
+  }
+
+  .jd-textarea:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+  }
+
+  .jd-textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* ========== RESIZE HANDLE ========== */
+  .jd-resize-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 16px;
+    cursor: ns-resize;
+    user-select: none;
+    margin: -4px 0;
+  }
+
+  .jd-resize-grip {
+    display: flex;
+    gap: 3px;
+    padding: 4px 12px;
+    background: var(--meta-bg);
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+
+  .jd-resize-handle:hover .jd-resize-grip {
+    background: var(--border-color);
+  }
+
+  .jd-resize-grip span {
+    width: 4px;
+    height: 4px;
+    background: var(--text-muted);
+    border-radius: 50%;
+  }
+
+  /* ========== SWAP BUTTON ========== */
+  .jd-swap-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+  }
+
+  .jd-swap-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .jd-swap-btn:hover {
+    background: var(--brand-blue);
+    border-color: var(--brand-blue);
+    color: white;
+    transform: scale(1.1);
+  }
+
+  .jd-swap-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* ========== ERROR ========== */
+  .jd-error {
+    display: none;
+    padding: var(--spacing-md);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    border-radius: 10px;
+    color: var(--danger-text);
+    font-size: 0.9rem;
+  }
+
+  .jd-error.show {
+    display: block;
+  }
+
+  /* ========== RESULTS ========== */
+  .jd-results {
+    display: none;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card-bg);
+  }
+
+  .jd-results.show {
+    display: block;
+  }
+
+  /* ========== STATS (in toolbar) ========== */
+  .jd-stats {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+  }
+
+  .jd-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .jd-stat:hover {
+    transform: scale(1.02);
+  }
+
+  .jd-stat-icon {
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+
+  .jd-stat-label {
+    color: inherit;
+    opacity: 0.8;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .jd-stat-extra.jd-stat-active {
+    background: rgba(166, 227, 161, 0.15);
+    color: #a6e3a1;
+  }
+
+  .jd-stat-missing.jd-stat-active {
+    background: rgba(243, 139, 168, 0.15);
+    color: #f38ba8;
+  }
+
+  .jd-stat-type.jd-stat-active {
+    background: rgba(250, 204, 21, 0.15);
+    color: #facc15;
+  }
+
+  .jd-stat-value.jd-stat-active {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+  }
+
+  /* Estados inativos (filtros desligados) */
+  .jd-stat:not(.jd-stat-active) {
+    background: rgba(100, 100, 100, 0.1);
+    color: #666666;
+    opacity: 0.6;
+  }
+
+  .jd-stat:not(.jd-stat-active):hover {
+    opacity: 0.8;
+  }
+
+  /* ========== VIEWS ========== */
+  .jd-view {
+    display: none;
+  }
+
+  .jd-view.jd-view-active {
+    display: block;
+  }
+
+  /* ========== SIDE BY SIDE ========== */
+  .jd-sbs-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #111111;
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .jd-side-by-side {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .jd-side-by-side .djv-container {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: none;
+  }
+
+  .jd-side-by-side .djv-container:first-child {
+    border-right: 1px solid var(--border-color);
+  }
+
+  /* ========== FULLSCREEN ========== */
+  .jd-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 9999 !important;
+    background: #171717 !important;
+    border-radius: 0 !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .jd-fullscreen .jd-sbs-toolbar {
+    flex-shrink: 0;
+  }
+
+  .jd-fullscreen .jd-side-by-side {
+    flex: 1;
+    height: calc(100vh - 50px);
+  }
+
+  .jd-fullscreen .djv-container {
+    height: 100%;
+  }
+
+  .jd-fullscreen .djv-content {
+    height: calc(100vh - 90px) !important;
+  }
+
+  /* ========== EMPTY LINE (for sync) ========== */
+  .djv-line.djv-empty-line {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .djv-line.djv-empty-line .djv-line-content {
+    color: transparent;
+    user-select: none;
+  }
+
+  .djv-line.djv-empty-line .djv-line-num {
+    color: #404040;
+  }
+
+  .djv-line.djv-empty-line .djv-line-indicator {
+    color: #404040;
+  }
+
+  /* Linha com diff escondido (filtro desativado) */
+  .djv-line.djv-hidden-diff {
+    background: transparent;
+  }
+
+  .djv-line.djv-hidden-diff .djv-line-indicator {
+    color: transparent;
+  }
+
+  /* ========== UNIFIED ========== */
+  .jd-unified-container {
+    background: #171717;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .jd-unified-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #111111;
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .jd-unified-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e5e5e5;
+  }
+
+  .jd-unified-content {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    padding: var(--spacing-md);
+    color: #e5e5e5;
+  }
+
+  .jd-unified-content .djv-line {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    line-height: 1.6;
+  }
+
+  .jd-unified-content .djv-line:last-child {
+    margin-bottom: 0;
+  }
+
+  .jd-unified-content .djv-line.djv-added {
+    background: rgba(166, 227, 161, 0.1);
+    border-color: rgba(166, 227, 161, 0.3);
+  }
+
+  .jd-unified-content .djv-line.djv-removed {
+    background: rgba(243, 139, 168, 0.1);
+    border-color: rgba(243, 139, 168, 0.3);
+  }
+
+  .jd-unified-content .djv-line.djv-type-changed {
+    background: rgba(250, 204, 21, 0.1);
+    border-color: rgba(250, 204, 21, 0.3);
+  }
+
+  .jd-unified-content .djv-line.djv-value-changed {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+
+  .jd-unified-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    margin-right: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .djv-added .jd-unified-tag {
+    background: rgba(166, 227, 161, 0.3);
+    color: #a6e3a1;
+  }
+
+  .djv-removed .jd-unified-tag {
+    background: rgba(243, 139, 168, 0.3);
+    color: #f38ba8;
+  }
+
+  .djv-type-changed .jd-unified-tag {
+    background: rgba(250, 204, 21, 0.3);
+    color: #facc15;
+  }
+
+  .djv-value-changed .jd-unified-tag {
+    background: rgba(139, 92, 246, 0.3);
+    color: #a78bfa;
+  }
+
+  /* ========== REPORT ========== */
+  .jd-report-container {
+    background: #171717;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .jd-report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: #111111;
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .jd-report-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #e5e5e5;
+  }
+
+  .jd-report-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+
+  .jd-report-content {
+    padding: var(--spacing-lg);
+    background: #171717;
+  }
+
+  .jd-report-empty {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: #e5e5e5;
+    font-size: 1rem;
+  }
+
+  .jd-report-section {
+    margin-bottom: var(--spacing-lg);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #2a2a2a;
+    background: #1a1a1a;
+  }
+
+  .jd-report-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .jd-report-section-header {
+    padding: 12px 16px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .jd-report-section-desc {
+    padding: 8px 16px 12px;
+    font-size: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .jd-report-extra .jd-report-section-header {
+    background: rgba(166, 227, 161, 0.2);
+    color: #a6e3a1;
+    border-left: 4px solid #a6e3a1;
+  }
+  .jd-report-extra .jd-report-section-desc {
+    background: rgba(166, 227, 161, 0.08);
+    color: #a6e3a1;
+  }
+
+  .jd-report-missing .jd-report-section-header {
+    background: rgba(243, 139, 168, 0.2);
+    color: #f38ba8;
+    border-left: 4px solid #f38ba8;
+  }
+  .jd-report-missing .jd-report-section-desc {
+    background: rgba(243, 139, 168, 0.08);
+    color: #f38ba8;
+  }
+
+  .jd-report-type .jd-report-section-header {
+    background: rgba(250, 204, 21, 0.2);
+    color: #facc15;
+    border-left: 4px solid #facc15;
+  }
+  .jd-report-type .jd-report-section-desc {
+    background: rgba(250, 204, 21, 0.08);
+    color: #facc15;
+  }
+
+  .jd-report-value .jd-report-section-header {
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+    border-left: 4px solid #a78bfa;
+  }
+  .jd-report-value .jd-report-section-desc {
+    background: rgba(139, 92, 246, 0.08);
+    color: #a78bfa;
+  }
+
+  .jd-report-section-content {
+    padding: 12px 16px;
+    background: #1a1a1a;
+  }
+
+  .jd-report-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: #222222;
+    border: 1px solid #333333;
+  }
+
+  .jd-report-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .jd-report-item:hover {
+    background: #2a2a2a;
+    border-color: #404040;
+  }
+
+  .jd-report-path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: #60a5fa;
+    background: transparent;
+  }
+
+  .jd-report-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: #a3a3a3;
+  }
+
+  .jd-report-change {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+  }
+
+  .jd-report-expected {
+    color: #a3a3a3;
+  }
+
+  .jd-report-arrow {
+    color: #737373;
+  }
+
+  .jd-report-found {
+    color: #e5e5e5;
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 900px) {
+    .jd-input-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .jd-swap-container {
+      position: relative;
+      top: auto;
+      left: auto;
+      transform: none;
+      display: flex;
+      justify-content: center;
+      margin: var(--spacing-sm) 0;
+    }
+
+    .jd-swap-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .jd-side-by-side {
+      grid-template-columns: 1fr;
+    }
+
+    .jd-side-by-side .djv-container:first-child {
+      border-right: none;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .jd-stats {
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .jd-options-bar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .jd-options {
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+  }
+</style>

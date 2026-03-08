@@ -1,0 +1,407 @@
+---
+import { ADDRESSES_DATA } from '@idocs/data/addresses';
+import { BUSINESS_PARTNER_DATA } from '@idocs/data/business_partner';
+import { CUSTOMERS_DATA } from '@idocs/data/customers';
+import { MATERIAL_CHARACTERISTICS_DATA } from '@idocs/data/material_characteristics';
+import { MATERIAL_QM_DATA } from '@idocs/data/material_qm';
+import { MATERIALS_RETAIL_DATA } from '@idocs/data/materials_retail';
+/**
+ * Search.astro - Componente de busca global
+ * Índice gerado em build-time, incluindo campos de IDocs
+ */
+import { MATMAS_DATA } from '@idocs/data/matmas';
+import { SERVICES_DATA } from '@idocs/data/services';
+import { VENDORS_DATA } from '@idocs/data/vendors';
+
+// Gerar índice de busca em build-time
+interface SearchItem {
+  title: string;
+  url: string;
+  type: 'tool' | 'idoc' | 'doc' | 'field' | 'segment';
+  description: string;
+  segment?: string;
+}
+
+const searchIndex: SearchItem[] = [
+  // Ferramentas
+  {
+    title: 'Testador de Campo IDOC',
+    url: '/tools/idoc-field-tester',
+    type: 'tool',
+    description: 'Teste e valide campos SAP individualmente',
+  },
+  {
+    title: 'SQL Builder',
+    url: '/tools/sql-builder',
+    type: 'tool',
+    description: 'Construa queries SQL dinâmicas para PostgreSQL',
+  },
+  {
+    title: 'JSON Studio',
+    url: '/tools/json-studio',
+    type: 'tool',
+    description: 'Visualize e explore JSON com interface avançada',
+  },
+  {
+    title: 'JSON Diff',
+    url: '/tools/json-diff',
+    type: 'tool',
+    description: 'Compare dois JSONs lado a lado',
+  },
+  {
+    title: 'Visual Mapper',
+    url: '/tools/mapper',
+    type: 'tool',
+    description: 'Mapeamento visual de campos',
+  },
+  {
+    title: 'Validador de Payload IDOC',
+    url: '/tools/idoc-payload-validator',
+    type: 'tool',
+    description: 'Valide payloads contra IDocs SAP',
+  },
+
+  // Documentação
+  {
+    title: 'Como Funciona',
+    url: '/docs/getting-started',
+    type: 'doc',
+    description: 'Guia inicial do portal',
+  },
+  {
+    title: 'Boas Práticas',
+    url: '/docs/best-practices',
+    type: 'doc',
+    description: 'Padrões recomendados',
+  },
+  {
+    title: 'Arquitetura',
+    url: '/docs/architecture',
+    type: 'doc',
+    description: 'Visão técnica do sistema',
+  },
+  {
+    title: 'Troubleshooting',
+    url: '/docs/troubleshooting',
+    type: 'doc',
+    description: 'Resolução de problemas',
+  },
+  { title: 'Glossário SAP', url: '/docs/glossary', type: 'doc', description: 'Termos técnicos' },
+];
+
+// IDocs com suas páginas
+const idocs = [
+  { data: MATMAS_DATA, slug: 'materials', badge: 'MATMAS' },
+  { data: BUSINESS_PARTNER_DATA, slug: 'business-partner', badge: 'BPMAS' },
+  { data: CUSTOMERS_DATA, slug: 'customers', badge: 'DEBMAS' },
+  { data: VENDORS_DATA, slug: 'vendors', badge: 'CREMAS' },
+  { data: ADDRESSES_DATA, slug: 'addresses', badge: 'ADRMAS' },
+  { data: SERVICES_DATA, slug: 'services', badge: 'SRVMAS' },
+  { data: MATERIALS_RETAIL_DATA, slug: 'materials-retail', badge: 'MATMAS Retail' },
+  {
+    data: MATERIAL_CHARACTERISTICS_DATA,
+    slug: 'material-characteristics',
+    badge: 'Characteristics',
+  },
+  { data: MATERIAL_QM_DATA, slug: 'material-qm', badge: 'QM' },
+];
+
+// Adicionar IDocs e seus campos/segmentos
+for (const { data, slug, badge } of idocs) {
+  // Página do IDoc
+  searchIndex.push({
+    title: data.title,
+    url: `/idocs/${slug}`,
+    type: 'idoc',
+    description: `${badge} - ${data.description}`,
+  });
+
+  // Segmentos e campos
+  for (const [segName, segDef] of Object.entries(data.segments)) {
+    // Segmento
+    searchIndex.push({
+      title: segName,
+      url: `/idocs/${slug}#${segName}`,
+      type: 'segment',
+      description: segDef.description,
+    });
+
+    // Campos do segmento
+    for (const field of segDef.fields) {
+      searchIndex.push({
+        title: field.name,
+        url: `/idocs/${slug}#${segName}`,
+        type: 'field',
+        description: `${field.description} - ${field.type}`,
+        segment: segName,
+      });
+    }
+  }
+}
+
+// Templates
+searchIndex.push({
+  title: 'Templates',
+  url: '/idocs/templates',
+  type: 'idoc',
+  description: 'Biblioteca de payloads JSON prontos',
+});
+---
+
+<div class="search-wrapper">
+  <input 
+    type="text" 
+    class="search-input" 
+    id="globalSearch" 
+    placeholder="Buscar..." 
+    autocomplete="off"
+  />
+  <div class="search-results" id="searchResults"></div>
+</div>
+
+<style>
+  .search-wrapper {
+    position: relative;
+  }
+
+  .search-input {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    width: 240px;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+  }
+
+  .search-input::placeholder {
+    color: rgba(255,255,255,0.5);
+  }
+
+  .search-input:focus {
+    background: rgba(255,255,255,0.15);
+    border-color: var(--brand-blue);
+    width: 280px;
+    outline: none;
+  }
+
+  .search-results {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 380px;
+    max-height: 450px;
+    overflow-y: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    display: none;
+    z-index: 9999;
+  }
+
+  :global([data-theme="dark"]) .search-results {
+    background: #1e293b;
+  }
+
+  .search-results.open {
+    display: block;
+  }
+
+  .search-results:empty {
+    display: none;
+  }
+
+  :global(.search-result-item) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+  }
+
+  :global([data-theme="dark"] .search-result-item) {
+    color: #e2e8f0;
+    border-bottom-color: #334155;
+  }
+
+  :global(.search-result-item:hover) {
+    background: #f8fafc;
+  }
+
+  :global([data-theme="dark"] .search-result-item:hover) {
+    background: rgba(255,255,255,0.05);
+  }
+
+  :global(.search-result-item:last-child) {
+    border-bottom: none;
+  }
+
+  :global(.search-result-icon) {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  :global(.search-result-content) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :global(.search-result-title) {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+  }
+
+  :global(.search-result-desc) {
+    font-size: 0.75rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :global(.search-result-type) {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #f1f5f9;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  :global(.search-no-results) {
+    padding: 20px;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.85rem;
+  }
+
+  :global(.search-view-all) {
+    display: block;
+    padding: 12px 16px;
+    text-align: center;
+    color: var(--brand-blue);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    border-top: 1px solid var(--border-color);
+    transition: background 0.15s;
+  }
+
+  :global(.search-view-all:hover) {
+    background: var(--meta-bg);
+  }
+
+  @media (max-width: 768px) {
+    .search-wrapper {
+      display: none;
+    }
+  }
+</style>
+
+<script is:inline define:vars={{ searchIndex }}>
+  // Índice gerado em build-time (inclui campos de IDocs)
+  window.SEARCH_INDEX = searchIndex;
+</script>
+
+<script>
+  interface SearchItem {
+    title: string;
+    url: string;
+    type: 'tool' | 'idoc' | 'doc' | 'field' | 'segment';
+    description: string;
+    segment?: string;
+  }
+
+  declare global {
+    interface Window {
+      SEARCH_INDEX: SearchItem[];
+    }
+  }
+
+  function search(query: string): SearchItem[] {
+    if (!query.trim()) return [];
+    
+    const q = query.toLowerCase();
+    return window.SEARCH_INDEX.filter(item => 
+      item.title.toLowerCase().includes(q) ||
+      item.description?.toLowerCase().includes(q) ||
+      item.segment?.toLowerCase().includes(q)
+    ).slice(0, 10);
+  }
+
+  function renderResults(results: SearchItem[], query: string) {
+    const container = document.getElementById('searchResults');
+    if (!container) return;
+
+    if (results.length === 0) {
+      container.innerHTML = '<div class="search-no-results">Nenhum resultado encontrado</div>';
+      container.classList.add('open');
+      return;
+    }
+
+    const typeIcons: Record<string, string> = {
+      idoc: '📦',
+      doc: '📚',
+      tool: '🛠️',
+      segment: '📋',
+      field: '🔤'
+    };
+
+    const resultsHtml = results.slice(0, 5).map(r => `
+      <a href="${r.url}" class="search-result-item">
+        <span class="search-result-icon">${typeIcons[r.type] || '📄'}</span>
+        <div class="search-result-content">
+          <div class="search-result-title">${r.title}</div>
+          <div class="search-result-desc">${r.description || ''}</div>
+        </div>
+        <span class="search-result-type">${r.type}</span>
+      </a>
+    `).join('');
+
+    const viewAllHtml = `
+      <a href="/search?q=${encodeURIComponent(query)}" class="search-view-all">
+        Ver todos os resultados →
+      </a>
+    `;
+
+    container.innerHTML = resultsHtml + viewAllHtml;
+    container.classList.add('open');
+  }
+
+  // Event listeners
+  const input = document.getElementById('globalSearch') as HTMLInputElement;
+  const resultsContainer = document.getElementById('searchResults');
+
+  input?.addEventListener('input', (e) => {
+    const query = (e.target as HTMLInputElement).value;
+    if (query.length >= 2) {
+      const results = search(query);
+      renderResults(results, query);
+    } else {
+      resultsContainer?.classList.remove('open');
+    }
+  });
+
+  // Close on click outside
+  document.addEventListener('click', (e) => {
+    if (!(e.target as HTMLElement).closest('.search-wrapper')) {
+      resultsContainer?.classList.remove('open');
+    }
+  });
+
+  // Close on escape and navigate on Enter
+  input?.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      resultsContainer?.classList.remove('open');
+      input.blur();
+    } else if (e.key === 'Enter' && input.value.trim()) {
+      window.location.href = `/search?q=${encodeURIComponent(input.value.trim())}`;
+    }
+  });
+</script>

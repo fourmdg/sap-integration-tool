@@ -1,0 +1,80 @@
+---
+/**
+ * ThemeToggle.astro - Botão para alternar entre temas light/dark
+ */
+---
+
+<button class="theme-toggle" id="themeToggle" aria-label="Alternar tema">
+  <span class="icon-sun">☀️</span>
+  <span class="icon-moon">🌙</span>
+</button>
+
+<style>
+  .theme-toggle {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease, transform 0.2s ease, border-color 0.3s ease;
+    font-size: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theme-toggle:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.05);
+  }
+
+  .theme-toggle:active {
+    transform: scale(0.95);
+  }
+
+  .icon-sun,
+  .icon-moon {
+    position: absolute;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Light theme: show moon icon */
+  :global([data-theme="light"]) .icon-sun {
+    opacity: 0;
+    transform: scale(0.5) rotate(-90deg);
+  }
+
+  :global([data-theme="light"]) .icon-moon {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  /* Dark theme: show sun icon */
+  :global([data-theme="dark"]) .icon-sun {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  :global([data-theme="dark"]) .icon-moon {
+    opacity: 0;
+    transform: scale(0.5) rotate(90deg);
+  }
+</style>
+
+<script>
+  const toggle = document.getElementById('themeToggle');
+  
+  toggle?.addEventListener('click', () => {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme') || 'light';
+    const next = current === 'light' ? 'dark' : 'light';
+    
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+</script>

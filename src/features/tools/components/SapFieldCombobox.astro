@@ -1,0 +1,681 @@
+---
+/**
+ * SapFieldCombobox - Componente reutilizável para seleção de campos SAP
+ *
+ * Props:
+ * - id: ID único do combobox (para ter múltiplos na mesma página)
+ * - label: Rótulo do campo
+ * - placeholder: Texto placeholder
+ * - showIdocFilter: Se deve mostrar filtro por IDOC
+ * - variant: "full" (card completo) ou "compact" (inline)
+ */
+import { ALL_IDOCS, ALL_SAP_FIELDS, TOTAL_ALL_FIELDS, TYPE_COLORS } from '@idocs/data';
+
+interface Props {
+  id: string;
+  label?: string;
+  placeholder?: string;
+  showIdocFilter?: boolean;
+  variant?: 'full' | 'compact';
+}
+
+const {
+  id,
+  label = 'Selecione o Campo SAP',
+  placeholder = 'Selecione um campo...',
+  showIdocFilter = true,
+  variant = 'full',
+} = Astro.props;
+
+// Dados para o JavaScript
+const fieldsJson = JSON.stringify(ALL_SAP_FIELDS);
+const idocsJson = JSON.stringify(
+  ALL_IDOCS.map((i) => ({ code: i.code, title: i.title, icon: i.icon }))
+);
+const colorsJson = JSON.stringify(TYPE_COLORS);
+const totalFields = TOTAL_ALL_FIELDS;
+---
+
+<div class:list={["sfc-container", `sfc-${variant}`]} data-sfc-id={id}>
+  {label && (
+    <label class="sfc-label">
+      {label} <span class="sfc-count">({totalFields} campos)</span>
+    </label>
+  )}
+  
+  {showIdocFilter && (
+    <div class="sfc-filter-row">
+      <div class="sfc-idoc-filter" data-sfc-idoc-filter={id}>
+        <button type="button" class="sfc-filter-trigger" data-sfc-idoc-trigger={id}>
+          <span data-sfc-idoc-value={id}>🔍 Todos os IDOCs</span>
+          <svg class="sfc-chevron" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div class="sfc-filter-dropdown" data-sfc-idoc-dropdown={id}>
+          <div class="sfc-filter-list" data-sfc-idoc-list={id}></div>
+        </div>
+      </div>
+    </div>
+  )}
+  
+  <div class="sfc-combobox" data-sfc-combobox={id}>
+    <button type="button" class="sfc-trigger" data-sfc-trigger={id}>
+      <span class="sfc-value sfc-placeholder" data-sfc-value={id}>{placeholder}</span>
+      <svg class="sfc-chevron" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+      </svg>
+    </button>
+    <div class="sfc-dropdown" data-sfc-dropdown={id}>
+      <div class="sfc-search-wrapper">
+        <input type="text" class="sfc-search" data-sfc-search={id} placeholder="🔍 Buscar campo..." />
+      </div>
+      <div class="sfc-list" data-sfc-list={id}></div>
+    </div>
+  </div>
+  
+  <div class="sfc-selected-info" data-sfc-info={id}></div>
+</div>
+
+<script is:inline define:vars={{ id, fieldsJson, idocsJson, colorsJson, showIdocFilter }}>
+(function() {
+  const PREFIX = `[data-sfc-id="${id}"]`;
+  const container = document.querySelector(PREFIX);
+  if (!container) return;
+  
+  const FIELDS = JSON.parse(fieldsJson);
+  const IDOCS = JSON.parse(idocsJson);
+  const TYPE_COLORS = JSON.parse(colorsJson);
+  
+  // State
+  let selectedField = null;
+  let selectedIdoc = '';
+  let highlightedIndex = -1;
+  let filteredFields = [];
+  
+  // Elements
+  const combobox = container.querySelector(`[data-sfc-combobox="${id}"]`);
+  const trigger = container.querySelector(`[data-sfc-trigger="${id}"]`);
+  const valueEl = container.querySelector(`[data-sfc-value="${id}"]`);
+  const searchInput = container.querySelector(`[data-sfc-search="${id}"]`);
+  const listEl = container.querySelector(`[data-sfc-list="${id}"]`);
+  const infoEl = container.querySelector(`[data-sfc-info="${id}"]`);
+  
+  // IDOC Filter elements
+  const idocFilter = container.querySelector(`[data-sfc-idoc-filter="${id}"]`);
+  const idocTrigger = container.querySelector(`[data-sfc-idoc-trigger="${id}"]`);
+  const idocValueEl = container.querySelector(`[data-sfc-idoc-value="${id}"]`);
+  const idocListEl = container.querySelector(`[data-sfc-idoc-list="${id}"]`);
+  
+  // Init IDOC filter
+  if (showIdocFilter && idocListEl) {
+    let html = `<div class="sfc-filter-option sfc-filter-selected" data-idoc="">🔍 Todos os IDOCs</div>`;
+    IDOCS.forEach(idoc => {
+      const count = FIELDS.filter(f => f.idoc === idoc.code).length;
+      html += `<div class="sfc-filter-option" data-idoc="${idoc.code}">${idoc.icon} ${idoc.code} (${idoc.title}) <span class="sfc-filter-count">${count}</span></div>`;
+    });
+    idocListEl.innerHTML = html;
+    
+    idocTrigger?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      idocFilter.classList.toggle('sfc-open');
+      combobox.classList.remove('sfc-open');
+    });
+    
+    idocListEl.querySelectorAll('.sfc-filter-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const value = opt.dataset.idoc || '';
+        selectedIdoc = value;
+        idocValueEl.textContent = value ? `${IDOCS.find(i => i.code === value)?.icon || ''} ${value}` : '🔍 Todos os IDOCs';
+        idocFilter.classList.remove('sfc-open');
+        idocListEl.querySelectorAll('.sfc-filter-option').forEach(o => o.classList.remove('sfc-filter-selected'));
+        opt.classList.add('sfc-filter-selected');
+        renderList();
+      });
+    });
+  }
+  
+  // Render list
+  function renderList(query = '') {
+    const q = query.trim().toLowerCase();
+    
+    filteredFields = FIELDS.filter(field => {
+      if (selectedIdoc && field.idoc !== selectedIdoc) return false;
+      if (!q) return true;
+      return field.name.toLowerCase().includes(q) || 
+             field.description.toLowerCase().includes(q) ||
+             field.segment.toLowerCase().includes(q);
+    });
+    
+    if (filteredFields.length === 0) {
+      listEl.innerHTML = '<div class="sfc-empty">Nenhum campo encontrado</div>';
+      return;
+    }
+    
+    listEl.innerHTML = filteredFields.map((field, index) => {
+      const color = TYPE_COLORS[field.type] || '#6b7280';
+      const isSelected = selectedField?.name === field.name && selectedField?.segment === field.segment;
+      const isHighlighted = index === highlightedIndex;
+      
+      return `
+        <div class="sfc-option ${isSelected ? 'sfc-option-selected' : ''} ${isHighlighted ? 'sfc-option-highlighted' : ''}" data-index="${index}">
+          <div class="sfc-option-icon" style="background: ${color}">${field.type.charAt(0)}</div>
+          <div class="sfc-option-content">
+            <div class="sfc-option-header">
+              <span class="sfc-option-name">${field.name}</span>
+              <span class="sfc-option-meta">${field.segment} · ${field.idoc}</span>
+            </div>
+            <div class="sfc-option-desc">${field.description}</div>
+          </div>
+          <div class="sfc-option-type">${field.type}(${field.len})</div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  // Open/close
+  function openDropdown() {
+    combobox.classList.add('sfc-open');
+    idocFilter?.classList.remove('sfc-open');
+    renderList();
+    setTimeout(() => searchInput?.focus(), 50);
+  }
+  
+  function closeDropdown() {
+    combobox.classList.remove('sfc-open');
+    if (searchInput) searchInput.value = '';
+    highlightedIndex = -1;
+  }
+  
+  // Select field
+  function selectField(field) {
+    selectedField = field;
+    valueEl.textContent = field.name;
+    valueEl.classList.remove('sfc-placeholder');
+    
+    // Update info
+    if (infoEl) {
+      infoEl.innerHTML = `
+        <span class="sfc-info-desc">${field.description}</span>
+        <span class="sfc-info-meta">${field.type}(${field.len}) · ${field.segment} · ${field.idoc}</span>
+      `;
+    }
+    
+    closeDropdown();
+    
+    // Dispatch event for parent to handle
+    container.dispatchEvent(new CustomEvent('sfc:select', { 
+      detail: field,
+      bubbles: true 
+    }));
+  }
+  
+  // Events
+  trigger?.addEventListener('click', () => {
+    combobox.classList.contains('sfc-open') ? closeDropdown() : openDropdown();
+  });
+  
+  searchInput?.addEventListener('input', () => {
+    highlightedIndex = -1;
+    renderList(searchInput.value);
+  });
+  
+  searchInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      highlightedIndex = Math.min(highlightedIndex + 1, filteredFields.length - 1);
+      renderList(searchInput.value);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      highlightedIndex = Math.max(highlightedIndex - 1, 0);
+      renderList(searchInput.value);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && filteredFields[highlightedIndex]) {
+        selectField(filteredFields[highlightedIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+      trigger?.focus();
+    }
+  });
+  
+  listEl?.addEventListener('click', (e) => {
+    const option = e.target.closest('.sfc-option');
+    if (option) {
+      const index = parseInt(option.dataset.index);
+      if (filteredFields[index]) {
+        selectField(filteredFields[index]);
+      }
+    }
+  });
+  
+  document.addEventListener('click', (e) => {
+    if (!container.contains(e.target)) {
+      closeDropdown();
+      idocFilter?.classList.remove('sfc-open');
+    }
+  });
+  
+  // Expose API
+  window[`SapFieldCombobox_${id}`] = {
+    getSelected: () => selectedField,
+    clear: () => {
+      selectedField = null;
+      valueEl.textContent = container.querySelector(`[data-sfc-trigger="${id}"]`)?.dataset.placeholder || 'Selecione um campo...';
+      valueEl.classList.add('sfc-placeholder');
+      if (infoEl) infoEl.innerHTML = '';
+    }
+  };
+})();
+</script>
+
+<style is:global>
+  /* ========== CONTAINER ========== */
+  .sfc-container {
+    --sfc-radius: 10px;
+    --sfc-gap: 12px;
+  }
+  
+  .sfc-full {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: var(--spacing-lg);
+    border-radius: 12px;
+  }
+  
+  .sfc-compact {
+    background: transparent;
+  }
+  
+  /* ========== LABEL ========== */
+  .sfc-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .sfc-count {
+    font-weight: 400;
+    text-transform: none;
+    opacity: 0.7;
+  }
+  
+  /* ========== FILTER ROW ========== */
+  .sfc-filter-row {
+    display: flex;
+    gap: var(--sfc-gap);
+    margin-bottom: var(--sfc-gap);
+  }
+  
+  .sfc-idoc-filter {
+    position: relative;
+    flex: 1;
+    max-width: 260px;
+  }
+  
+  .sfc-filter-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--meta-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    transition: all 0.15s ease;
+  }
+  
+  .sfc-filter-trigger:hover {
+    border-color: var(--brand-blue);
+  }
+  
+  .sfc-idoc-filter.sfc-open .sfc-filter-trigger {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  }
+  
+  .sfc-filter-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    min-width: 240px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+    z-index: 1001;
+    overflow: hidden;
+  }
+  
+  :global([data-theme="dark"]) .sfc-filter-dropdown {
+    background: #1a1a2e;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+  
+  .sfc-idoc-filter.sfc-open .sfc-filter-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  
+  .sfc-filter-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 4px;
+  }
+  
+  .sfc-filter-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    transition: background 0.1s ease;
+  }
+  
+  .sfc-filter-option:hover {
+    background: var(--meta-bg);
+  }
+  
+  .sfc-filter-option.sfc-filter-selected {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--brand-blue);
+    font-weight: 600;
+  }
+  
+  .sfc-filter-count {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    background: var(--meta-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  
+  /* ========== MAIN COMBOBOX ========== */
+  .sfc-combobox {
+    position: relative;
+  }
+  
+  .sfc-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--meta-bg);
+    border: 2px solid transparent;
+    border-radius: var(--sfc-radius);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+  }
+  
+  .sfc-trigger:hover {
+    border-color: var(--border-color);
+  }
+  
+  .sfc-trigger:focus,
+  .sfc-combobox.sfc-open .sfc-trigger {
+    background: var(--card-bg);
+    border-color: var(--brand-blue);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+  
+  .sfc-value {
+    font-size: 1rem;
+    color: var(--text-main);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+  }
+  
+  .sfc-value.sfc-placeholder {
+    color: var(--text-muted);
+    font-family: inherit;
+  }
+  
+  .sfc-chevron {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  
+  .sfc-combobox.sfc-open .sfc-chevron,
+  .sfc-idoc-filter.sfc-open .sfc-chevron {
+    transform: rotate(180deg);
+  }
+  
+  /* ========== DROPDOWN ========== */
+  .sfc-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+    z-index: 1000;
+    overflow: hidden;
+  }
+  
+  :global([data-theme="dark"]) .sfc-dropdown {
+    background: #141824;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  }
+  
+  .sfc-combobox.sfc-open .sfc-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  
+  /* ========== SEARCH ========== */
+  .sfc-search-wrapper {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .sfc-search {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: var(--meta-bg);
+    color: var(--text-main);
+    box-sizing: border-box;
+  }
+  
+  .sfc-search:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+  }
+  
+  .sfc-search::placeholder {
+    color: var(--text-muted);
+  }
+  
+  /* ========== LIST ========== */
+  .sfc-list {
+    max-height: 360px;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  
+  .sfc-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .sfc-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .sfc-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+  }
+  
+  .sfc-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  
+  /* ========== OPTION ========== */
+  .sfc-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.1s ease;
+  }
+  
+  .sfc-option:hover,
+  .sfc-option.sfc-option-highlighted {
+    background: var(--meta-bg);
+  }
+  
+  :global([data-theme="dark"]) .sfc-option:hover,
+  :global([data-theme="dark"]) .sfc-option.sfc-option-highlighted {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  
+  .sfc-option.sfc-option-selected {
+    background: rgba(59, 130, 246, 0.1);
+  }
+  
+  .sfc-option.sfc-option-selected:hover {
+    background: rgba(59, 130, 246, 0.15);
+  }
+  
+  /* Option icon */
+  .sfc-option-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+  
+  /* Option content */
+  .sfc-option-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .sfc-option-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .sfc-option-name {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--heading-color);
+  }
+  
+  .sfc-option-meta {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-family: 'Consolas', monospace;
+  }
+  
+  .sfc-option-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Option type badge */
+  .sfc-option-type {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    background: var(--meta-bg);
+    color: var(--text-muted);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    white-space: nowrap;
+  }
+  
+  /* ========== SELECTED INFO ========== */
+  .sfc-selected-info {
+    margin-top: var(--spacing-sm);
+    min-height: 1.4em;
+  }
+  
+  .sfc-selected-info:empty {
+    display: none;
+  }
+  
+  .sfc-info-desc {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--brand-blue);
+    font-weight: 500;
+  }
+  
+  .sfc-info-meta {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-family: 'Consolas', monospace;
+  }
+  
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 768px) {
+    .sfc-filter-row {
+      flex-direction: column;
+    }
+    
+    .sfc-idoc-filter {
+      max-width: none;
+    }
+    
+    .sfc-option-meta {
+      display: none;
+    }
+  }
+</style>

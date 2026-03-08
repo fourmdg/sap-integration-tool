@@ -1,0 +1,377 @@
+---
+/**
+ * PayloadModal.astro - Modal para exibir payload JSON/XML
+ * Usado globalmente nas páginas IDoc
+ */
+---
+
+<div class="payload-modal" id="payloadModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-container">
+    <header class="modal-header">
+      <h3 class="modal-title" id="modalTitle">Payload de Exemplo</h3>
+      <div class="modal-tabs" role="tablist">
+        <button class="modal-tab active" data-format="json" role="tab" aria-selected="true">JSON</button>
+        <button class="modal-tab" data-format="xml" role="tab" aria-selected="false">XML</button>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Fechar modal">✕</button>
+    </header>
+    
+    <div class="modal-body">
+      <pre class="payload-content" id="payloadContent"></pre>
+    </div>
+    
+    <footer class="modal-footer">
+      <button class="btn-copy" id="copyPayload">
+        📋 Copiar
+      </button>
+      <button class="btn-download" id="downloadPayload">
+        ⬇️ Download
+      </button>
+    </footer>
+  </div>
+</div>
+
+<style>
+  .payload-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .payload-modal.open {
+    display: flex;
+  }
+  
+  .modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+  }
+  
+  .modal-container {
+    position: relative;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+  }
+  
+  .modal-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    gap: 16px;
+  }
+  
+  .modal-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--heading-color);
+    margin: 0;
+    flex-shrink: 0;
+  }
+  
+  .modal-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(0,0,0,0.2);
+    padding: 4px;
+    border-radius: 8px;
+    margin-left: auto;
+  }
+  
+  .modal-tab {
+    padding: 6px 16px;
+    font-size: 0.8rem;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .modal-tab.active {
+    background: var(--brand-blue);
+    color: white;
+  }
+  
+  .modal-tab:hover:not(.active) {
+    color: white;
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-left: 8px;
+  }
+  
+  .modal-close:hover {
+    color: white;
+  }
+  
+  .modal-body {
+    flex: 1;
+    overflow: auto;
+    padding: 0;
+  }
+  
+  .payload-content {
+    margin: 0;
+    padding: 1.5rem;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: #e2e8f0;
+    background: transparent;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  
+  .modal-footer {
+    display: flex;
+    gap: 8px;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    justify-content: flex-end;
+  }
+  
+  .modal-footer button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .btn-copy {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+  }
+  
+  .btn-copy:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: var(--brand-blue);
+  }
+  
+  .btn-download {
+    background: var(--brand-blue);
+    border: none;
+    color: white;
+  }
+  
+  .btn-download:hover {
+    background: #0047e8;
+  }
+  
+  @media (max-width: 768px) {
+    .modal-container {
+      width: 95%;
+      max-height: 90vh;
+    }
+    
+    .modal-header {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .modal-tabs {
+      order: 3;
+      width: 100%;
+      margin-left: 0;
+    }
+    
+    .modal-tab {
+      flex: 1;
+      text-align: center;
+    }
+  }
+</style>
+
+<script>
+  interface ModalState {
+    segment: string;
+    format: 'json' | 'xml';
+    jsonData: string;
+    xmlData: string;
+  }
+
+  const state: ModalState = {
+    segment: '',
+    format: 'json',
+    jsonData: '',
+    xmlData: ''
+  };
+
+  const modal = document.getElementById('payloadModal');
+  const backdrop = document.getElementById('modalBackdrop');
+  const closeBtn = document.getElementById('modalClose');
+  const content = document.getElementById('payloadContent');
+  const copyBtn = document.getElementById('copyPayload');
+  const downloadBtn = document.getElementById('downloadPayload');
+  const tabs = document.querySelectorAll('.modal-tab');
+
+  // Focus trap elements
+  let previousFocus: HTMLElement | null = null;
+  const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+  // Open modal with payload
+  window.showPayloadModal = function(segment: string, jsonPayload: object) {
+    state.segment = segment;
+    state.jsonData = JSON.stringify(jsonPayload, null, 2);
+    state.xmlData = jsonToXml(jsonPayload);
+    state.format = 'json';
+    
+    updateContent();
+    updateTabs();
+    previousFocus = document.activeElement as HTMLElement;
+    modal?.classList.add('open');
+    modal?.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    
+    // Focus first focusable element
+    const firstFocusable = modal?.querySelector(focusableSelector) as HTMLElement;
+    firstFocusable?.focus();
+  };
+
+  function closeModal() {
+    modal?.classList.remove('open');
+    modal?.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    previousFocus?.focus();
+  }
+
+  // Focus trap handler
+  function trapFocus(e: KeyboardEvent) {
+    if (!modal?.classList.contains('open') || e.key !== 'Tab') return;
+    
+    const focusableElements = modal.querySelectorAll(focusableSelector);
+    const firstEl = focusableElements[0] as HTMLElement;
+    const lastEl = focusableElements[focusableElements.length - 1] as HTMLElement;
+    
+    if (e.shiftKey && document.activeElement === firstEl) {
+      e.preventDefault();
+      lastEl.focus();
+    } else if (!e.shiftKey && document.activeElement === lastEl) {
+      e.preventDefault();
+      firstEl.focus();
+    }
+  }
+
+  document.addEventListener('keydown', trapFocus);
+
+  function updateContent() {
+    if (content) {
+      content.textContent = state.format === 'json' ? state.jsonData : state.xmlData;
+    }
+  }
+
+  function updateTabs() {
+    tabs.forEach(tab => {
+      const format = tab.getAttribute('data-format');
+      tab.classList.toggle('active', format === state.format);
+    });
+  }
+
+  function jsonToXml(obj: any, indent = ''): string {
+    let xml = '';
+    
+    if (typeof obj === 'object' && obj !== null) {
+      for (const key of Object.keys(obj)) {
+        const value = obj[key];
+        
+        if (Array.isArray(value)) {
+          value.forEach(item => {
+            xml += `${indent}<${key}>\n`;
+            xml += jsonToXml(item, indent + '  ');
+            xml += `${indent}</${key}>\n`;
+          });
+        } else if (typeof value === 'object' && value !== null) {
+          xml += `${indent}<${key}>\n`;
+          xml += jsonToXml(value, indent + '  ');
+          xml += `${indent}</${key}>\n`;
+        } else {
+          xml += `${indent}<${key}>${value ?? ''}</${key}>\n`;
+        }
+      }
+    }
+    
+    return xml;
+  }
+
+  // Event listeners
+  backdrop?.addEventListener('click', closeModal);
+  closeBtn?.addEventListener('click', closeModal);
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      state.format = tab.getAttribute('data-format') as 'json' | 'xml';
+      updateContent();
+      updateTabs();
+    });
+  });
+
+  copyBtn?.addEventListener('click', async () => {
+    const text = state.format === 'json' ? state.jsonData : state.xmlData;
+    await navigator.clipboard.writeText(text);
+    
+    const original = copyBtn.textContent;
+    copyBtn.textContent = '✓ Copiado!';
+    setTimeout(() => {
+      copyBtn.textContent = original;
+    }, 2000);
+  });
+
+  downloadBtn?.addEventListener('click', () => {
+    const text = state.format === 'json' ? state.jsonData : state.xmlData;
+    const ext = state.format;
+    const blob = new Blob([text], { type: state.format === 'json' ? 'application/json' : 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${state.segment}.${ext}`;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+  });
+
+  // Close on ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('open')) {
+      closeModal();
+    }
+  });
+
+  // TypeScript declaration
+  declare global {
+    interface Window {
+      showPayloadModal: (segment: string, jsonPayload: object) => void;
+    }
+  }
+</script>

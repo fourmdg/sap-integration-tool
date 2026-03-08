@@ -1,0 +1,216 @@
+---
+/**
+ * SegmentCard.astro - Card de um segmento IDoc
+ * Exibe tabela de campos e botões de exportação
+ */
+import type { IdocField, SegmentDefinition } from '../types';
+
+interface Props {
+  name: string;
+  segment: SegmentDefinition;
+  maxOccurs: number;
+}
+
+const { name, segment, maxOccurs } = Astro.props;
+const { description, fields } = segment;
+---
+
+<section class="segment-card" id={name}>
+  <header class="segment-header">
+    <div class="segment-title-row">
+      <h2 class="segment-name">{name}</h2>
+      <span class="segment-max" title="Número máximo de ocorrências">
+        ×{maxOccurs}
+      </span>
+      <div class="segment-actions">
+        <button class="btn-action btn-csv" data-segment={name} title="Copiar campos como CSV">
+          📋 CSV
+        </button>
+        <button class="btn-action btn-payload" data-segment={name} title="Ver payload de exemplo">
+          📦 Payload
+        </button>
+      </div>
+    </div>
+    {description && <p class="segment-desc">{description}</p>}
+  </header>
+  
+  <div class="segment-body">
+    <table class="fields-table">
+      <thead>
+        <tr>
+          <th class="col-field">Campo</th>
+          <th class="col-desc">Descrição</th>
+          <th class="col-type">Tipo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {fields.map((field: IdocField) => (
+          <tr>
+            <td class="field-name">
+              <code>{field.name}</code>
+            </td>
+            <td class="field-desc">{field.description}</td>
+            <td class="field-type">
+              <span class="type-badge">{field.type}</span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<style>
+  .segment-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: var(--spacing-lg);
+    scroll-margin-top: 80px;
+  }
+  
+  .segment-header {
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .segment-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  
+  .segment-name {
+    font-family: 'Consolas', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin: 0;
+  }
+  
+  .segment-max {
+    font-size: 0.75rem;
+    color: #64748b;
+    background: rgba(100,116,139,0.15);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .segment-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+  
+  .segment-desc {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin: 10px 0 0 0;
+    line-height: 1.5;
+  }
+  
+  .btn-action {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .btn-action:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-color);
+    border-color: var(--brand-blue);
+  }
+  
+  .segment-body {
+    padding: 0;
+    overflow-x: auto;
+  }
+  
+  .fields-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  
+  .fields-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: rgba(0,0,0,0.2);
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .fields-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: top;
+  }
+  
+  .fields-table tbody tr:hover {
+    background: rgba(255,255,255,0.02);
+  }
+  
+  .fields-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .col-field { width: 180px; }
+  .col-type { width: 120px; }
+  
+  .field-name code {
+    font-family: 'Consolas', monospace;
+    color: #60a5fa;
+    font-weight: 500;
+    font-size: 0.8rem;
+    background: rgba(96,165,250,0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  
+  .field-desc {
+    color: var(--text-color);
+    line-height: 1.5;
+  }
+  
+  .type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(139,92,246,0.15);
+    color: #a78bfa;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: 'Consolas', monospace;
+  }
+  
+  @media (max-width: 768px) {
+    .segment-header {
+      padding: 1rem;
+    }
+    
+    .fields-table th,
+    .fields-table td {
+      padding: 10px 12px;
+    }
+    
+    .col-field { width: 140px; }
+    .col-type { width: 90px; }
+  }
+</style>

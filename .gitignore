@@ -1,4 +1,23 @@
+# Dependencies
 node_modules/
+
+# OS files
 .DS_Store
-/npm-debug.log
-/secret.env
+Thumbs.db
+
+# Astro
+dist/
+.astro/
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*

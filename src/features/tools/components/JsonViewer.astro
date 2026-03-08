@@ -1,0 +1,676 @@
+---
+/**
+ * JsonViewer - Componente reutilizável de visualização de JSON
+ * Com número de linhas, folding, syntax highlighting e fullscreen
+ */
+interface Props {
+  id?: string;
+  height?: string;
+}
+
+const { id = 'jsonViewer', height = '400px' } = Astro.props;
+---
+
+<div class="json-viewer-container" id={`${id}Container`} data-viewer-id={id}>
+  <div class="viewer-toolbar">
+    <div class="toolbar-left">
+      <span class="status-indicator" data-status="idle" title="Status do JSON">
+        <svg class="status-icon status-valid" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <svg class="status-icon status-invalid" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        <svg class="status-icon status-idle" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
+      </span>
+      <span class="toolbar-divider"></span>
+      <button class="toolbar-btn" data-action="expand-all" title="Expandir Tudo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+      <span class="toolbar-divider"></span>
+      <span class="toolbar-info" data-info="lines">0 linhas</span>
+    </div>
+    <div class="toolbar-right">
+      <button class="toolbar-btn-label" data-action="copy-minified" title="Copiar minificado">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        Minificado
+      </button>
+      <button class="toolbar-btn-label" data-action="copy-formatted" title="Copiar formatado">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        Formatado
+      </button>
+      <span class="toolbar-divider"></span>
+      <button class="toolbar-btn" data-action="fullscreen" title="Tela Cheia">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 3 21 3 21 9"></polyline>
+          <polyline points="9 21 3 21 3 15"></polyline>
+          <line x1="21" y1="3" x2="14" y2="10"></line>
+          <line x1="3" y1="21" x2="10" y2="14"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="viewer-content" style={`height: ${height};`}>
+    <div class="json-lines" id={`${id}Content`}></div>
+  </div>
+</div>
+
+<style>
+  .json-viewer-container {
+    background: #1e1e2e;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+  }
+
+  .json-viewer-container.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    border-radius: 0;
+    border: none;
+  }
+
+  .json-viewer-container.fullscreen .viewer-content {
+    height: calc(100vh - 40px) !important;
+  }
+
+  /* Toolbar */
+  .viewer-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    background: #181825;
+    border-bottom: 1px solid #313244;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .toolbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: #6c7086;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .toolbar-btn:hover {
+    background: #313244;
+    color: #cdd6f4;
+  }
+
+  .toolbar-btn-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: #6c7086;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+
+  .toolbar-btn-label:hover {
+    background: #313244;
+    color: #cdd6f4;
+  }
+
+  .toolbar-divider {
+    width: 1px;
+    height: 16px;
+    background: #313244;
+    margin: 0 8px;
+  }
+
+  .toolbar-info {
+    font-size: 0.7rem;
+    color: #6c7086;
+  }
+
+  /* Status indicator */
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+  }
+
+  .status-icon {
+    display: none;
+  }
+
+  .status-indicator[data-status="valid"] .status-valid {
+    display: block;
+    color: #a6e3a1;
+  }
+
+  .status-indicator[data-status="invalid"] .status-invalid {
+    display: block;
+    color: #f38ba8;
+  }
+
+  .status-indicator[data-status="idle"] .status-idle {
+    display: block;
+    color: #6c7086;
+  }
+
+  /* Content area - single scroll container */
+  .viewer-content {
+    overflow: auto;
+    padding: 8px 0;
+  }
+
+  .json-lines {
+    display: table;
+    width: 100%;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: #cdd6f4;
+  }
+
+  /* Each line is a table-row with number + content */
+  :global(.json-line) {
+    display: table-row;
+  }
+
+  :global(.json-line:hover) {
+    background: rgba(69, 71, 90, 0.3);
+  }
+
+  :global(.json-line-num) {
+    display: table-cell;
+    width: 50px;
+    min-width: 50px;
+    padding: 0 12px;
+    text-align: right;
+    color: #6c7086;
+    user-select: none;
+    background: #181825;
+    border-right: 1px solid #313244;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  :global(.json-line-content) {
+    display: table-cell;
+    padding: 0 16px;
+    white-space: pre;
+  }
+
+  /* Folding */
+  :global(.json-fold) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    background: #313244;
+    border: none;
+    border-radius: 3px;
+    color: #6c7086;
+    cursor: pointer;
+    font-size: 10px;
+    vertical-align: middle;
+    transition: all 0.15s ease;
+  }
+
+  :global(.json-fold:hover) {
+    background: #45475a;
+    color: #cdd6f4;
+  }
+
+  :global(.json-fold.collapsed) {
+    transform: rotate(-90deg);
+  }
+
+  :global(.json-line.collapsed-line) {
+    display: none !important;
+  }
+
+  :global(.json-ellipsis) {
+    color: #6c7086;
+    font-style: italic;
+    cursor: pointer;
+  }
+
+  :global(.json-ellipsis:hover) {
+    color: #89b4fa;
+  }
+
+  /* Syntax highlighting */
+  :global(.jv-key) {
+    color: #89b4fa;
+  }
+
+  :global(.jv-string) {
+    color: #a6e3a1;
+  }
+
+  :global(.jv-number) {
+    color: #fab387;
+  }
+
+  :global(.jv-boolean) {
+    color: #cba6f7;
+  }
+
+  :global(.jv-null) {
+    color: #f38ba8;
+  }
+
+  :global(.jv-bracket) {
+    color: #f9e2af;
+  }
+
+  :global(.jv-colon) {
+    color: #6c7086;
+  }
+
+  :global(.jv-comma) {
+    color: #6c7086;
+  }
+
+  /* Empty state */
+  :global(.json-empty) {
+    color: #6c7086;
+    font-style: italic;
+    padding: 20px;
+  }
+
+  :global(.json-error) {
+    color: #f38ba8;
+    padding: 16px;
+    display: block;
+  }
+
+  :global(.json-error-title) {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  :global(.json-error-message) {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    opacity: 0.9;
+  }
+</style>
+
+<script>
+  // JsonViewer class for reusability
+  class JsonViewer {
+    container: HTMLElement;
+    contentEl: HTMLElement;
+    statusIndicator: HTMLElement;
+    rawJson: string = '';
+    parsedJson: any = null;
+    lineCount: number = 0;
+    foldGroups: Map<string, number[]> = new Map(); // foldId -> array of line numbers
+
+    constructor(containerId: string) {
+      this.container = document.getElementById(`${containerId}Container`)!;
+      this.contentEl = document.getElementById(`${containerId}Content`)!;
+      this.statusIndicator = this.container.querySelector('.status-indicator')!;
+      this.setupToolbar();
+    }
+
+    setStatus(status: 'valid' | 'invalid' | 'idle') {
+      this.statusIndicator.dataset.status = status;
+    }
+
+    setupToolbar() {
+      this.container.querySelectorAll('.toolbar-btn, .toolbar-btn-label').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = (btn as HTMLElement).dataset.action;
+          switch (action) {
+            case 'expand-all': this.expandAll(); break;
+            case 'copy-formatted': this.copyFormatted(); break;
+            case 'copy-minified': this.copyMinified(); break;
+            case 'fullscreen': this.toggleFullscreen(); break;
+          }
+        });
+      });
+
+      // ESC to exit fullscreen
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.container.classList.contains('fullscreen')) {
+          this.toggleFullscreen();
+        }
+      });
+    }
+
+    setJson(json: string | object) {
+      try {
+        if (typeof json === 'string') {
+          this.parsedJson = JSON.parse(json);
+          this.rawJson = JSON.stringify(this.parsedJson, null, 2);
+        } else {
+          this.parsedJson = json;
+          this.rawJson = JSON.stringify(json, null, 2);
+        }
+        this.setStatus('valid');
+        this.render();
+      } catch (e) {
+        this.showError('JSON inválido');
+      }
+    }
+
+    render() {
+      this.lineCount = 0;
+      this.foldGroups.clear();
+      const lines = this.buildLines(this.parsedJson, 0);
+      this.contentEl.innerHTML = lines.join('');
+      this.setupFolding();
+      this.updateToolbarInfo();
+    }
+
+    buildLines(obj: any, depth: number, isLast: boolean = true): string[] {
+      const lines: string[] = [];
+      const indent = '  '.repeat(depth);
+
+      if (obj === null) {
+        this.lineCount++;
+        lines.push(this.makeLine(this.lineCount, `${indent}<span class="jv-null">null</span>${isLast ? '' : '<span class="jv-comma">,</span>'}`));
+        return lines;
+      }
+
+      if (typeof obj === 'boolean') {
+        this.lineCount++;
+        lines.push(this.makeLine(this.lineCount, `${indent}<span class="jv-boolean">${obj}</span>${isLast ? '' : '<span class="jv-comma">,</span>'}`));
+        return lines;
+      }
+
+      if (typeof obj === 'number') {
+        this.lineCount++;
+        lines.push(this.makeLine(this.lineCount, `${indent}<span class="jv-number">${obj}</span>${isLast ? '' : '<span class="jv-comma">,</span>'}`));
+        return lines;
+      }
+
+      if (typeof obj === 'string') {
+        const escaped = obj.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+        this.lineCount++;
+        lines.push(this.makeLine(this.lineCount, `${indent}<span class="jv-string">"${this.escapeHtml(escaped)}"</span>${isLast ? '' : '<span class="jv-comma">,</span>'}`));
+        return lines;
+      }
+
+      if (Array.isArray(obj)) {
+        if (obj.length === 0) {
+          this.lineCount++;
+          lines.push(this.makeLine(this.lineCount, `${indent}<span class="jv-bracket">[]</span>${isLast ? '' : '<span class="jv-comma">,</span>'}`));
+          return lines;
+        }
+
+        const foldId = `fold-${Math.random().toString(36).substring(2, 11)}`;
+        const foldLines: number[] = [];
+        
+        // Opening bracket line
+        this.lineCount++;
+        const openLineNum = this.lineCount;
+        lines.push(this.makeLine(openLineNum, `${indent}<button class="json-fold" data-fold="${foldId}">▼</button><span class="jv-bracket">[</span><span class="json-ellipsis" data-fold="${foldId}" style="display:none;">[${obj.length} items]</span>`));
+        
+        // Content lines
+        obj.forEach((item, i) => {
+          const itemLines = this.buildLines(item, depth + 1, i === obj.length - 1);
+          itemLines.forEach(line => {
+            const lineNum = parseInt(line.match(/data-line="(\d+)"/)?.[1] || '0');
+            if (lineNum > openLineNum) foldLines.push(lineNum);
+          });
+          lines.push(...itemLines);
+        });
+        
+        // Closing bracket line
+        this.lineCount++;
+        foldLines.push(this.lineCount);
+        lines.push(this.makeLine(this.lineCount, `${indent}<span class="jv-bracket">]</span>${isLast ? '' : '<span class="jv-comma">,</span>'}`));
+        
+        this.foldGroups.set(foldId, foldLines);
+        return lines;
+      }
+
+      if (typeof obj === 'object') {
+        const keys = Object.keys(obj);
+        if (keys.length === 0) {
+          this.lineCount++;
+          lines.push(this.makeLine(this.lineCount, `${indent}<span class="jv-bracket">{}</span>${isLast ? '' : '<span class="jv-comma">,</span>'}`));
+          return lines;
+        }
+
+        const foldId = `fold-${Math.random().toString(36).substring(2, 11)}`;
+        const foldLines: number[] = [];
+        
+        // Opening bracket line
+        this.lineCount++;
+        const openLineNum = this.lineCount;
+        lines.push(this.makeLine(openLineNum, `${indent}<button class="json-fold" data-fold="${foldId}">▼</button><span class="jv-bracket">{</span><span class="json-ellipsis" data-fold="${foldId}" style="display:none;">{${keys.length} keys}</span>`));
+        
+        // Content lines
+        keys.forEach((key, i) => {
+          const value = obj[key];
+          const isKeyLast = i === keys.length - 1;
+          const keyIndent = '  '.repeat(depth + 1);
+          
+          // Check if value is primitive (render on same line) or complex (render on multiple lines)
+          if (value === null || typeof value !== 'object') {
+            const valueHtml = this.renderPrimitive(value, isKeyLast);
+            this.lineCount++;
+            foldLines.push(this.lineCount);
+            lines.push(this.makeLine(this.lineCount, `${keyIndent}<span class="jv-key">"${this.escapeHtml(key)}"</span><span class="jv-colon">: </span>${valueHtml}`));
+          } else {
+            // Complex value - render key with opening bracket
+            const childLines = this.buildLines(value, depth + 1, isKeyLast);
+            // Modify first line to include the key
+            if (childLines.length > 0) {
+              const firstLine = childLines[0];
+              const contentMatch = firstLine.match(/<span class="json-line-content">(.*?)<\/span>/s);
+              if (contentMatch) {
+                const originalContent = contentMatch[1];
+                // Remove the indent from the start and prepend key
+                const trimmedContent = originalContent.replace(new RegExp(`^${'  '.repeat(depth + 1)}`), '');
+                const newContent = `${keyIndent}<span class="jv-key">"${this.escapeHtml(key)}"</span><span class="jv-colon">: </span>${trimmedContent}`;
+                childLines[0] = firstLine.replace(contentMatch[1], newContent);
+              }
+            }
+            childLines.forEach(line => {
+              const lineNum = parseInt(line.match(/data-line="(\d+)"/)?.[1] || '0');
+              if (lineNum > openLineNum) foldLines.push(lineNum);
+            });
+            lines.push(...childLines);
+          }
+        });
+        
+        // Closing bracket line
+        this.lineCount++;
+        foldLines.push(this.lineCount);
+        lines.push(this.makeLine(this.lineCount, `${indent}<span class="jv-bracket">}</span>${isLast ? '' : '<span class="jv-comma">,</span>'}`));
+        
+        this.foldGroups.set(foldId, foldLines);
+        return lines;
+      }
+
+      this.lineCount++;
+      lines.push(this.makeLine(this.lineCount, `${indent}${String(obj)}`));
+      return lines;
+    }
+
+    makeLine(num: number, content: string): string {
+      return `<div class="json-line" data-line="${num}"><span class="json-line-num">${num}</span><span class="json-line-content">${content}</span></div>`;
+    }
+
+    renderPrimitive(value: any, isLast: boolean): string {
+      const comma = isLast ? '' : '<span class="jv-comma">,</span>';
+      if (value === null) return `<span class="jv-null">null</span>${comma}`;
+      if (typeof value === 'boolean') return `<span class="jv-boolean">${value}</span>${comma}`;
+      if (typeof value === 'number') return `<span class="jv-number">${value}</span>${comma}`;
+      if (typeof value === 'string') {
+        const escaped = value.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+        return `<span class="jv-string">"${this.escapeHtml(escaped)}"</span>${comma}`;
+      }
+      return `${value}${comma}`;
+    }
+
+    escapeHtml(str: string): string {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    updateToolbarInfo() {
+      const infoEl = this.container.querySelector('[data-info="lines"]');
+      if (infoEl) {
+        infoEl.textContent = `${this.lineCount} linhas`;
+      }
+    }
+
+    setupFolding() {
+      this.contentEl.querySelectorAll('.json-fold').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const foldId = (btn as HTMLElement).dataset.fold;
+          this.toggleFold(foldId!);
+        });
+      });
+
+      // Click on ellipsis to expand
+      this.contentEl.querySelectorAll('.json-ellipsis').forEach(el => {
+        el.addEventListener('click', () => {
+          const foldId = (el as HTMLElement).dataset.fold;
+          this.toggleFold(foldId!);
+        });
+      });
+    }
+
+    toggleFold(foldId: string) {
+      const btn = this.contentEl.querySelector(`[data-fold="${foldId}"].json-fold`) as HTMLElement;
+      const ellipsis = this.contentEl.querySelector(`.json-ellipsis[data-fold="${foldId}"]`) as HTMLElement;
+      const lineNums = this.foldGroups.get(foldId) || [];
+
+      if (!btn) return;
+
+      const isCollapsed = btn.classList.contains('collapsed');
+
+      if (isCollapsed) {
+        // Expand
+        btn.classList.remove('collapsed');
+        btn.textContent = '▼';
+        if (ellipsis) ellipsis.style.display = 'none';
+        lineNums.forEach(num => {
+          const line = this.contentEl.querySelector(`[data-line="${num}"]`);
+          if (line) line.classList.remove('collapsed-line');
+        });
+      } else {
+        // Collapse
+        btn.classList.add('collapsed');
+        btn.textContent = '▶';
+        if (ellipsis) ellipsis.style.display = 'inline';
+        lineNums.forEach(num => {
+          const line = this.contentEl.querySelector(`[data-line="${num}"]`);
+          if (line) line.classList.add('collapsed-line');
+        });
+      }
+    }
+
+    expandAll() {
+      this.contentEl.querySelectorAll('.json-fold.collapsed').forEach(btn => {
+        const foldId = (btn as HTMLElement).dataset.fold;
+        this.toggleFold(foldId!);
+      });
+    }
+
+    copyFormatted() {
+      navigator.clipboard.writeText(this.rawJson).then(() => {
+        (window as any).showToast?.('JSON formatado copiado!');
+      });
+    }
+
+    copyMinified() {
+      if (this.parsedJson !== null) {
+        const minified = JSON.stringify(this.parsedJson);
+        navigator.clipboard.writeText(minified).then(() => {
+          (window as any).showToast?.('JSON minificado copiado!');
+        });
+      }
+    }
+
+    toggleFullscreen() {
+      this.container.classList.toggle('fullscreen');
+      const btn = this.container.querySelector('[data-action="fullscreen"]');
+      if (btn) {
+        if (this.container.classList.contains('fullscreen')) {
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 14 10 14 10 20"></polyline>
+            <polyline points="20 10 14 10 14 4"></polyline>
+            <line x1="14" y1="10" x2="21" y2="3"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>`;
+        } else {
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>`;
+        }
+      }
+    }
+
+    showError(message: string) {
+      this.setStatus('invalid');
+      this.contentEl.innerHTML = `<div class="json-error">
+        <div class="json-error-title">JSON Inválido</div>
+        <div class="json-error-message">${this.escapeHtml(message)}</div>
+      </div>`;
+      this.lineCount = 0;
+      this.rawJson = '';
+      this.parsedJson = null;
+      this.foldGroups.clear();
+      this.updateToolbarInfo();
+    }
+
+    clear() {
+      this.setStatus('idle');
+      this.contentEl.innerHTML = `<div class="json-line"><span class="json-line-num">1</span><span class="json-line-content"><span class="json-empty">Cole ou digite JSON para visualizar</span></span></div>`;
+      this.rawJson = '';
+      this.parsedJson = null;
+      this.lineCount = 0;
+      this.foldGroups.clear();
+      this.updateToolbarInfo();
+    }
+  }
+
+  // Export to window for use in pages
+  (window as any).JsonViewer = JsonViewer;
+</script>

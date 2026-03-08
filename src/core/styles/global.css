@@ -1,0 +1,812 @@
+/* =========================================
+   1. VARIÁVEIS & TEMA GLOBAL (PALETA NOVA)
+   ========================================= */
+:root {
+  /* --- Paleta do Cliente --- */
+  --brand-navy: #172647; /* Base Escura / Estrutura */
+  --brand-blue: #0440dd; /* Ação Primária */
+  --brand-purple: #8157f6; /* Acento / Secundário */
+  --brand-black: #161b1c; /* Texto Principal */
+  --brand-white: #ffffff; /* Superfícies */
+
+  /* --- Variações Calculadas (Hover/Active) --- */
+  --brand-blue-hover: #0330a8;
+  --brand-purple-hover: #6d44d6;
+
+  /* --- Atribuições Funcionais --- */
+  --primary: var(--brand-blue);
+  --primary-dark: var(--brand-blue-hover);
+  --secondary: var(--brand-purple);
+
+  --sidebar-bg: var(--brand-navy);
+  --sidebar-text: #94a3b8; /* Slate light para contraste no Navy */
+
+  --body-bg: #f1f5f9; /* Cinza muito claro para contraste com Cards Brancos */
+  --card-bg: var(--brand-white);
+  --border: #e2e8f0;
+
+  /* --- Tipografia --- */
+  --text-main: var(--brand-black);
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --text-inverted: var(--brand-white);
+
+  /* --- Aliases para compatibilidade --- */
+  --border-color: var(--border);
+  --text-color: var(--text-main);
+  --heading-color: var(--text-main);
+  --code-bg: #0f172a;
+  --card-accent: var(--brand-blue);
+
+  /* --- Spacing padrão --- */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* --- Cores Semânticas (Mantidas para UX Padrão) --- */
+  --success-bg: #dcfce7;
+  --success-text: #166534;
+  --success-border: #86efac;
+  --danger-bg: #fee2e2;
+  --danger-text: #991b1b;
+  --danger-border: #fecaca;
+  --warning-bg: #fef9c3;
+  --warning-text: #854d0e;
+  --warning-border: #fcd34d;
+  --info-bg: #dbeafe;
+  --info-text: #1e40af;
+  --info-border: #bfdbfe;
+
+  --meta-bg: #f8fafc;
+  --meta-text: #475569;
+  --meta-border: #cbd5e1;
+
+  /* --- Gradientes da Marca --- */
+  /* Hero Principal: Mistura o Navy com o Blue para profundidade */
+  --grad-main: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-blue) 100%);
+
+  /* Hero Acento: Mistura o Blue com o Purple para modernidade */
+  --grad-accent: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-purple) 100%);
+
+  /* Hero Dark: Apenas variações do Navy */
+  --grad-dark: linear-gradient(135deg, #0f172a 0%, var(--brand-navy) 100%);
+}
+
+/* =========================================
+   TEMA DARK
+   ========================================= */
+[data-theme="dark"] {
+  --body-bg: #0f172a;
+  --card-bg: #1e293b;
+  --border: #334155;
+
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+
+  /* --- Aliases para compatibilidade --- */
+  --border-color: var(--border);
+  --text-color: var(--text-main);
+  --heading-color: var(--text-main);
+  --code-bg: #1e293b;
+  --card-accent: var(--brand-blue);
+
+  --meta-bg: #1e293b;
+  --meta-text: #94a3b8;
+  --meta-border: #475569;
+
+  /* Cores semânticas ajustadas para dark */
+  --success-bg: rgba(34, 197, 94, 0.15);
+  --success-text: #86efac;
+  --success-border: #22c55e;
+
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --danger-text: #fca5a5;
+  --danger-border: #ef4444;
+
+  --warning-bg: rgba(234, 179, 8, 0.15);
+  --warning-text: #fde047;
+  --warning-border: #eab308;
+
+  --info-bg: rgba(59, 130, 246, 0.15);
+  --info-text: #93c5fd;
+  --info-border: #3b82f6;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+[data-theme="dark"] .tech-name {
+  background: rgba(129, 87, 246, 0.2);
+  border-color: #8157f6;
+}
+
+/* =========================================
+   2. RESET & BASE
+   ========================================= */
+* {
+  box-sizing: border-box;
+  outline: none;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  background-color: var(--body-bg);
+  color: var(--text-main);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+body.scrollable-body {
+  height: auto !important;
+  overflow-y: auto !important;
+  display: block !important;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* =========================================
+   3. HEADER GLOBAL
+   ========================================= */
+.main-header {
+  background: var(--brand-navy); /* Usando a cor base sólida ou gradiente */
+  color: var(--brand-white);
+  padding: 0 1.5rem;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  flex-shrink: 0;
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+body.scrollable-body .main-header {
+  position: relative;
+}
+
+.brand {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand span {
+  font-weight: 500;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* Search no Header */
+.search-box input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  width: 300px;
+  transition: all 0.3s;
+}
+.search-box input:focus {
+  background: rgba(255, 255, 255, 0.1);
+  width: 350px;
+  border-color: var(--brand-blue); /* Acento azul no foco */
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =========================================
+   4. LAYOUT & SIDEBAR
+   ========================================= */
+.workspace {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 70px);
+  overflow: hidden;
+}
+
+body.scrollable-body .workspace {
+  display: block !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+aside {
+  width: 280px;
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+  height: 100%;
+}
+
+.tree-container {
+  overflow-y: auto;
+  padding: 0;
+  flex: 1;
+}
+.tree-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #64748b;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.node-item {
+  display: block;
+  padding: 8px 12px;
+  margin: 2px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+.node-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+.node-item.active {
+  background: rgba(4, 64, 221, 0.15); /* Tint do Brand Blue */
+  color: #60a5fa;
+  border-left-color: var(--brand-blue);
+}
+.node-item strong {
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+/* Histórico */
+.history-container {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.2);
+  flex-shrink: 0; /* Garante que não seja comprimido */
+  min-height: 80px;
+}
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.history-title {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 700;
+}
+.btn-clear-history {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 0.65rem;
+  cursor: pointer;
+  padding: 0;
+}
+.history-link {
+  display: block;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 0.8rem;
+  padding: 5px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+.history-link:hover {
+  color: white;
+}
+
+main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  background-color: var(--body-bg);
+  scroll-behavior: smooth;
+}
+body.scrollable-body main {
+  overflow: visible;
+  height: auto;
+}
+
+/* =========================================
+   5. COMPONENTES: BUTTONS
+   ========================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Primary agora é o AZUL DO CLIENTE */
+.btn-primary {
+  background: var(--brand-blue);
+  color: white;
+  box-shadow: 0 4px 10px rgba(4, 64, 221, 0.3);
+}
+.btn-primary:hover {
+  background: var(--brand-blue-hover);
+  box-shadow: 0 6px 15px rgba(4, 64, 221, 0.4);
+}
+
+/* Secondary */
+.btn-secondary {
+  background: var(--card-bg);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+.btn-secondary:hover {
+  background: var(--meta-bg);
+  border-color: var(--border);
+}
+
+/* Success Button (Adicionar) */
+.btn-success {
+  background: #10b981;
+  color: white;
+  border: none;
+}
+.btn-success:hover {
+  background: #059669;
+}
+
+/* Danger Button (Remover/X) */
+.btn-danger {
+  background: #fee2e2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+.btn-danger:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* Botões de Contorno para Header/Fundo Escuro */
+.btn-outline-light {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-outline-light:hover {
+  background: white;
+  color: var(--brand-navy);
+  transform: translateY(-1px);
+}
+
+/* Back Button (Header) */
+.btn-back {
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s;
+}
+.btn-back:hover {
+  background: var(--brand-blue);
+  border-color: var(--brand-blue);
+  transform: translateY(-1px);
+}
+
+/* =========================================
+   6. COMPONENTES: CARDS & BADGES
+   ========================================= */
+.card,
+.segment-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03); /* Sombra mais suave */
+  transition: all 0.2s ease;
+  overflow: hidden;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover,
+.segment-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+  border-color: var(--brand-blue); /* Borda azul no hover */
+}
+
+.card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: transparent;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Badges com as cores do cliente onde aplicável */
+.badge-tech {
+  background: var(--meta-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  font-family: monospace;
+}
+.badge-info {
+  background: #eff6ff;
+  color: var(--brand-blue);
+  border: 1px solid #dbeafe;
+} /* Azul */
+.badge-purple {
+  background: #f3e8ff;
+  color: var(--brand-purple);
+  border: 1px solid #d8b4fe;
+} /* Roxo */
+
+/* Status padrão */
+.badge-meta {
+  background: var(--meta-bg);
+  color: var(--meta-text);
+  border: 1px solid var(--meta-border);
+}
+.badge-success {
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
+}
+.badge-danger {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+}
+.badge-warning {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  border: 1px solid var(--warning-border);
+}
+
+/* =========================================
+   7. TABELAS DE DADOS
+   ========================================= */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th {
+  text-align: left;
+  padding: 12px 16px;
+  background: var(--meta-bg);
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-main);
+  vertical-align: top;
+}
+tr:hover td {
+  background: var(--meta-bg);
+}
+
+.tech-name {
+  font-family: "Consolas", monospace;
+  color: var(--brand-purple);
+  background: #f3e8ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #d8b4fe;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-block;
+}
+.dt-type {
+  font-family: "Consolas", monospace;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+/* =========================================
+   9. MODAIS & UTILS
+   ========================================= */
+.hidden {
+  display: none !important;
+}
+
+#toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--brand-navy);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 9999;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+#toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(23, 38, 71, 0.8); /* Navy com transparência */
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-container {
+  background: var(--card-bg);
+  width: 90%;
+  max-width: 900px;
+  max-height: 85vh;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  padding: 20px;
+  background: var(--meta-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-body {
+  padding: 0;
+  overflow-y: auto;
+  background: var(--brand-navy);
+  color: #e2e8f0;
+  flex: 1;
+}
+.modal-footer {
+  padding: 15px;
+  background: var(--meta-bg);
+  border-top: 1px solid var(--border);
+  text-align: right;
+}
+
+/* Payload Content */
+.payload-content {
+  margin: 0;
+  padding: 20px;
+  font-family: "Consolas", monospace;
+  font-size: 0.85rem;
+  display: none;
+}
+.payload-content.active {
+  display: block;
+}
+
+.payload-tabs {
+  display: flex;
+  background: var(--meta-bg);
+  border-bottom: 1px solid var(--border);
+}
+.payload-tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+}
+.payload-tab.active {
+  color: var(--brand-blue);
+  border-bottom-color: var(--brand-blue);
+  background: var(--card-bg);
+}
+
+/* =========================================
+   10. RESPONSIVIDADE
+   ========================================= */
+@media (max-width: 768px) {
+  body {
+    height: auto !important;
+    overflow-y: auto !important;
+    display: block !important;
+  }
+  .main-header {
+    padding: 0 1rem;
+  }
+  .workspace {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .brand span {
+    display: none;
+  }
+  .search-box input {
+    width: 150px;
+  }
+
+  aside {
+    position: fixed;
+    top: 0;
+    left: -290px;
+    height: 100vh;
+    z-index: 1200;
+    transition: left 0.3s ease;
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+  }
+  aside.open {
+    left: 0;
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1150;
+    backdrop-filter: blur(2px);
+  }
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  /* Mobile Table Cards */
+  .segment-card table,
+  .segment-card thead,
+  .segment-card tbody,
+  .segment-card th,
+  .segment-card td,
+  .segment-card tr {
+    display: block;
+    width: 100%;
+  }
+  .segment-card thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  .segment-card tbody tr {
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 15px;
+    background: var(--card-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  }
+  .segment-card td {
+    border: none;
+    padding: 4px 0;
+  }
+
+  .segment-card td:nth-of-type(1) {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--brand-blue);
+    font-family: "Consolas", monospace;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+  }
+  .segment-card td:nth-of-type(3) {
+    display: inline-block;
+    background: var(--meta-bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-top: 8px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+}

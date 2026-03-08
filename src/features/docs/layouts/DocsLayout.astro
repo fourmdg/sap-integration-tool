@@ -1,0 +1,274 @@
+---
+/**
+ * Layout para páginas de documentação
+ */
+import BaseLayout from '@core/layouts/BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = '' } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="docs-page">
+    <slot />
+  </div>
+</BaseLayout>
+
+<style is:global>
+  /* Container de documentação */
+  .docs-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+    min-height: calc(100vh - 80px);
+  }
+
+  /* Hero sections */
+  .hero {
+    text-align: center;
+    padding: var(--spacing-2xl) var(--spacing-xl);
+    border-radius: 16px;
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .hero h1 {
+    margin: 0 0 12px 0;
+    font-size: 2rem;
+    font-weight: 800;
+  }
+  
+  .hero p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .hero-dark {
+    background: var(--grad-dark);
+    color: white;
+  }
+
+  .hero-blue {
+    background: var(--grad-main);
+    color: white;
+  }
+
+  .hero-purple {
+    background: var(--grad-accent);
+    color: white;
+  }
+
+  .hero-orange {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: white;
+  }
+
+  /* Content Cards */
+  .doc-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  .doc-card h2 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .doc-card h3 {
+    margin: var(--spacing-md) 0 var(--spacing-sm) 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .doc-card p {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .doc-card p:last-child {
+    margin-bottom: 0;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Code snippets */
+  .code-block {
+    background: var(--code-bg);
+    color: #e2e8f0;
+    padding: var(--spacing-md);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85rem;
+    overflow-x: auto;
+    margin: var(--spacing-md) 0;
+    border-left: 3px solid var(--brand-blue);
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .badge-info {
+    background: var(--info-bg);
+    color: var(--info-text);
+  }
+
+  .badge-warning {
+    background: var(--warning-bg);
+    color: var(--warning-text);
+  }
+
+  .badge-danger {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
+
+  .badge-success {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  /* Pro tips / callouts */
+  .callout {
+    padding: var(--spacing-md);
+    border-radius: 8px;
+    margin: var(--spacing-md) 0;
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: flex-start;
+  }
+
+  .callout-icon {
+    flex-shrink: 0;
+    font-size: 1.2rem;
+  }
+
+  .callout-content {
+    flex: 1;
+  }
+
+  .callout-info {
+    background: var(--info-bg);
+    border: 1px solid var(--info-border);
+    color: var(--info-text);
+  }
+
+  .callout-warning {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    color: var(--warning-text);
+  }
+
+  .callout-success {
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
+    color: var(--success-text);
+  }
+
+  /* Table wrapper */
+  .table-wrapper {
+    overflow-x: auto;
+    margin: var(--spacing-md) 0;
+  }
+
+  .table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .table-wrapper th,
+  .table-wrapper td {
+    padding: var(--spacing-sm) var(--spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-wrapper th {
+    background: var(--meta-bg);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  /* Mermaid diagrams */
+  .mermaid {
+    display: flex;
+    justify-content: center;
+    margin: var(--spacing-lg) 0;
+  }
+
+  /* Section spacing */
+  .doc-section {
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .doc-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text-main);
+  }
+
+  /* Links in docs */
+  .doc-link {
+    color: var(--brand-blue);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .doc-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .docs-page {
+      padding: var(--spacing-md);
+    }
+
+    .hero {
+      padding: var(--spacing-xl) var(--spacing-md);
+    }
+
+    .hero h1 {
+      font-size: 1.5rem;
+    }
+
+    .hero p {
+      font-size: 1rem;
+    }
+
+    .doc-card,
+    .card {
+      padding: var(--spacing-md);
+    }
+  }
+</style>

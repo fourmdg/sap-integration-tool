@@ -1,0 +1,126 @@
+---
+/**
+ * TreeNode.astro - Componente recursivo para nós da árvore
+ */
+import type { IdocTreeNode, SegmentDefinition } from '../types';
+
+interface Props {
+  node: IdocTreeNode;
+  segments: Record<string, SegmentDefinition>;
+  level?: number;
+}
+
+const { node, segments, level = 0 } = Astro.props;
+const hasChildren = node.children.length > 0;
+---
+
+<div class="tree-node" data-level={level}>
+  <div class="node-content">
+    {hasChildren && (
+      <button class="node-toggle" aria-label="Expandir">
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <path d="M4 2L8 6L4 10" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        </svg>
+      </button>
+    )}
+    {!hasChildren && <span class="node-spacer"></span>}
+    <a href={`#${node.segment}`} class="node-link">
+      <span class="node-name">{node.segment}</span>
+    </a>
+  </div>
+  {hasChildren && (
+    <div class="node-children">
+      {node.children.map((child) => (
+        <Astro.self node={child} segments={segments} level={level + 1} />
+      ))}
+    </div>
+  )}
+</div>
+
+<style>
+  .tree-node {
+    --indent: calc(var(--level, 0) * 10px);
+  }
+
+  .tree-node[data-level="0"] { --level: 0; }
+  .tree-node[data-level="1"] { --level: 1; }
+  .tree-node[data-level="2"] { --level: 2; }
+  .tree-node[data-level="3"] { --level: 3; }
+  .tree-node[data-level="4"] { --level: 4; }
+  .tree-node[data-level="5"] { --level: 5; }
+  .tree-node[data-level="6"] { --level: 6; }
+
+  .node-content {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 5px 4px;
+    padding-left: calc(4px + var(--indent));
+    border-radius: 4px;
+    margin: 0;
+    transition: background 0.15s;
+  }
+
+  .node-content:hover {
+    background: rgba(255,255,255,0.05);
+  }
+
+  .node-toggle {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .node-spacer {
+    width: 14px;
+    flex-shrink: 0;
+  }
+
+  .tree-node.expanded > .node-content .node-toggle {
+    transform: rotate(90deg);
+  }
+
+  .node-link {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    transition: color 0.15s;
+    min-width: 0;
+  }
+
+  .node-link:hover {
+    color: white;
+  }
+
+  .node-link.active {
+    color: #60a5fa;
+  }
+
+  .node-name {
+    font-family: 'Consolas', monospace;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .node-children {
+    display: none;
+    border-left: 1px solid rgba(255,255,255,0.08);
+    margin-left: calc(12px + var(--indent));
+  }
+
+  .tree-node.expanded > .node-children {
+    display: block;
+  }
+</style>

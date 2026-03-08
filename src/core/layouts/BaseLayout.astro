@@ -1,0 +1,113 @@
+---
+/**
+ * BaseLayout.astro - Layout base para todas as páginas
+ * Inclui head, header, estilos globais e scripts
+ */
+import Header from '@core/components/Header.astro';
+import '@core/styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Adiciona classe especial ao body */
+  bodyClass?: string;
+}
+
+const {
+  title,
+  description = 'Portal de documentação e ferramentas SAP',
+  bodyClass = '',
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content={description}>
+  <title>{title} | Portal SAP</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Theme initialization (prevent flash) -->
+  <script is:inline>
+    const theme = localStorage.getItem('theme') || 
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+</head>
+
+<body class:list={['scrollable-body', bodyClass]}>
+  <Header />
+  
+  <div class="workspace">
+    <slot name="sidebar" />
+    
+    <main id="mainContent">
+      <slot />
+    </main>
+  </div>
+  
+  <!-- Toast notifications -->
+  <div id="toast" role="alert" aria-live="polite"></div>
+  
+  <!-- Global scripts -->
+  <script>
+    // Extend Window interface
+    declare global {
+      interface Window {
+        showToast: (message: string, duration?: number) => void;
+        copy: (el: HTMLElement) => void;
+      }
+    }
+
+    // Toast helper
+    window.showToast = (message: string, duration = 2000) => {
+      const toast = document.getElementById('toast');
+      if (toast) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), duration);
+      }
+    };
+    
+    // Copy to clipboard helper
+    window.copy = (el: HTMLElement) => {
+      const text = el.textContent || '';
+      navigator.clipboard.writeText(text).then(() => {
+        window.showToast?.(`"${text}" copiado!`);
+      });
+    };
+  </script>
+</body>
+</html>
+
+<style is:global>
+  /* Toast styles */
+  #toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--brand-navy);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>

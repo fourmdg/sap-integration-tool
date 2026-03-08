@@ -1,0 +1,275 @@
+---
+/**
+ * IdocSidebar.astro - Sidebar com árvore de segmentos
+ * Navegação hierárquica clicável para âncoras
+ */
+import type { IdocTreeNode, SegmentDefinition } from '../types';
+import { flattenTree } from '../utils/tree';
+import TreeNode from './TreeNode.astro';
+
+interface Props {
+  tree: IdocTreeNode[];
+  segments: Record<string, SegmentDefinition>;
+}
+
+const { tree, segments } = Astro.props;
+const nodeCount = flattenTree(tree).length;
+---
+
+<aside class="idoc-sidebar" id="idocSidebar">
+  <div class="sidebar-header">
+    <span class="sidebar-title">Estrutura</span>
+    <span class="sidebar-count">{nodeCount}</span>
+    <button class="sidebar-close" id="closeSidebar" aria-label="Fechar">✕</button>
+  </div>
+  
+  <div class="sidebar-content">
+    <div class="tree-container" id="treeContainer">
+      {tree.map((node) => (
+        <TreeNode node={node} segments={segments} level={0} />
+      ))}
+    </div>
+  </div>
+  
+  <div class="sidebar-footer">
+    <button class="btn-expand-all" id="expandAll">Expandir tudo</button>
+    <button class="btn-collapse-all" id="collapseAll">Recolher tudo</button>
+  </div>
+</aside>
+
+<!-- Mobile toggle button -->
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir estrutura">
+  📋
+</button>
+
+<!-- Overlay for mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<style>
+  .idoc-sidebar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    flex-shrink: 0;
+    height: calc(100vh - 60px);
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.2);
+  }
+
+  .sidebar-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: #64748b;
+  }
+
+  .sidebar-count {
+    background: var(--brand-blue);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: auto;
+    margin-right: 8px;
+  }
+
+  .sidebar-close {
+    display: none;
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 4px;
+  }
+
+  .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .sidebar-footer {
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    gap: 6px;
+    background: rgba(0,0,0,0.2);
+  }
+
+  .sidebar-footer button {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 0.7rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #94a3b8;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .sidebar-footer button:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+  }
+
+  /* Mobile toggle */
+  .sidebar-toggle {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: var(--brand-blue);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(4, 64, 221, 0.4);
+    z-index: 1000;
+    transition: transform 0.2s;
+  }
+
+  .sidebar-toggle:hover {
+    transform: scale(1.1);
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1100;
+  }
+
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  /* Mobile styles */
+  @media (max-width: 768px) {
+    .idoc-sidebar {
+      position: fixed;
+      top: 60px;
+      left: -300px;
+      height: calc(100vh - 60px);
+      z-index: 1200;
+      transition: left 0.3s ease;
+      box-shadow: 5px 0 20px rgba(0,0,0,0.3);
+    }
+
+    .idoc-sidebar.open {
+      left: 0;
+    }
+
+    .sidebar-close {
+      display: block;
+    }
+
+    .sidebar-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  // Toggle expand/collapse
+  document.querySelectorAll('.node-toggle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const node = (e.currentTarget as HTMLElement).closest('.tree-node');
+      node?.classList.toggle('expanded');
+    });
+  });
+
+  // Expand/collapse all
+  document.getElementById('expandAll')?.addEventListener('click', () => {
+    document.querySelectorAll('.tree-node').forEach(n => n.classList.add('expanded'));
+  });
+
+  document.getElementById('collapseAll')?.addEventListener('click', () => {
+    document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('expanded'));
+  });
+
+  // Mobile sidebar toggle
+  const sidebar = document.getElementById('idocSidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const closeBtn = document.getElementById('closeSidebar');
+
+  function toggleSidebar() {
+    sidebar?.classList.toggle('open');
+    overlay?.classList.toggle('open');
+  }
+
+  toggleBtn?.addEventListener('click', toggleSidebar);
+  closeBtn?.addEventListener('click', toggleSidebar);
+  overlay?.addEventListener('click', toggleSidebar);
+
+  // Highlight active node on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const id = entry.target.id;
+      const link = document.querySelector(`.node-link[href="#${id}"]`);
+      
+      if (entry.isIntersecting) {
+        document.querySelectorAll('.node-link.active').forEach(l => l.classList.remove('active'));
+        link?.classList.add('active');
+        
+        // Expand parent nodes
+        let parent = link?.closest('.tree-node')?.parentElement?.closest('.tree-node');
+        while (parent) {
+          parent.classList.add('expanded');
+          parent = parent.parentElement?.closest('.tree-node');
+        }
+      }
+    });
+  }, { rootMargin: '-100px 0px -50% 0px' });
+
+  // Observe all segment sections
+  document.querySelectorAll('.segment-card[id]').forEach(section => {
+    observer.observe(section);
+  });
+
+  // Smooth scroll on link click
+  document.querySelectorAll('.node-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const href = (e.currentTarget as HTMLAnchorElement).getAttribute('href');
+      if (href) {
+        const target = document.querySelector(href);
+        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Close sidebar on mobile
+        if (window.innerWidth <= 768) {
+          toggleSidebar();
+        }
+      }
+    });
+  });
+
+  // Expand first level by default
+  document.querySelectorAll('.tree-node[data-level="0"]').forEach(n => n.classList.add('expanded'));
+</script>

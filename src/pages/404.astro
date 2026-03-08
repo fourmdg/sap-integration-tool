@@ -1,0 +1,94 @@
+---
+/**
+ * Página 404 - Not Found
+ */
+import BaseLayout from '@core/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Página não encontrada" description="404 - Not Found">
+  <div class="error-page">
+    <div class="error-content">
+      <span class="error-code">404</span>
+      <h1>Página não encontrada</h1>
+      <p>A página que você está procurando não existe ou foi movida.</p>
+      <div class="error-actions">
+        <a href="/" class="btn btn-primary">Voltar ao início</a>
+        <a href="/docs/glossary" class="btn btn-secondary">Ver glossário</a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .error-page {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .error-content {
+    max-width: 500px;
+  }
+
+  .error-code {
+    font-size: 8rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    color: var(--text-main);
+    margin: 0 0 0.5rem 0;
+  }
+
+  p {
+    color: var(--text-muted);
+    margin: 0 0 2rem 0;
+  }
+
+  .error-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--brand-blue);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--brand-blue-hover);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--brand-blue);
+    color: var(--brand-blue);
+  }
+</style>
