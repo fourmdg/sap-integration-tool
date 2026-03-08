@@ -7,8 +7,8 @@ import DiffJsonViewer from '@features/tools/components/DiffJsonViewer.astro';
 import ToolLayout from '@features/tools/layouts/ToolLayout.astro';
 ---
 
-<ToolLayout 
-  title="JSON Diff" 
+<ToolLayout
+  title="JSON Diff"
   description="Compare JSONs e identifique diferenças de estrutura, tipos e valores"
   icon="⚖️"
 >
@@ -44,16 +44,16 @@ import ToolLayout from '@features/tools/layouts/ToolLayout.astro';
               </button>
             </div>
           </div>
-          <textarea 
-            id="jsonRef" 
-            class="jd-textarea" 
+          <textarea
+            id="jsonRef"
+            class="jd-textarea"
             placeholder='Cole o JSON de referência aqui...
 
 Este é o JSON "correto" que será usado como base para comparação.'
             spellcheck="false"
           ></textarea>
         </div>
-        
+
         <!-- JSON Comparação -->
         <div class="jd-input-panel">
           <div class="jd-input-header">
@@ -82,9 +82,9 @@ Este é o JSON "correto" que será usado como base para comparação.'
               </button>
             </div>
           </div>
-          <textarea 
-            id="jsonComp" 
-            class="jd-textarea" 
+          <textarea
+            id="jsonComp"
+            class="jd-textarea"
             placeholder='Cole o JSON para comparar aqui...
 
 Este JSON será comparado com a referência para identificar diferenças.'
@@ -387,7 +387,7 @@ Este JSON será comparado com a referência para identificar diferenças.'
   const statType = document.getElementById('statType') as HTMLElement;
   const statValue = document.getElementById('statValue') as HTMLElement;
   const filterBtns = document.querySelectorAll('.jd-stat[data-filter]') as NodeListOf<HTMLButtonElement>;
-  
+
   // Filtros ativos (todos começam ativos)
   const activeFilters = new Set(['extra', 'missing', 'type-wrong', 'value-diff']);
 
@@ -470,67 +470,10 @@ Este JSON será comparado com a referência para identificar diferenças.'
       .replace(/,$/gm, '<span class="djv-comma">,</span>');
   }
 
-  function renderJsonWithDiff(
-    json: any,
-    diffItems: DiffItem[],
-    side: 'ref' | 'comp'
-  ): string {
-    const formatted = JSON.stringify(json, null, 2);
-    const lines = formatted.split('\n');
-    
-    const diffMap = new Map<string, DiffType>();
-    for (const item of diffItems) {
-      diffMap.set(item.path, item.type);
-    }
-
-    let html = '';
-    let lineNum = 0;
-
-    for (const line of lines) {
-      lineNum++;
-      const highlighted = syntaxHighlight(escapeHtml(line));
-      
-      let diffClass = '';
-      let indicator = ' ';
-      
-      const keyMatch = line.match(/^\s*"([^"]+)":/);
-      if (keyMatch) {
-        const key = keyMatch[1];
-        for (const [path, type] of diffMap) {
-          const pathKey = path.split('.').pop()?.replace(/\[\d+\]$/, '');
-          if (pathKey === key) {
-            if (type === 'extra' && side === 'comp') {
-              diffClass = 'djv-added';
-              indicator = '+';
-            } else if (type === 'missing' && side === 'ref') {
-              diffClass = 'djv-removed';
-              indicator = '−';
-            } else if (type === 'type-wrong') {
-              diffClass = 'djv-type-changed';
-              indicator = '⚡';
-            } else if (type === 'value-diff') {
-              diffClass = 'djv-value-changed';
-              indicator = '≠';
-            }
-            break;
-          }
-        }
-      }
-
-      html += `<div class="djv-line ${diffClass}">`;
-      html += `<span class="djv-line-num">${lineNum}</span>`;
-      html += `<span class="djv-line-indicator">${indicator}</span>`;
-      html += `<span class="djv-line-content">${highlighted}</span>`;
-      html += '</div>';
-    }
-
-    return html;
-  }
-
   // ========== UNIFIED VIEW ==========
   function renderUnifiedView(diffItems: DiffItem[]): string {
     const filtered = diffItems.filter(i => i.type !== 'unchanged');
-    
+
     if (filtered.length === 0) {
       return '<div class="djv-empty">✅ Os JSONs são idênticos!</div>';
     }
@@ -589,7 +532,7 @@ Este JSON será comparado com a referência para identificar diferenças.'
       valueDiff: diffItems.filter(i => i.type === 'value-diff'),
     };
 
-    if (grouped.extra.length === 0 && grouped.missing.length === 0 && 
+    if (grouped.extra.length === 0 && grouped.missing.length === 0 &&
         grouped.typeWrong.length === 0 && grouped.valueDiff.length === 0) {
       return '<div class="jd-report-empty">✅ Os JSONs são idênticos!</div>';
     }
@@ -790,7 +733,7 @@ Este JSON será comparado com a referência para identificar diferenças.'
     const syncedComp: { line: string; empty: boolean; diffType?: DiffType }[] = [];
 
     let ri = 0, ci = 0;
-    
+
     while (ri < refLines.length || ci < compLines.length) {
       const refLine = ri < refLines.length ? refLines[ri] : null;
       const compLine = ci < compLines.length ? compLines[ci] : null;
@@ -848,11 +791,11 @@ Este JSON será comparado com a referência para identificar diferenças.'
 
         // Ambas as linhas existem mas são diferentes - determinar tipo de diff
         let diffType: DiffType | undefined;
-        
+
         // Verificar se as linhas têm a mesma chave
         const refKeyMatch = refLine.match(/^\s*"([^"]+)":/);
         const compKeyMatch = compLine.match(/^\s*"([^"]+)":/);
-        
+
         if (refKeyMatch && compKeyMatch && refKeyMatch[1] === compKeyMatch[1]) {
           // Mesma chave, valor diferente
           const key = refKeyMatch[1];
@@ -890,10 +833,10 @@ Este JSON será comparado com a referência para identificar diferenças.'
 
       for (const item of lines) {
         lineNum++;
-        
+
         // Verifica se o filtro está ativo para este tipo de diff
         const shouldHideDiff = item.diffType && !activeFilters.has(item.diffType);
-        
+
         if (item.empty) {
           // Se o filtro não está ativo, mostra linha vazia sem estilo de diff
           if (shouldHideDiff) {
@@ -904,7 +847,7 @@ Este JSON será comparado com a referência para identificar diferenças.'
             html += '</div>';
             continue;
           }
-          
+
           html += `<div class="djv-line djv-empty-line">`;
           html += `<span class="djv-line-num">${lineNum}</span>`;
           html += `<span class="djv-line-indicator">~</span>`;
@@ -1174,13 +1117,13 @@ Este JSON será comparado com a referência para identificar diferenças.'
     saveOptions();
     compare();
   });
-  
+
   // Filter buttons toggle
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const filter = btn.getAttribute('data-filter');
       if (!filter) return;
-      
+
       if (activeFilters.has(filter)) {
         activeFilters.delete(filter);
         btn.classList.remove('jd-stat-active');
@@ -1188,7 +1131,7 @@ Este JSON será comparado com a referência para identificar diferenças.'
         activeFilters.add(filter);
         btn.classList.add('jd-stat-active');
       }
-      
+
       // Re-render with current filters
       renderSideBySide();
     });
@@ -1231,7 +1174,7 @@ Este JSON será comparado com a referência para identificar diferenças.'
   function toggleFullscreen() {
     isFullscreen = !isFullscreen;
     sideBySideView.classList.toggle('jd-fullscreen', isFullscreen);
-    
+
     if (fullscreenBtn) {
       fullscreenBtn.innerHTML = isFullscreen
         ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1241,7 +1184,7 @@ Este JSON será comparado com a referência para identificar diferenças.'
             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
           </svg> Tela Cheia`;
     }
-    
+
     document.body.style.overflow = isFullscreen ? 'hidden' : '';
   }
 
@@ -1273,7 +1216,7 @@ Este JSON será comparado com a referência para identificar diferenças.'
     const delta = e.clientY - startY;
     const newHeight = Math.max(150, startHeight + delta);
     inputSection.style.height = `${newHeight}px`;
-    
+
     const textareas = inputSection.querySelectorAll('.jd-textarea') as NodeListOf<HTMLTextAreaElement>;
     textareas.forEach(ta => {
       ta.style.height = `${newHeight - 50}px`;
