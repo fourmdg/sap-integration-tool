@@ -1,0 +1,318 @@
+---
+/**
+ * Página: Dicionário SAP
+ */
+import DocsLayout from '@docs/layouts/DocsLayout.astro';
+
+const terms = [
+  {
+    title: 'IDoc',
+    badge: 'Conceito',
+    badgeClass: 'badge-tech',
+    def: '<strong>Intermediate Document.</strong> É o formato padrão de arquivo para troca de dados entre o SAP e outros sistemas. Funciona como um "envelope" digital que carrega as informações de negócio.',
+  },
+  {
+    title: 'BAPI',
+    badge: 'Função',
+    badgeClass: 'badge-tech',
+    def: '<strong>Business API.</strong> É uma "função pronta" e segura do SAP. Imagine um formulário oficial que valida tudo (se o cliente existe, se o CPF é válido) antes de salvar no banco de dados.',
+  },
+  {
+    title: 'RFC',
+    badge: 'Conexão',
+    badgeClass: 'badge-tech',
+    def: '<strong>Remote Function Call.</strong> É a tecnologia que permite chamar uma função do SAP vindo de fora. É o "protocolo" de comunicação direta.',
+  },
+  {
+    title: 'CPI',
+    badge: 'Nuvem',
+    badgeClass: 'badge-warning',
+    def: '<strong>Cloud Platform Integration.</strong> O "carteiro moderno" da SAP. Ele fica na nuvem (BTP), recebe os dados do 4MDG (JSON), traduz para a linguagem do SAP e entrega.',
+  },
+  {
+    title: 'PI / PO',
+    badge: 'Legado',
+    badgeClass: 'badge-warning',
+    def: '<strong>Process Integration (Orchestration).</strong> O antecessor do CPI. É um servidor físico instalado na empresa que gerencia integrações. Muitos clientes antigos ainda usam.',
+  },
+  {
+    title: 'CC',
+    badge: 'Segurança',
+    badgeClass: 'badge-warning',
+    def: '<strong>Cloud Connector.</strong> Um software de segurança vital. Ele cria um "túnel" seguro entre a nuvem e o servidor da empresa, permitindo integração sem abrir portas perigosas no firewall.',
+  },
+  {
+    title: 'WE02 / WE05',
+    badge: 'Transação',
+    badgeClass: 'badge-tech',
+    def: '<strong>Lista de IDocs.</strong> É o "Google" dos seus dados. É a tela onde você pesquisa, filtra e vê se o IDoc chegou, se deu erro (vermelho) ou se foi sucesso (verde).',
+  },
+  {
+    title: 'WE19',
+    badge: 'Ferramenta',
+    badgeClass: 'badge-tech',
+    def: '<strong>Ferramenta de Teste.</strong> Permite clonar um IDoc existente (mesmo com erro), editar os dados manualmente e processar como um novo. Essencial para testar correções (Debug) sem pedir reenvio da origem.',
+  },
+  {
+    title: 'ST22',
+    badge: 'Debug',
+    badgeClass: 'badge-tech',
+    def: '<strong>Análise de Dumps.</strong> Quando o SAP "explode" (crash/tela de erro), ele gera um Dump. A ST22 é a caixa-preta que mostra exatamente qual linha do código ABAP quebrou e o motivo.',
+  },
+  {
+    title: 'SALE',
+    badge: 'Config',
+    badgeClass: 'badge-tech',
+    def: '<strong>Menu ALE/IDoc.</strong> O "QG" da configuração de integração. É uma transação de menu que agrupa tudo necessário para criar Sistemas Lógicos, Modelos de Distribuição e configurar a comunicação entre sistemas.',
+  },
+  {
+    title: 'MM90',
+    badge: 'Logs Material',
+    badgeClass: 'badge-tech',
+    def: '<strong>Logs Detalhados (MM).</strong> Quando o IDoc de Material (MATMAS) dá erro genérico na WE02, a MM90 revela o detalhe técnico oculto do Application Log.',
+  },
+  {
+    title: 'SLG1',
+    badge: 'Log Aplicação',
+    badgeClass: 'badge-tech',
+    def: '<strong>Application Log Geral.</strong> O "Raio-X" do sistema. Erros complexos de CLFMAS (Classificação) e Business Partners que não aparecem na mensagem curta do IDoc ficam gravados aqui.',
+  },
+  {
+    title: 'BD87',
+    badge: 'Transação',
+    badgeClass: 'badge-tech',
+    def: '<strong>Reprocessamento.</strong> Se um IDoc deu erro técnico (ex: banco travado), é aqui que você "chuta" ele de novo para tentar processar sem precisar reenviar do 4MDG.',
+  },
+  {
+    title: 'WE20',
+    badge: 'Config',
+    badgeClass: 'badge-tech',
+    def: '<strong>Perfil do Parceiro.</strong> É onde configuramos "quem" pode falar com o SAP. Se o IDoc falha dizendo "Parceiro não encontrado", o problema está aqui.',
+  },
+  {
+    title: 'BP',
+    badge: 'Conceito',
+    badgeClass: 'badge-info',
+    def: '<strong>Business Partner.</strong> No SAP moderno (S/4HANA), não existe mais separação rígida entre Cliente e Fornecedor. Todos são "Parceiros de Negócio" (BP) que assumem papéis diferentes.',
+    example: 'Substitui: XK01, XD01, MK01.',
+  },
+  {
+    title: 'Segmento',
+    badge: 'Estrutura',
+    badgeClass: 'badge-tech',
+    def: '<strong>Gaveta de Dados.</strong> O IDoc é organizado em pastas chamadas segmentos. Ex: <code>E1MARAM</code> é o segmento mestre do material. Se você não mandar o segmento, o SAP ignora os campos dentro dele.',
+  },
+  {
+    title: 'Inbound',
+    badge: 'Direção',
+    badgeClass: 'badge-warning',
+    def: '<strong>Entrada.</strong> Tudo que vem de fora e <strong>ENTRA</strong> no SAP. É o fluxo de carga de dados.',
+  },
+  {
+    title: 'Outbound',
+    badge: 'Direção',
+    badgeClass: 'badge-warning',
+    def: '<strong>Saída.</strong> Tudo que o SAP gera e <strong>ENVIA</strong> para fora.',
+  },
+  {
+    title: 'MATMAS',
+    badge: 'Material',
+    badgeClass: 'badge-info',
+    def: '<strong>Material Master.</strong> O IDoc mais comum para cadastrar Produtos/Materiais. Contém dados básicos (peso, nome), dados de vendas e contabilidade.',
+    example: 'Tabelas Principais: MARA, MARC.',
+  },
+  {
+    title: 'ARTMAS',
+    badge: 'Varejo',
+    badgeClass: 'badge-info',
+    def: '<strong>Article Master.</strong> Uma versão "vitaminada" do MATMAS feita para o Varejo. Suporta grades (Cor/Tamanho) e categorias complexas.',
+  },
+  {
+    title: 'DEBMAS',
+    badge: 'Cliente',
+    badgeClass: 'badge-info',
+    def: '<strong>Debtor Master (Cliente).</strong> IDoc para cadastrar Clientes. No S/4HANA, ele é processado para criar um "Business Partner" (Parceiro de Negócio).',
+    example: 'Tabelas: KNA1, KNB1.',
+  },
+  {
+    title: 'CREMAS',
+    badge: 'Fornecedor',
+    badgeClass: 'badge-info',
+    def: '<strong>Creditor Master (Fornecedor).</strong> IDoc para cadastrar Fornecedores. Assim como o DEBMAS, vira um Business Partner no S/4HANA.',
+    example: 'Tabelas: LFA1, LFB1.',
+  },
+  {
+    title: 'SRVMAS',
+    badge: 'Serviço',
+    badgeClass: 'badge-info',
+    def: '<strong>Service Master.</strong> Usado para cadastrar Serviços (mão de obra, consultoria). Não tem estoque, mas possui descrições longas e categorias de avaliação.',
+  },
+  {
+    title: 'ADRMAS',
+    badge: 'Endereço',
+    badgeClass: 'badge-info',
+    def: '<strong>Address Master.</strong> IDoc auxiliar. Às vezes o SAP pede para enviar o endereço separado do Cliente/Fornecedor.',
+  },
+  {
+    title: 'CLFMAS',
+    badge: 'Técnico',
+    badgeClass: 'badge-info',
+    def: '<strong>Classification.</strong> IDoc para "colar adesivos" de características técnicas nos materiais (ex: Voltagem: 220v, Cor: Azul).',
+  },
+  {
+    title: 'MATQM',
+    badge: 'Qualidade',
+    badgeClass: 'badge-info',
+    def: '<strong>Quality Management.</strong> Extensão do material para dizer como ele deve ser inspecionado ao chegar no estoque (regras de qualidade).',
+  },
+];
+---
+
+<DocsLayout title="Glossário" description="Dicionário de termos SAP">
+  <div class="hero hero-blue">
+    <h1>Dicionário SAP</h1>
+    <p>Tradução de siglas e códigos técnicos para o português claro.</p>
+    <input
+      type="text"
+      id="termSearch"
+      class="glossary-search-input"
+      placeholder="Digite uma sigla (ex: DEBMAS, PI, RFC)..."
+    />
+  </div>
+
+  <div id="termsContainer" class="term-grid">
+    {terms.map((term) => (
+      <div class="card term-card">
+        <div class="term-header">
+          <span class="term-title">{term.title}</span>
+          <span class={`badge ${term.badgeClass}`}>{term.badge}</span>
+        </div>
+        <div class="term-def" set:html={term.def} />
+        {term.example && <div class="term-example">{term.example}</div>}
+      </div>
+    ))}
+  </div>
+
+  <div id="noResults">
+    <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🤔</span>
+    Nenhum termo encontrado para sua busca.
+  </div>
+</DocsLayout>
+
+<script>
+  document.getElementById('termSearch')?.addEventListener('keyup', function(e) {
+    const term = (e.target as HTMLInputElement).value.toUpperCase().trim();
+    let visibleCount = 0;
+
+    document.querySelectorAll('.term-card').forEach((card) => {
+      const content = card.textContent?.toUpperCase() || '';
+      if (content.includes(term)) {
+        (card as HTMLElement).style.display = 'flex';
+        visibleCount++;
+      } else {
+        (card as HTMLElement).style.display = 'none';
+      }
+    });
+
+    const noResults = document.getElementById('noResults');
+    if (noResults) {
+      noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  });
+</script>
+
+<style>
+  .hero-blue {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+  }
+
+  .glossary-search-input {
+    padding: 15px 25px;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 50px;
+    border: none;
+    font-size: 1.1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s;
+    color: #334155;
+    margin-top: 20px;
+  }
+
+  .glossary-search-input:focus {
+    outline: none;
+    transform: scale(1.02);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  }
+
+  .term-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+  }
+
+  .term-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .term-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+  }
+
+  .term-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-main);
+    font-family: 'Consolas', monospace;
+  }
+
+  .term-def {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 15px;
+    flex: 1;
+  }
+
+  .term-example {
+    background: var(--code-bg);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    border-left: 3px solid var(--border);
+  }
+
+  #noResults {
+    text-align: center;
+    display: none;
+    color: var(--text-muted);
+    margin-top: 50px;
+    font-size: 1.2rem;
+  }
+
+  .badge-tech {
+    background: #e0e7ff;
+    color: #3730a3;
+  }
+
+  @media (max-width: 768px) {
+    .term-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .glossary-search-input {
+      font-size: 1rem;
+      padding: 12px 20px;
+    }
+  }
+</style>

@@ -1,0 +1,139 @@
+---
+/**
+ * Página: Cenários de Arquitetura 4MDG
+ */
+import DocsLayout from '@docs/layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Arquitetura" description="Cenários de arquitetura SAP - CPI, PI/PO e Outbound">
+  <script is:inline type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+  </script>
+
+  <div id="scenario-cpi" class="card">
+    <div class="diagram-header">
+      <h2 class="diagram-title">1. Integração via SAP CPI (Cloud Integration)</h2>
+      <span class="badge badge-info">JSON Nativo</span>
+    </div>
+    <p class="diagram-desc">
+      Neste fluxo moderno, os dados trafegam inteiramente em <strong>JSON</strong>. O portal
+      envia para o Gateway do cliente, que repassa ao SAP CPI. O CPI orquestra a entrega no SAP
+      S/4HANA ou ECC e retorna a confirmação (Devolução) pelo mesmo caminho.
+    </p>
+
+    <div class="table-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+          participant Portal as Portal
+          participant GW as Gateway
+          participant CPI as SAP CPI
+          participant SAP as SAP Backend
+          Note over Portal, SAP: Fluxo JSON (Sem conversão XML)
+          Portal->>GW: Envia Dados (JSON)
+          GW->>CPI: Repassa (JSON)
+          CPI->>SAP: Integração (JSON/OData/RFC)
+          activate SAP
+          SAP->>SAP: Processa Dados
+          SAP-->>CPI: Retorno/Devolução (JSON)
+          deactivate SAP
+          CPI-->>GW: Response
+          GW-->>Portal: Confirmação Final
+      </div>
+    </div>
+  </div>
+
+  <div id="scenario-pi" class="card">
+    <div class="diagram-header">
+      <h2 class="diagram-title">2. Integração via SAP PI/PO (Process Orchestration)</h2>
+      <span class="badge badge-warning">Conversão XML</span>
+    </div>
+    <p class="diagram-desc">
+      No fluxo legado/on-premise, ocorre a <strong>transformação de formato</strong>. O Portal
+      envia JSON, mas o SAP PI/PO converte para <strong>XML (IDoc)</strong> antes de entregar ao SAP.
+    </p>
+
+    <div class="table-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+          participant Portal as Portal
+          participant GW as Gateway
+          participant PI as SAP PI/PO
+          participant SAP as SAP Backend
+          Portal->>GW: Envia Dados (JSON)
+          GW->>PI: Repassa (JSON)
+          Note right of PI: Conversão: JSON -> XML
+          PI->>SAP: Envia IDoc (XML)
+          activate SAP
+          SAP->>SAP: Processa IDoc
+          SAP-->>PI: Status 53/51 (XML)
+          deactivate SAP
+          Note right of PI: Conversão: XML -> JSON
+          PI-->>GW: Response (JSON)
+          GW-->>Portal: Devolução/Status
+      </div>
+    </div>
+  </div>
+
+  <div id="scenario-outbound" class="card">
+    <div class="diagram-header">
+      <h2 class="diagram-title">3. SAP Chamando Portal (Outbound)</h2>
+      <span class="badge badge-danger">SAP Ativo</span>
+    </div>
+    <p class="diagram-desc">
+      Cenário onde o SAP inicia a comunicação (ex: envio de notas fiscais, atualização de
+      status). O tráfego é <strong>JSON</strong> direto, passando pelo Gateway até chegar ao
+      Portal, que devolve o recebimento.
+    </p>
+
+    <div class="table-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+          participant SAP as SAP Backend
+          participant GW as Gateway
+          participant Portal as Portal
+          Note over SAP, Portal: Fluxo JSON
+          SAP->>GW: Chamada HTTP POST (JSON)
+          GW->>Portal: Entrega Dados (JSON)
+          activate Portal
+          Portal->>Portal: Processa/Atualiza
+          Portal-->>GW: Devolução (OK/Erro)
+          deactivate Portal
+          GW-->>SAP: Retorno ao SAP
+      </div>
+    </div>
+  </div>
+</DocsLayout>
+
+<style>
+  .diagram-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .diagram-title {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .diagram-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 768px) {
+    .diagram-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  }
+</style>

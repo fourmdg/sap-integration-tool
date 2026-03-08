@@ -1,0 +1,98 @@
+---
+/**
+ * ToolLayout.astro - Layout para páginas de ferramentas
+ * Herda Header/Footer do BaseLayout e adiciona estrutura específica para tools
+ */
+import BaseLayout from '@core/layouts/BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Ícone emoji da ferramenta */
+  icon?: string;
+}
+
+const { title, description, icon = '🛠️' } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="tool-page">
+    <div class="tool-header">
+      <div class="tool-title-row">
+        <span class="tool-icon">{icon}</span>
+        <div>
+          <h1 class="tool-title">{title}</h1>
+          {description && <p class="tool-desc">{description}</p>}
+        </div>
+      </div>
+    </div>
+    
+    <div class="tool-content">
+      <slot />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .tool-page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+  }
+
+  .tool-header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .tool-title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+  }
+
+  .tool-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+  }
+
+  .tool-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--heading-color);
+    margin: 0;
+  }
+
+  .tool-desc {
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin: var(--spacing-xs) 0 0;
+    line-height: 1.5;
+  }
+
+  .tool-content {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: var(--spacing-xl);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  @media (max-width: 768px) {
+    .tool-page {
+      padding: var(--spacing-md);
+    }
+
+    .tool-content {
+      padding: var(--spacing-md);
+    }
+
+    .tool-title {
+      font-size: 1.25rem;
+    }
+
+    .tool-icon {
+      font-size: 2rem;
+    }
+  }
+</style>

@@ -1,0 +1,545 @@
+---
+/**
+ * Página inicial - 4MDG Hub
+ * Cards individuais com descrições detalhadas
+ */
+import BaseLayout from '@core/layouts/BaseLayout.astro';
+
+// Definição de todas as ferramentas com descrições detalhadas
+const tools = [
+  {
+    id: 'idoc-field-tester',
+    title: 'Testador de Campo IDOC',
+    icon: '🧪',
+    href: '/tools/idoc-field-tester',
+    description:
+      'Teste e valide campos SAP individualmente. Detecta tipo de dado (CHAR, NUMC, DATS, etc.) e aplica regras de validação específicas para cada formato.',
+    badge: 'Popular',
+  },
+  {
+    id: 'idoc-payload-validator',
+    title: 'Validador de Payload IDOC',
+    icon: '📋',
+    href: '/tools/idoc-payload-validator',
+    description:
+      'Valide payloads JSON completos contra segmentos e campos de IDocs SAP. Verifica tipos, tamanhos e identifica campos desconhecidos.',
+  },
+  {
+    id: 'sql-builder',
+    title: 'SQL Builder',
+    icon: '🔧',
+    href: '/tools/sql-builder',
+    description:
+      'Construa queries SQL dinâmicas para PostgreSQL com suporte a SUBSTRING, TRANSLATE, CONCAT e condições WHERE complexas.',
+  },
+  {
+    id: 'json-studio',
+    title: 'JSON Studio',
+    icon: '🎨',
+    href: '/tools/json-studio',
+    description:
+      'Visualize, formate e explore JSON com interface avançada: folding, números de linha, tela cheia e syntax highlighting.',
+  },
+  {
+    id: 'json-diff',
+    title: 'JSON Diff',
+    icon: '🔀',
+    href: '/tools/json-diff',
+    description:
+      'Compare dois JSONs lado a lado com diff visual. Destaca adições, remoções e alterações de forma clara para identificar diferenças entre payloads.',
+  },
+  {
+    id: 'mapper',
+    title: 'Visual Mapper',
+    icon: '🗺️',
+    href: '/tools/mapper',
+    description:
+      'Mapeie campos visualmente entre sistemas origem e destino. Crie correspondências drag-and-drop e exporte o mapeamento em formato JSON.',
+  },
+];
+
+// Definição de IDocs com descrições
+const idocs = [
+  {
+    id: 'templates',
+    title: 'Templates',
+    badge: 'JSON',
+    href: '/idocs/templates',
+    description:
+      'Biblioteca de payloads JSON prontos para clientes, fornecedores e materiais. Copie e adapte.',
+  },
+  {
+    id: 'business-partner',
+    title: 'Business Partner',
+    badge: 'BPMAS',
+    href: '/idocs/business-partner',
+    description:
+      'Estrutura completa do IDoc BPMAS para parceiros de negócio. Inclui dados gerais, endereços, funções e relacionamentos.',
+  },
+  {
+    id: 'materials',
+    title: 'Materials',
+    badge: 'MATMAS',
+    href: '/idocs/materials',
+    description:
+      'IDoc mestre de materiais com dados básicos, unidades de medida, classificação fiscal e dados de organização de vendas.',
+  },
+  {
+    id: 'materials-retail',
+    title: 'Materials Retail',
+    badge: 'MATMAS',
+    href: '/idocs/materials-retail',
+    description:
+      'Extensão do mestre de materiais para varejo com dados específicos de sortimento e distribuição.',
+  },
+  {
+    id: 'material-characteristics',
+    title: 'Material Characteristics',
+    badge: 'CHRMAS',
+    href: '/idocs/material-characteristics',
+    description: 'Características de materiais para classificação e atributos configuráveis.',
+  },
+  {
+    id: 'material-qm',
+    title: 'Material QM',
+    badge: 'QMMAS',
+    href: '/idocs/material-qm',
+    description:
+      'Dados de qualidade do material incluindo inspeções, certificados e controle de lotes.',
+  },
+  {
+    id: 'customers',
+    title: 'Customers',
+    badge: 'DEBMAS',
+    href: '/idocs/customers',
+    description:
+      'Mestre de clientes com dados gerais, área de vendas, condições de pagamento e dados de faturamento.',
+  },
+  {
+    id: 'vendors',
+    title: 'Vendors',
+    badge: 'CREMAS',
+    href: '/idocs/vendors',
+    description:
+      'Mestre de fornecedores com dados gerais, organização de compras, dados de pagamento e informações bancárias.',
+  },
+  {
+    id: 'addresses',
+    title: 'Addresses',
+    badge: 'ADRMAS',
+    href: '/idocs/addresses',
+    description:
+      'Estrutura de endereços para uso em múltiplos objetos. Inclui endereços postais, comunicação e dados geográficos.',
+  },
+  {
+    id: 'services',
+    title: 'Services',
+    badge: 'SRVMAS',
+    href: '/idocs/services',
+    description:
+      'Mestre de serviços para catálogo de produtos de serviço. Inclui descrições, classificações e dados de valoração.',
+  },
+];
+
+// Definição de documentação
+const docs = [
+  {
+    id: 'getting-started',
+    title: 'Como Funciona',
+    icon: '🚀',
+    href: '/docs/getting-started',
+    description:
+      'Guia inicial para entender a estrutura do portal, navegação e como usar as ferramentas disponíveis.',
+  },
+  {
+    id: 'best-practices',
+    title: 'Boas Práticas',
+    icon: '⭐',
+    href: '/docs/best-practices',
+    description:
+      'Padrões recomendados para integração, tratamento de erros, validação de dados e performance.',
+  },
+  {
+    id: 'architecture',
+    title: 'Arquitetura',
+    icon: '🏗️',
+    href: '/docs/architecture',
+    description:
+      'Visão técnica da arquitetura do sistema, fluxos de integração e componentes envolvidos.',
+  },
+  {
+    id: 'troubleshooting',
+    title: 'Troubleshooting',
+    icon: '🔧',
+    href: '/docs/troubleshooting',
+    description:
+      'Soluções para problemas comuns, mensagens de erro frequentes e como debugar integrações.',
+  },
+  {
+    id: 'glossary',
+    title: 'Glossário SAP',
+    icon: '📖',
+    href: '/docs/glossary',
+    description: 'Termos técnicos SAP explicados de forma clara. Ideal para quem está começando.',
+  },
+];
+---
+
+<BaseLayout title="4MDG Hub" description="Central de documentação e ferramentas 4MDG">
+  <div class="home-page">
+    <!-- Hero Section -->
+    <section class="hero" aria-label="Apresentação">
+      <div class="hero-content">
+        <h1 class="hero-title">Central de Ferramentas &amp; Documentação</h1>
+        <p class="hero-subtitle">
+          Tudo que você precisa para trabalhar com integração SAP: 
+          referência de IDocs, validadores, geradores e guias práticos.
+        </p>
+        <div class="hero-actions">
+          <a href="/docs/getting-started" class="btn btn-primary">
+            🚀 Começar
+          </a>
+          <a href="/tools/search" class="btn btn-secondary">
+            🔍 Pesquisar
+          </a>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Ferramentas -->
+    <section class="category-section" aria-labelledby="tools-title">
+      <div class="category-header">
+        <h2 id="tools-title" class="category-title">
+          <span class="category-icon">🛠️</span>
+          Ferramentas
+        </h2>
+        <p class="category-desc">Utilitários para validação, formatação e construção de queries</p>
+      </div>
+      
+      <div class="cards-grid">
+        {tools.map(tool => (
+          <a href={tool.href} class="card tool-card">
+            <div class="card-header">
+              <span class="card-icon">{tool.icon}</span>
+              <h3 class="card-title">{tool.title}</h3>
+              {tool.badge && <span class="card-badge">{tool.badge}</span>}
+            </div>
+            <p class="card-description">{tool.description}</p>
+            <span class="card-arrow">→</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Documentação -->
+    <section class="category-section" aria-labelledby="docs-title">
+      <div class="category-header">
+        <h2 id="docs-title" class="category-title">
+          <span class="category-icon">📚</span>
+          Documentação
+        </h2>
+        <p class="category-desc">Guias, arquitetura e resolução de problemas</p>
+      </div>
+      
+      <div class="cards-grid">
+        {docs.map(doc => (
+          <a href={doc.href} class="card doc-card">
+            <div class="card-header">
+              <span class="card-icon">{doc.icon}</span>
+              <h3 class="card-title">{doc.title}</h3>
+            </div>
+            <p class="card-description">{doc.description}</p>
+            <span class="card-arrow">→</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- IDocs -->
+    <section class="category-section" aria-labelledby="idocs-title">
+      <div class="category-header">
+        <h2 id="idocs-title" class="category-title">
+          <span class="category-icon">📦</span>
+          IDocs SAP
+        </h2>
+        <p class="category-desc">Estruturas completas com campos, segmentos e exemplos de payload</p>
+      </div>
+      
+      <div class="cards-grid">
+        {idocs.map(idoc => (
+          <a href={idoc.href} class="card idoc-card">
+            <div class="card-header">
+              <span class="card-badge idoc-badge">{idoc.badge}</span>
+              <h3 class="card-title">{idoc.title}</h3>
+            </div>
+            <p class="card-description">{idoc.description}</p>
+            <span class="card-arrow">→</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .home-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+  }
+
+  /* Hero Section */
+  .hero {
+    text-align: center;
+    padding: var(--spacing-2xl) var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    background: var(--card-bg);
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+  }
+
+  .hero-content {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 var(--spacing-md);
+    line-height: 1.2;
+    color: var(--heading-color);
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin: 0 0 var(--spacing-xl);
+    line-height: 1.6;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--brand-blue);
+    color: white;
+    box-shadow: 0 4px 14px rgba(4, 64, 221, 0.25);
+  }
+
+  .btn-primary:hover {
+    background: var(--brand-blue-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(4, 64, 221, 0.35);
+  }
+
+  .btn-secondary {
+    background: var(--meta-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--brand-blue);
+    color: var(--brand-blue);
+  }
+
+  /* Category Sections */
+  .category-section {
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .category-header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .category-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin: 0 0 var(--spacing-xs);
+  }
+
+  .category-icon {
+    font-size: 1.5rem;
+  }
+
+  .category-desc {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* Cards Grid */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+  }
+
+  /* Card Base */
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+
+  .card:hover {
+    border-color: var(--brand-blue);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .card-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .card-title {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--heading-color);
+    margin: 0;
+    flex: 1;
+  }
+
+  .card-badge {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    background: var(--brand-blue);
+    color: white;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .card-description {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+    flex: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .card-arrow {
+    align-self: flex-end;
+    font-size: 1.1rem;
+    color: var(--brand-blue);
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.25s ease;
+    margin-top: auto;
+  }
+
+  .card:hover .card-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* IDoc Card */
+  .idoc-card .card-header {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+  }
+
+  .idoc-badge {
+    background: var(--brand-purple);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+  }
+
+  /* Tool Card */
+  .tool-card:hover {
+    border-color: var(--brand-blue);
+  }
+
+  /* Doc Card */
+  .doc-card {
+    padding: 20px;
+  }
+
+  .doc-card .card-description {
+    font-size: 0.875rem;
+  }
+
+  /* Tablet */
+  @media (max-width: 1024px) {
+    .cards-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .home-page {
+      padding: var(--spacing-md);
+    }
+
+    .hero {
+      padding: var(--spacing-xl) var(--spacing-md);
+    }
+
+    .hero-title {
+      font-size: 1.75rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+    }
+
+    .hero-actions {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .cards-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .category-title {
+      font-size: 1.25rem;
+    }
+  }
+</style>

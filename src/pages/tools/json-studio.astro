@@ -1,0 +1,346 @@
+---
+import JsonViewer from '@features/tools/components/JsonViewer.astro';
+/**
+ * JSON Studio - Visualizador avançado de JSON
+ * Com syntax highlighting, folding, números de linha e tela cheia
+ */
+import ToolLayout from '@features/tools/layouts/ToolLayout.astro';
+---
+
+<ToolLayout 
+  title="JSON Studio" 
+  description="Visualize, formate e explore JSON com interface avançada estilo VS Code"
+  icon="🎨"
+>
+  <div class="studio-content">
+    <!-- Input Section -->
+    <div class="input-section">
+      <div class="section-header">
+        <label class="field-label" for="jsonInput">JSON de Entrada</label>
+        <div class="actions">
+          <button class="btn-action" id="sampleBtn" title="Carregar exemplo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            Exemplo
+          </button>
+          <button class="btn-action" id="clearBtn" title="Limpar tudo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Limpar
+          </button>
+          <button class="btn-action" id="pasteBtn" title="Colar do clipboard">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Colar
+          </button>
+        </div>
+      </div>
+      <textarea 
+        id="jsonInput" 
+        class="code-textarea" 
+        placeholder='Cole ou digite seu JSON aqui...
+
+Exemplo:
+{
+  "name": "valor",
+  "array": [1, 2, 3]
+}'
+        rows="8"
+      ></textarea>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat">
+        <span class="stat-label">Tamanho</span>
+        <span class="stat-value" id="statSize">-</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Chaves</span>
+        <span class="stat-value" id="statKeys">-</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Profundidade</span>
+        <span class="stat-value" id="statDepth">-</span>
+      </div>
+    </div>
+
+    <!-- Output Section with JsonViewer -->
+    <div class="output-section">
+      <JsonViewer id="jsonViewer" height="450px" />
+    </div>
+  </div>
+</ToolLayout>
+
+<style>
+  .studio-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .field-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .section-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.7;
+  }
+
+  .actions {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--meta-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-action:hover {
+    background: var(--card-bg);
+    color: var(--text-main);
+    border-color: var(--text-muted);
+  }
+
+  .btn-action svg {
+    flex-shrink: 0;
+  }
+
+  .code-textarea {
+    width: 100%;
+    padding: var(--spacing-md);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    resize: vertical;
+    min-height: 150px;
+  }
+
+  .code-textarea:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+  }
+
+  .code-textarea::placeholder {
+    color: #6c7086;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  @media (max-width: 768px) {
+    .stats-bar {
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .actions {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+
+<script>
+  // Wait for JsonViewer to be available
+  function initStudio() {
+    const JsonViewer = (window as any).JsonViewer;
+    if (!JsonViewer) {
+      setTimeout(initStudio, 50);
+      return;
+    }
+
+    const viewer = new JsonViewer('jsonViewer');
+    
+    const jsonInput = document.getElementById('jsonInput') as HTMLTextAreaElement;
+    const clearBtn = document.getElementById('clearBtn') as HTMLButtonElement;
+    const sampleBtn = document.getElementById('sampleBtn') as HTMLButtonElement;
+    const pasteBtn = document.getElementById('pasteBtn') as HTMLButtonElement;
+    
+    const statSize = document.getElementById('statSize') as HTMLElement;
+    const statKeys = document.getElementById('statKeys') as HTMLElement;
+    const statDepth = document.getElementById('statDepth') as HTMLElement;
+
+    let debounceTimer: number | null = null;
+
+    function countKeys(obj: any): number {
+      if (typeof obj !== 'object' || obj === null) return 0;
+      let count = 0;
+      if (Array.isArray(obj)) {
+        obj.forEach(item => { count += countKeys(item); });
+      } else {
+        for (const key in obj) {
+          count++;
+          count += countKeys(obj[key]);
+        }
+      }
+      return count;
+    }
+
+    function getDepth(obj: any, level = 0): number {
+      if (typeof obj !== 'object' || obj === null) return level;
+      let maxDepth = level;
+      if (Array.isArray(obj)) {
+        obj.forEach(item => {
+          maxDepth = Math.max(maxDepth, getDepth(item, level + 1));
+        });
+      } else {
+        for (const key in obj) {
+          maxDepth = Math.max(maxDepth, getDepth(obj[key], level + 1));
+        }
+      }
+      return maxDepth;
+    }
+
+    function updateStats(json: string, parsed: any) {
+      statSize.textContent = `${new Blob([json]).size.toLocaleString()} bytes`;
+      statKeys.textContent = countKeys(parsed).toLocaleString();
+      statDepth.textContent = getDepth(parsed).toString();
+    }
+
+    function resetStats() {
+      statSize.textContent = '-';
+      statKeys.textContent = '-';
+      statDepth.textContent = '-';
+    }
+
+    function processJson() {
+      const value = jsonInput.value.trim();
+      
+      if (!value) {
+        viewer.clear();
+        resetStats();
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(value);
+        viewer.setJson(parsed);
+        updateStats(JSON.stringify(parsed, null, 2), parsed);
+      } catch (e: any) {
+        viewer.showError(e.message);
+        resetStats();
+      }
+    }
+
+    // Instant feedback with debounce
+    jsonInput.addEventListener('input', () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(processJson, 150) as unknown as number;
+    });
+
+    clearBtn.addEventListener('click', () => {
+      jsonInput.value = '';
+      viewer.clear();
+      resetStats();
+    });
+
+    sampleBtn.addEventListener('click', () => {
+      const sample = {
+        material: {
+          MATNR: "000000000000123456",
+          MAKTX: "Material de Exemplo com Descrição Longa",
+          MTART: "FERT",
+          MEINS: "UN",
+          properties: {
+            weight: 1.5,
+            dimensions: {
+              length: 100,
+              width: 50,
+              height: 25
+            }
+          },
+          active: true
+        },
+        organization: {
+          BUKRS: "1000",
+          WERKS: "1001",
+          plants: ["1001", "1002", "1003", "1004"]
+        },
+        timestamps: {
+          created: "2024-01-15T10:30:00Z",
+          modified: null
+        }
+      };
+      jsonInput.value = JSON.stringify(sample, null, 2);
+      processJson();
+    });
+
+    pasteBtn.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        jsonInput.value = text;
+        processJson();
+        (window as any).showToast?.('Conteúdo colado!');
+      } catch (e) {
+        viewer.showError('Não foi possível colar. Verifique as permissões do navegador.');
+      }
+    });
+
+    // Initial state
+    viewer.clear();
+  }
+
+  initStudio();
+</script>

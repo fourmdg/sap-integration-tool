@@ -1,0 +1,336 @@
+---
+import SapFieldCombobox from '@features/tools/components/SapFieldCombobox.astro';
+/**
+ * Testador de Campo IDOC - Valida e formata campos individualmente
+ * Usa componente unificado SapFieldCombobox
+ */
+import ToolLayout from '@features/tools/layouts/ToolLayout.astro';
+---
+
+<ToolLayout 
+  title="Testador de Campo IDOC" 
+  description="Teste e valide campos SAP individualmente com formatação automática"
+  icon="🧪"
+>
+  <div class="validator-content">
+    <!-- Combobox com filtro por IDOC -->
+    <SapFieldCombobox 
+      id="fieldTester"
+      label="Selecione o Campo SAP"
+      placeholder="Selecione um campo..."
+      showIdocFilter={true}
+      variant="full"
+    />
+
+    <!-- Tipo e Tamanho -->
+    <div class="field-row">
+      <div class="field-col">
+        <label class="field-label">Tipo de Dado</label>
+        <input type="text" id="dataTypeDisplay" class="field-input" readonly value="--" />
+      </div>
+      <div class="field-col">
+        <label class="field-label">Tamanho (Length)</label>
+        <input type="number" id="dataLen" class="field-input" readonly value="0" />
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-section">
+      <label class="field-label" for="inputVal">Valor de Entrada</label>
+      <input 
+        type="text" 
+        id="inputVal" 
+        class="field-input" 
+        placeholder="Selecione um campo acima primeiro..." 
+        disabled 
+      />
+      <div id="typeHint" class="helper-text"></div>
+    </div>
+
+    <!-- Resultado -->
+    <div id="resultBox" class="result-box">
+      <div id="statusText" class="status-badge"></div>
+      <div id="msgText" class="msg-text"></div>
+      
+      <label class="field-label">Valor Formatado (Payload JSON/XML):</label>
+      <div class="payload-output">
+        <span id="formattedVal"></span>
+        <button class="copy-btn" id="copyBtn">Copiar</button>
+      </div>
+    </div>
+  </div>
+</ToolLayout>
+
+<style>
+  .validator-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .field-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: 'Consolas', monospace;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    color: var(--text-main);
+    background: var(--card-bg);
+  }
+
+  .field-input:focus {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px rgba(4, 64, 221, 0.1);
+    outline: none;
+  }
+
+  .field-input:disabled {
+    background-color: var(--meta-bg);
+    color: var(--text-light);
+    cursor: not-allowed;
+  }
+
+  .field-input:read-only {
+    background-color: var(--meta-bg);
+  }
+
+  .field-row {
+    display: flex;
+    gap: var(--spacing-lg);
+  }
+
+  .field-col {
+    flex: 1;
+  }
+
+  .input-section {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .helper-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: var(--spacing-sm);
+  }
+
+  .result-box {
+    padding: var(--spacing-lg);
+    border-radius: 12px;
+    background: var(--meta-bg);
+    border: 1px solid var(--border-color);
+    display: none;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .result-box.show {
+    display: flex;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 1rem;
+    gap: var(--spacing-sm);
+  }
+
+  .status-valid {
+    color: var(--success-text);
+  }
+
+  .status-invalid {
+    color: var(--danger-text);
+  }
+
+  .msg-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .payload-output {
+    background: var(--code-bg);
+    color: #e2e8f0;
+    padding: var(--spacing-md);
+    border-radius: 8px;
+    font-family: 'Consolas', monospace;
+    font-size: 1.1rem;
+    position: relative;
+    word-break: break-all;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+  }
+
+  .copy-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .copy-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  @media (max-width: 768px) {
+    .field-row {
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .payload-output {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .copy-btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>
+
+<script>
+  // Elements
+  const dataTypeDisplay = document.getElementById('dataTypeDisplay') as HTMLInputElement;
+  const dataLen = document.getElementById('dataLen') as HTMLInputElement;
+  const inputVal = document.getElementById('inputVal') as HTMLInputElement;
+  const typeHint = document.getElementById('typeHint') as HTMLDivElement;
+  const resultBox = document.getElementById('resultBox') as HTMLDivElement;
+  const statusText = document.getElementById('statusText') as HTMLDivElement;
+  const msgText = document.getElementById('msgText') as HTMLDivElement;
+  const formattedVal = document.getElementById('formattedVal') as HTMLSpanElement;
+  const copyBtn = document.getElementById('copyBtn') as HTMLButtonElement;
+
+  // Listen for field selection from the combobox
+  document.addEventListener('sfc:select', ((e: CustomEvent) => {
+    const field = e.detail;
+    if (!field) return;
+
+    dataTypeDisplay.value = field.type;
+    dataLen.value = String(field.len);
+    
+    inputVal.disabled = false;
+    inputVal.placeholder = `Digite o valor para ${field.name}...`;
+    inputVal.value = '';
+    inputVal.focus();
+    
+    resultBox.classList.remove('show');
+    typeHint.textContent = '';
+  }) as EventListener);
+
+  // Validate input
+  inputVal.addEventListener('input', () => {
+    const type = dataTypeDisplay.value;
+    const len = parseInt(dataLen.value) || 0;
+    const input = inputVal.value;
+
+    if (!input) {
+      resultBox.classList.remove('show');
+      return;
+    }
+
+    resultBox.classList.add('show');
+    let finalValue = input;
+
+    if (type.includes('CHAR') || type.includes('LANG') || type.includes('UNIT')) {
+      typeHint.textContent = `Texto livre. Máximo ${len} caracteres.`;
+      
+      if (input.length > len) {
+        statusText.innerHTML = '⚠️ Tamanho Excedido';
+        statusText.className = 'status-badge status-invalid';
+        msgText.textContent = `O texto será cortado para ${len} caracteres.`;
+        finalValue = input.substring(0, len);
+      } else {
+        statusText.innerHTML = '✅ Válido';
+        statusText.className = 'status-badge status-valid';
+        msgText.textContent = 'Formato aceito pelo SAP.';
+      }
+    } else if (type.includes('NUMC') || type.includes('INT')) {
+      typeHint.textContent = 'Apenas números. Zeros serão adicionados à esquerda.';
+      const numeric = input.replace(/\D/g, '');
+      
+      if (!numeric && input.length > 0) {
+        statusText.innerHTML = '❌ Inválido';
+        statusText.className = 'status-badge status-invalid';
+        msgText.textContent = 'O campo contém caracteres não numéricos.';
+        finalValue = 'ERRO';
+      } else if (numeric.length > len) {
+        statusText.innerHTML = '❌ Estouro';
+        statusText.className = 'status-badge status-invalid';
+        msgText.textContent = `O valor excede ${len} dígitos.`;
+        finalValue = numeric;
+      } else {
+        statusText.innerHTML = '✅ Válido (Com zeros)';
+        statusText.className = 'status-badge status-valid';
+        msgText.textContent = 'Formatado com leading zeros.';
+        finalValue = numeric.padStart(len, '0');
+      }
+    } else if (type.includes('DATS')) {
+      typeHint.textContent = 'Data no formato YYYYMMDD.';
+      const clean = input.replace(/[\/\-\.]/g, '');
+      
+      if (clean.length === 8 && /^\d{8}$/.test(clean)) {
+        statusText.innerHTML = '✅ Válido';
+        statusText.className = 'status-badge status-valid';
+        msgText.textContent = 'Data formatada corretamente.';
+        finalValue = clean;
+      } else {
+        statusText.innerHTML = '⚠️ Formato inválido';
+        statusText.className = 'status-badge status-invalid';
+        msgText.textContent = 'Use formato YYYYMMDD (ex: 20260308).';
+        finalValue = input;
+      }
+    } else if (type.includes('QUAN') || type.includes('DEC')) {
+      typeHint.textContent = 'Valor numérico com decimais.';
+      const numVal = parseFloat(input.replace(',', '.'));
+      
+      if (isNaN(numVal)) {
+        statusText.innerHTML = '❌ Inválido';
+        statusText.className = 'status-badge status-invalid';
+        msgText.textContent = 'Valor não é um número válido.';
+        finalValue = 'ERRO';
+      } else {
+        statusText.innerHTML = '✅ Válido';
+        statusText.className = 'status-badge status-valid';
+        msgText.textContent = 'Número decimal aceito.';
+        finalValue = numVal.toFixed(3);
+      }
+    } else {
+      typeHint.textContent = `Tipo: ${type}`;
+      statusText.innerHTML = '✅ Válido';
+      statusText.className = 'status-badge status-valid';
+      msgText.textContent = 'Valor aceito.';
+    }
+
+    formattedVal.textContent = finalValue;
+  });
+
+  // Copy
+  copyBtn.addEventListener('click', () => {
+    const text = formattedVal.textContent || '';
+    navigator.clipboard.writeText(text).then(() => {
+      (window as any).showToast?.(`"${text}" copiado!`);
+    });
+  });
+</script>

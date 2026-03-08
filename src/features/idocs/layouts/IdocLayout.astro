@@ -1,0 +1,44 @@
+---
+/**
+ * IdocLayout.astro - Layout específico para páginas de IDoc
+ * Inclui sidebar com estrutura em árvore e main content
+ */
+import BaseLayout from '@core/layouts/BaseLayout.astro';
+import IdocSidebar from '../components/IdocSidebar.astro';
+import type { IdocTreeNode, SegmentDefinition } from '../types';
+
+interface Props {
+  title: string;
+  description: string;
+  tree: IdocTreeNode[];
+  segments: Record<string, SegmentDefinition>;
+}
+
+const { title, description, tree, segments } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <IdocSidebar tree={tree} segments={segments} slot="sidebar" />
+  <slot />
+</BaseLayout>
+
+<style is:global>
+  /* Layout com sidebar para IDocs */
+  body:has(.idoc-sidebar) .workspace {
+    display: flex !important;
+    height: auto !important;
+  }
+  
+  body:has(.idoc-sidebar) main#mainContent {
+    flex: 1;
+    padding: var(--spacing-lg);
+    max-width: calc(100% - 280px);
+  }
+  
+  @media (max-width: 768px) {
+    body:has(.idoc-sidebar) main#mainContent {
+      max-width: 100%;
+      padding: var(--spacing-md);
+    }
+  }
+</style>

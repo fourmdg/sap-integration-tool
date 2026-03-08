@@ -1,0 +1,593 @@
+---
+/**
+ * Pesquisa Global - Busca avançada na documentação
+ * Índice gerado em build-time, incluindo campos de IDocs
+ */
+import BaseLayout from '@core/layouts/BaseLayout.astro';
+import { ADDRESSES_DATA } from '@idocs/data/addresses';
+import { BUSINESS_PARTNER_DATA } from '@idocs/data/business_partner';
+import { CUSTOMERS_DATA } from '@idocs/data/customers';
+import { MATERIAL_CHARACTERISTICS_DATA } from '@idocs/data/material_characteristics';
+import { MATERIAL_QM_DATA } from '@idocs/data/material_qm';
+import { MATERIALS_RETAIL_DATA } from '@idocs/data/materials_retail';
+import { MATMAS_DATA } from '@idocs/data/matmas';
+import { SERVICES_DATA } from '@idocs/data/services';
+import { VENDORS_DATA } from '@idocs/data/vendors';
+
+// Gerar índice de busca em build-time
+interface SearchItem {
+  type: 'tool' | 'idoc' | 'doc' | 'field' | 'segment';
+  title: string;
+  description: string;
+  url: string;
+  icon: string;
+  segment?: string;
+}
+
+const searchIndex: SearchItem[] = [
+  // Ferramentas
+  {
+    type: 'tool',
+    title: 'Testador de Campo IDOC',
+    description: 'Teste e valide campos SAP individualmente',
+    url: '/tools/idoc-field-tester',
+    icon: '🧪',
+  },
+  {
+    type: 'tool',
+    title: 'SQL Builder',
+    description: 'Construa queries SQL',
+    url: '/tools/sql-builder',
+    icon: '⚡',
+  },
+  {
+    type: 'tool',
+    title: 'JSON Studio',
+    description: 'Visualize e explore JSON',
+    url: '/tools/json-studio',
+    icon: '🎨',
+  },
+  {
+    type: 'tool',
+    title: 'JSON Diff',
+    description: 'Compare dois JSONs',
+    url: '/tools/json-diff',
+    icon: '⚖️',
+  },
+  {
+    type: 'tool',
+    title: 'Visual Mapper',
+    description: 'Mapeamento visual',
+    url: '/tools/mapper',
+    icon: '🔗',
+  },
+  {
+    type: 'tool',
+    title: 'Validador de Payload IDOC',
+    description: 'Valide payloads contra IDocs',
+    url: '/tools/idoc-payload-validator',
+    icon: '📋',
+  },
+
+  // Documentação
+  {
+    type: 'doc',
+    title: 'Como Funciona',
+    description: 'Guia inicial do portal',
+    url: '/docs/getting-started',
+    icon: '🗺️',
+  },
+  {
+    type: 'doc',
+    title: 'Boas Práticas',
+    description: 'Padrões recomendados',
+    url: '/docs/best-practices',
+    icon: '⭐',
+  },
+  {
+    type: 'doc',
+    title: 'Arquitetura',
+    description: 'Visão técnica do sistema',
+    url: '/docs/architecture',
+    icon: '📐',
+  },
+  {
+    type: 'doc',
+    title: 'Troubleshooting',
+    description: 'Resolução de problemas',
+    url: '/docs/troubleshooting',
+    icon: '🚦',
+  },
+  {
+    type: 'doc',
+    title: 'Glossário SAP',
+    description: 'Termos técnicos',
+    url: '/docs/glossary',
+    icon: '📖',
+  },
+
+  // Templates
+  {
+    type: 'idoc',
+    title: 'Templates',
+    description: 'Payloads JSON prontos',
+    url: '/idocs/templates',
+    icon: '📋',
+  },
+];
+
+// IDocs com suas páginas
+const idocs = [
+  { data: MATMAS_DATA, slug: 'materials', badge: 'MATMAS', icon: '📦' },
+  { data: BUSINESS_PARTNER_DATA, slug: 'business-partner', badge: 'BPMAS', icon: '👤' },
+  { data: CUSTOMERS_DATA, slug: 'customers', badge: 'DEBMAS', icon: '🏢' },
+  { data: VENDORS_DATA, slug: 'vendors', badge: 'CREMAS', icon: '🚚' },
+  { data: ADDRESSES_DATA, slug: 'addresses', badge: 'ADRMAS', icon: '📫' },
+  { data: SERVICES_DATA, slug: 'services', badge: 'SRVMAS', icon: '🪛' },
+  { data: MATERIALS_RETAIL_DATA, slug: 'materials-retail', badge: 'Retail', icon: '👕' },
+  {
+    data: MATERIAL_CHARACTERISTICS_DATA,
+    slug: 'material-characteristics',
+    badge: 'Char',
+    icon: '🏷️',
+  },
+  { data: MATERIAL_QM_DATA, slug: 'material-qm', badge: 'QM', icon: '🔬' },
+];
+
+// Adicionar IDocs, segmentos e campos ao índice
+for (const { data, slug, badge, icon } of idocs) {
+  // Página do IDoc
+  searchIndex.push({
+    type: 'idoc',
+    title: `${data.title} (${badge})`,
+    description: data.description,
+    url: `/idocs/${slug}`,
+    icon,
+  });
+
+  // Segmentos e campos
+  for (const [segName, segDef] of Object.entries(data.segments)) {
+    // Segmento
+    searchIndex.push({
+      type: 'segment',
+      title: segName,
+      description: segDef.description,
+      url: `/idocs/${slug}#${segName}`,
+      icon: '📋',
+    });
+
+    // Campos do segmento
+    for (const field of segDef.fields) {
+      searchIndex.push({
+        type: 'field',
+        title: field.name,
+        description: `${field.description} - ${field.type}`,
+        url: `/idocs/${slug}#${segName}`,
+        icon: '🔤',
+        segment: segName,
+      });
+    }
+  }
+}
+---
+
+<BaseLayout title="Pesquisa" description="Pesquise em toda a documentação, IDocs e ferramentas">
+  <div class="search-page">
+    <header class="search-header">
+      <h1>🔍 Pesquisa</h1>
+      <p>Encontre rapidamente campos, segmentos, documentação e ferramentas</p>
+    </header>
+
+    <div class="search-content">
+      <input 
+        type="text" 
+        id="searchInput" 
+        class="search-input" 
+        placeholder="Digite sua busca (ex: MATNR, material, customer...)"
+        autofocus
+      />
+
+      <div class="filters-row">
+        <label class="filter-chip">
+          <input type="checkbox" name="filter" value="idoc" checked />
+          <span>📦 IDocs</span>
+        </label>
+        <label class="filter-chip">
+          <input type="checkbox" name="filter" value="segment" checked />
+          <span>📋 Segmentos</span>
+        </label>
+        <label class="filter-chip">
+          <input type="checkbox" name="filter" value="field" checked />
+          <span>🔤 Campos</span>
+        </label>
+        <label class="filter-chip">
+          <input type="checkbox" name="filter" value="doc" checked />
+          <span>📚 Documentação</span>
+        </label>
+        <label class="filter-chip">
+          <input type="checkbox" name="filter" value="tool" checked />
+          <span>🛠️ Ferramentas</span>
+        </label>
+      </div>
+
+      <div id="resultsSection" class="results-section">
+        <div class="results-header">
+          <span id="resultsCount">0 resultados</span>
+          <span id="searchTime" class="search-time"></span>
+        </div>
+        
+        <div id="resultsList" class="results-list"></div>
+      </div>
+
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>Pesquise na documentação</h3>
+        <p>Digite um termo para buscar em IDocs, documentação, ferramentas e campos SAP.</p>
+        
+        <div class="suggestions">
+          <span class="suggestion-label">Sugestões:</span>
+          <button class="suggestion" data-query="MATNR">MATNR</button>
+          <button class="suggestion" data-query="customer">customer</button>
+          <button class="suggestion" data-query="BPMAS">BPMAS</button>
+          <button class="suggestion" data-query="material">material</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .search-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+  }
+
+  .search-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .search-header h1 {
+    margin: 0 0 var(--spacing-sm);
+    font-size: 2rem;
+    color: var(--heading-color);
+  }
+
+  .search-header p {
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  .search-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 1.1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--card-bg);
+    color: var(--text-main);
+    transition: all 0.2s;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 4px rgba(4, 64, 221, 0.1);
+  }
+
+  .filters-row {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: 6px 12px;
+    background: var(--meta-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+
+  .filter-chip:has(input:checked) {
+    background: var(--info-bg);
+    border-color: var(--brand-blue);
+  }
+
+  .filter-chip input {
+    display: none;
+  }
+
+  .results-section {
+    display: none;
+  }
+
+  .results-section.show {
+    display: block;
+  }
+
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-md);
+  }
+
+  #resultsCount {
+    font-weight: 700;
+    color: var(--heading-color);
+  }
+
+  .search-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .results-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  :global(.result-item) {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  :global(.result-item:hover) {
+    border-color: var(--brand-blue);
+    transform: translateX(4px);
+  }
+
+  :global(.result-icon) {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  :global(.result-content) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :global(.result-title) {
+    font-weight: 700;
+    color: var(--heading-color);
+    margin-bottom: 4px;
+  }
+
+  :global(.result-desc) {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :global(.result-type) {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    background: var(--meta-bg);
+    color: var(--text-muted);
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+    align-self: flex-start;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--spacing-2xl) var(--spacing-lg);
+    color: var(--text-muted);
+  }
+
+  .empty-state.hidden {
+    display: none;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+  }
+
+  .empty-state h3 {
+    margin: 0 0 var(--spacing-sm);
+    color: var(--heading-color);
+  }
+
+  .empty-state p {
+    margin: 0 0 var(--spacing-lg);
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .suggestions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .suggestion-label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+  }
+
+  .suggestion {
+    padding: 6px 14px;
+    background: var(--meta-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    transition: all 0.2s;
+  }
+
+  .suggestion:hover {
+    background: var(--brand-blue);
+    color: white;
+    border-color: var(--brand-blue);
+  }
+
+  @media (max-width: 768px) {
+    .search-page {
+      padding: var(--spacing-md);
+    }
+
+    .search-header h1 {
+      font-size: 1.5rem;
+    }
+
+  }
+</style>
+
+<script is:inline define:vars={{ searchIndex }}>
+  // Índice gerado em build-time (inclui todos os campos de IDocs)
+  window.SEARCH_INDEX = searchIndex;
+</script>
+
+<script>
+  // @ts-ignore - searchIndex injetado via define:vars
+  const searchData = (window as any).SEARCH_INDEX as Array<{
+    type: 'tool' | 'idoc' | 'doc' | 'field' | 'segment';
+    title: string;
+    description: string;
+    url: string;
+    icon: string;
+    segment?: string;
+  }>;
+
+  const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+  const resultsSection = document.getElementById('resultsSection') as HTMLDivElement;
+  const resultsList = document.getElementById('resultsList') as HTMLDivElement;
+  const resultsCount = document.getElementById('resultsCount') as HTMLSpanElement;
+  const searchTime = document.getElementById('searchTime') as HTMLSpanElement;
+  const emptyState = document.getElementById('emptyState') as HTMLDivElement;
+  const suggestions = document.querySelectorAll('.suggestion');
+  const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
+
+  function search(query: string) {
+    const startTime = performance.now();
+    const q = query.toLowerCase().trim();
+
+    if (!q) {
+      resultsSection.classList.remove('show');
+      emptyState.classList.remove('hidden');
+      return;
+    }
+
+    // Get active filters
+    const activeFilters = Array.from(document.querySelectorAll('input[name="filter"]:checked'))
+      .map(cb => (cb as HTMLInputElement).value);
+
+    // Search
+    const results = searchData.filter(item => {
+      if (!activeFilters.includes(item.type)) return false;
+      return item.title.toLowerCase().includes(q) || 
+             item.description.toLowerCase().includes(q) ||
+             item.segment?.toLowerCase().includes(q);
+    });
+
+    // Render results
+    const endTime = performance.now();
+    const duration = (endTime - startTime).toFixed(1);
+
+    resultsCount.textContent = `${results.length} resultado${results.length !== 1 ? 's' : ''}`;
+    searchTime.textContent = `(${duration}ms)`;
+
+    if (results.length > 0) {
+      resultsList.innerHTML = results.map(r => `
+        <a href="${r.url}" class="result-item">
+          <span class="result-icon">${r.icon}</span>
+          <div class="result-content">
+            <div class="result-title">${highlightMatch(r.title, q)}</div>
+            <div class="result-desc">${highlightMatch(r.description, q)}</div>
+          </div>
+          <span class="result-type">${r.type}</span>
+        </a>
+      `).join('');
+    } else {
+      resultsList.innerHTML = `
+        <div class="empty-state" style="padding: 2rem;">
+          <p>Nenhum resultado encontrado para "<strong>${escapeHtml(q)}</strong>"</p>
+        </div>
+      `;
+    }
+
+    resultsSection.classList.add('show');
+    emptyState.classList.add('hidden');
+  }
+
+  function highlightMatch(text: string, query: string): string {
+    const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+  }
+
+  function escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function escapeHtml(str: string): string {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Check for query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialQuery = urlParams.get('q');
+  if (initialQuery) {
+    searchInput.value = initialQuery;
+    search(initialQuery);
+  }
+
+  // Event listeners
+  searchInput.addEventListener('input', () => {
+    if (searchInput.value.length >= 2) {
+      search(searchInput.value);
+    } else {
+      resultsSection.classList.remove('show');
+      emptyState.classList.remove('hidden');
+    }
+  });
+
+  // Re-search when filters change
+  filterCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      if (searchInput.value.length >= 2) {
+        search(searchInput.value);
+      }
+    });
+  });
+
+  suggestions.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const query = btn.getAttribute('data-query') || '';
+      searchInput.value = query;
+      search(query);
+    });
+  });
+</script>

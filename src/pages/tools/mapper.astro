@@ -1,0 +1,1072 @@
+---
+/**
+ * Visual Mapper - Mapeamento visual de campos SAP
+ * Drag and drop de campos origem para destino SAP
+ * Usa fonte unificada de campos SAP (agregador central)
+ */
+import ToolLayout from '@features/tools/layouts/ToolLayout.astro';
+import { ALL_IDOCS, ALL_SAP_FIELDS, TOTAL_ALL_FIELDS, TYPE_COLORS } from '@idocs/data';
+
+// Dados para o JavaScript client-side
+const sapFieldsJson = JSON.stringify(
+  ALL_SAP_FIELDS.map((f) => ({
+    name: f.name,
+    description: f.description,
+    type: f.type,
+    len: f.len,
+    segment: f.segment,
+    idoc: f.idoc,
+  }))
+);
+
+const idocsJson = JSON.stringify(
+  ALL_IDOCS.map((i) => ({
+    code: i.code,
+    title: i.title,
+    icon: i.icon,
+  }))
+);
+
+const typeColorsJson = JSON.stringify(TYPE_COLORS);
+const totalFields = TOTAL_ALL_FIELDS;
+---
+
+<ToolLayout 
+  title="Visual Mapper" 
+  description="Mapeie campos de origem para destino SAP com drag and drop"
+  icon="🔗"
+>
+  <div class="map-container">
+    <!-- Toolbar -->
+    <div class="map-toolbar">
+      <div class="map-toolbar-group">
+        <button class="map-btn" id="sampleBtn" title="Carregar exemplo">
+          📄 Exemplo
+        </button>
+        <button class="map-btn map-btn-danger" id="clearAllBtn" title="Limpar tudo">
+          🗑️ Limpar
+        </button>
+      </div>
+      <div class="map-toolbar-group">
+        <span class="map-count" id="mappingCount">0 mapeamentos</span>
+        <button class="map-btn map-btn-primary" id="exportJsonBtn">
+          📥 Exportar JSON
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="map-grid">
+      <!-- Source Panel -->
+      <div class="map-panel">
+        <div class="map-panel-header">
+          <span class="map-panel-title">📂 Origem (Source)</span>
+          <button class="map-btn-xs" id="addSourceBtn">+ Campo</button>
+        </div>
+        <div class="map-panel-toolbar">
+          <textarea 
+            id="sourceInput" 
+            class="map-textarea" 
+            placeholder="Cole aqui JSON ou CSV para extrair campos automaticamente..."
+          ></textarea>
+          <button class="map-btn-xs map-btn-primary" id="processSourceBtn">Processar</button>
+        </div>
+        <div class="map-fields-list" id="sourceFieldsList">
+          <div class="map-empty">👆 Cole dados acima ou adicione campos manualmente</div>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="map-canvas">
+        <svg id="connectionsSvg" class="map-svg"></svg>
+        <div class="map-canvas-hint">
+          <span>👈</span>
+          <span>→</span>
+          <span>👉</span>
+        </div>
+      </div>
+
+      <!-- Target Panel -->
+      <div class="map-panel map-panel-wide">
+        <div class="map-panel-header">
+          <span class="map-panel-title">🏢 Destino SAP ({totalFields} campos)</span>
+          <span class="map-field-counter" id="fieldCounter">0 campos</span>
+        </div>
+        <div class="map-panel-toolbar">
+          <!-- IDOC Filter -->
+          <div class="map-filter" id="idocFilter">
+            <button type="button" class="map-filter-trigger" id="idocFilterTrigger">
+              <span id="idocFilterValue">🔍 Todos os IDOCs</span>
+              <svg class="map-chevron" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <div class="map-filter-dropdown" id="idocFilterDropdown">
+              <div class="map-filter-list" id="idocFilterList"></div>
+            </div>
+          </div>
+          <input type="text" id="targetSearch" class="map-search" placeholder="🔍 Buscar campo..." />
+        </div>
+        <div class="map-fields-list" id="targetFieldsList"></div>
+      </div>
+    </div>
+
+    <!-- Output -->
+    <div class="map-output">
+      <div class="map-output-header">
+        <h3>📋 Mapeamentos</h3>
+        <button class="map-btn-xs" id="copyMappingsBtn">Copiar</button>
+      </div>
+      <div class="map-output-table" id="mappingsTable">
+        <div class="map-empty">Nenhum mapeamento ainda. Arraste campos da origem para o destino.</div>
+      </div>
+    </div>
+  </div>
+</ToolLayout>
+
+<script is:inline define:vars={{ sapFieldsJson, idocsJson, typeColorsJson }}>
+(function() {
+  const ALL_FIELDS = JSON.parse(sapFieldsJson);
+  const ALL_IDOCS = JSON.parse(idocsJson);
+  const TYPE_COLORS = JSON.parse(typeColorsJson);
+  
+  // State
+  const sourceFields = [];
+  const mappings = [];
+  let draggedField = null;
+  let selectedIdoc = '';
+
+  // DOM Elements
+  const sourceFieldsList = document.getElementById('sourceFieldsList');
+  const targetFieldsList = document.getElementById('targetFieldsList');
+  const sourceInput = document.getElementById('sourceInput');
+  const processSourceBtn = document.getElementById('processSourceBtn');
+  const addSourceBtn = document.getElementById('addSourceBtn');
+  const targetSearch = document.getElementById('targetSearch');
+  const mappingsTable = document.getElementById('mappingsTable');
+  const mappingCount = document.getElementById('mappingCount');
+  const fieldCounter = document.getElementById('fieldCounter');
+  const exportJsonBtn = document.getElementById('exportJsonBtn');
+  const copyMappingsBtn = document.getElementById('copyMappingsBtn');
+  const clearAllBtn = document.getElementById('clearAllBtn');
+  const sampleBtn = document.getElementById('sampleBtn');
+  const connectionsSvg = document.getElementById('connectionsSvg');
+  
+  // Filter elements
+  const idocFilter = document.getElementById('idocFilter');
+  const idocFilterTrigger = document.getElementById('idocFilterTrigger');
+  const idocFilterValue = document.getElementById('idocFilterValue');
+  const idocFilterList = document.getElementById('idocFilterList');
+
+  // Initialize IDOC filter
+  function initIdocFilter() {
+    let html = `<div class="map-filter-option map-filter-selected" data-idoc="">🔍 Todos os IDOCs</div>`;
+    ALL_IDOCS.forEach(idoc => {
+      const count = ALL_FIELDS.filter(f => f.idoc === idoc.code).length;
+      html += `<div class="map-filter-option" data-idoc="${idoc.code}">${idoc.icon} ${idoc.code} (${idoc.title}) <span class="map-filter-count">${count}</span></div>`;
+    });
+    idocFilterList.innerHTML = html;
+
+    idocFilterTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      idocFilter.classList.toggle('map-filter-open');
+    });
+
+    idocFilterList.querySelectorAll('.map-filter-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const value = opt.dataset.idoc || '';
+        selectedIdoc = value;
+        const idocInfo = ALL_IDOCS.find(i => i.code === value);
+        idocFilterValue.textContent = value ? `${idocInfo?.icon || ''} ${value}` : '🔍 Todos os IDOCs';
+        idocFilter.classList.remove('map-filter-open');
+        idocFilterList.querySelectorAll('.map-filter-option').forEach(o => o.classList.remove('map-filter-selected'));
+        opt.classList.add('map-filter-selected');
+        renderTargetFields();
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!idocFilter.contains(e.target)) {
+        idocFilter.classList.remove('map-filter-open');
+      }
+    });
+  }
+
+  // Render source fields
+  function renderSourceFields() {
+    if (sourceFields.length === 0) {
+      sourceFieldsList.innerHTML = `<div class="map-empty">👆 Cole dados acima ou adicione campos manualmente</div>`;
+      return;
+    }
+
+    sourceFieldsList.innerHTML = sourceFields.map(field => `
+      <div class="map-field map-field-source" draggable="true" data-field="${field}">
+        <span class="map-field-name">${field}</span>
+        <button class="map-field-remove" data-field="${field}">×</button>
+      </div>
+    `).join('');
+
+    sourceFieldsList.querySelectorAll('.map-field-source').forEach(el => {
+      el.addEventListener('dragstart', handleDragStart);
+      el.addEventListener('dragend', handleDragEnd);
+    });
+
+    sourceFieldsList.querySelectorAll('.map-field-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeSourceField(btn.dataset.field);
+      });
+    });
+
+    updateMappedStatus();
+  }
+
+  // Render target fields
+  function renderTargetFields() {
+    const search = targetSearch.value.toLowerCase();
+
+    let filtered = ALL_FIELDS;
+    if (selectedIdoc) filtered = filtered.filter(f => f.idoc === selectedIdoc);
+    if (search) filtered = filtered.filter(f => 
+      f.name.toLowerCase().includes(search) || 
+      f.description.toLowerCase().includes(search) ||
+      f.segment.toLowerCase().includes(search)
+    );
+
+    if (filtered.length === 0) {
+      targetFieldsList.innerHTML = `<div class="map-empty">Nenhum campo encontrado</div>`;
+      fieldCounter.textContent = '0 campos';
+      return;
+    }
+
+    fieldCounter.textContent = `${filtered.length} campos`;
+
+    targetFieldsList.innerHTML = filtered.map(field => {
+      const color = TYPE_COLORS[field.type] || '#6b7280';
+      return `
+        <div class="map-field map-field-target" data-field="${field.name}" data-segment="${field.segment}" data-idoc="${field.idoc}">
+          <div class="map-field-icon" style="background: ${color}">${field.type.charAt(0)}</div>
+          <div class="map-field-content">
+            <div class="map-field-header">
+              <span class="map-field-name">${field.name}</span>
+              <span class="map-field-meta">${field.segment} · ${field.idoc}</span>
+            </div>
+            <span class="map-field-desc">${field.description}</span>
+          </div>
+          <div class="map-field-type">${field.type}(${field.len})</div>
+        </div>
+      `;
+    }).join('');
+
+    targetFieldsList.querySelectorAll('.map-field-target').forEach(el => {
+      el.addEventListener('dragover', handleDragOver);
+      el.addEventListener('dragleave', handleDragLeave);
+      el.addEventListener('drop', handleDrop);
+    });
+
+    updateMappedStatus();
+  }
+
+  // Drag handlers
+  function handleDragStart(e) {
+    draggedField = e.target.dataset.field;
+    e.target.classList.add('map-dragging');
+    document.querySelectorAll('.map-field-target').forEach(t => t.classList.add('map-drop-target'));
+  }
+
+  function handleDragEnd(e) {
+    e.target.classList.remove('map-dragging');
+    draggedField = null;
+    document.querySelectorAll('.map-field-target').forEach(t => {
+      t.classList.remove('map-drop-target', 'map-drag-over');
+    });
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('map-drag-over');
+  }
+
+  function handleDragLeave(e) {
+    e.currentTarget.classList.remove('map-drag-over');
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    const el = e.currentTarget;
+    el.classList.remove('map-drag-over', 'map-drop-target');
+
+    if (!draggedField) return;
+
+    const targetName = el.dataset.field;
+    const segment = el.dataset.segment;
+    const idoc = el.dataset.idoc || '';
+    const targetField = ALL_FIELDS.find(f => f.name === targetName && f.segment === segment);
+
+    if (!targetField) return;
+
+    // Remove existing mapping
+    const existingIdx = mappings.findIndex(m => m.source === draggedField || (m.target === targetName && m.segment === segment));
+    if (existingIdx >= 0) mappings.splice(existingIdx, 1);
+
+    mappings.push({
+      source: draggedField,
+      target: targetName,
+      segment: segment,
+      idoc: idoc,
+      description: targetField.description
+    });
+
+    updateMappedStatus();
+    renderMappingsTable();
+    window.showToast?.(`Mapeado: ${draggedField} → ${targetName}`);
+  }
+
+  function updateMappedStatus() {
+    document.querySelectorAll('.map-field').forEach(el => el.classList.remove('map-mapped'));
+
+    mappings.forEach(m => {
+      const sourceEl = sourceFieldsList.querySelector(`[data-field="${m.source}"]`);
+      const targetEl = targetFieldsList.querySelector(`[data-field="${m.target}"][data-segment="${m.segment}"]`);
+      sourceEl?.classList.add('map-mapped');
+      targetEl?.classList.add('map-mapped');
+    });
+
+    mappingCount.textContent = `${mappings.length} mapeamento${mappings.length !== 1 ? 's' : ''}`;
+    drawConnections();
+  }
+
+  function drawConnections() {
+    connectionsSvg.innerHTML = '';
+    
+    mappings.forEach(m => {
+      const sourceEl = sourceFieldsList.querySelector(`[data-field="${m.source}"]`);
+      const targetEl = targetFieldsList.querySelector(`[data-field="${m.target}"][data-segment="${m.segment}"]`);
+      
+      if (!sourceEl || !targetEl) return;
+
+      const sourceRect = sourceEl.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const svgRect = connectionsSvg.getBoundingClientRect();
+
+      const x1 = sourceRect.right - svgRect.left;
+      const y1 = sourceRect.top + sourceRect.height / 2 - svgRect.top;
+      const x2 = targetRect.left - svgRect.left;
+      const y2 = targetRect.top + targetRect.height / 2 - svgRect.top;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const midX = (x1 + x2) / 2;
+      path.setAttribute('d', `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`);
+      path.setAttribute('class', 'map-connection');
+      connectionsSvg.appendChild(path);
+    });
+  }
+
+  function renderMappingsTable() {
+    if (mappings.length === 0) {
+      mappingsTable.innerHTML = `<div class="map-empty">Nenhum mapeamento ainda. Arraste campos da origem para o destino.</div>`;
+      return;
+    }
+
+    mappingsTable.innerHTML = `
+      <table class="map-table">
+        <thead>
+          <tr>
+            <th>Origem</th>
+            <th></th>
+            <th>Destino (SAP)</th>
+            <th>IDOC / Segmento</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${mappings.map((m, idx) => `
+            <tr>
+              <td class="map-cell-source">${m.source}</td>
+              <td class="map-cell-arrow">→</td>
+              <td class="map-cell-target">${m.target}</td>
+              <td class="map-cell-segment">${m.idoc} / ${m.segment}</td>
+              <td><button class="map-field-remove" data-idx="${idx}">×</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    mappingsTable.querySelectorAll('.map-field-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        mappings.splice(parseInt(btn.dataset.idx), 1);
+        updateMappedStatus();
+        renderMappingsTable();
+      });
+    });
+  }
+
+  function processSource() {
+    const input = sourceInput.value.trim();
+    if (!input) return;
+
+    const extracted = [];
+
+    try {
+      const json = JSON.parse(input);
+      extractFieldsFromJson(json, extracted);
+    } catch {
+      const lines = input.split(/[\n,]/);
+      lines.forEach(line => {
+        const field = line.trim().replace(/['"]/g, '');
+        if (field && !extracted.includes(field)) {
+          extracted.push(field);
+        }
+      });
+    }
+
+    if (extracted.length > 0) {
+      extracted.forEach(f => {
+        if (!sourceFields.includes(f)) sourceFields.push(f);
+      });
+      renderSourceFields();
+      window.showToast?.(`${extracted.length} campos extraídos!`);
+    }
+  }
+
+  function extractFieldsFromJson(obj, result) {
+    if (!obj || typeof obj !== 'object') return;
+
+    if (Array.isArray(obj)) {
+      if (obj.length > 0) extractFieldsFromJson(obj[0], result);
+      return;
+    }
+
+    for (const key of Object.keys(obj)) {
+      if (!result.includes(key)) result.push(key);
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        extractFieldsFromJson(obj[key], result);
+      }
+    }
+  }
+
+  function removeSourceField(field) {
+    const idx = sourceFields.indexOf(field);
+    if (idx >= 0) sourceFields.splice(idx, 1);
+    
+    const mappingIdx = mappings.findIndex(m => m.source === field);
+    if (mappingIdx >= 0) mappings.splice(mappingIdx, 1);
+    
+    renderSourceFields();
+    renderMappingsTable();
+  }
+
+  function clearAll() {
+    sourceFields.length = 0;
+    mappings.length = 0;
+    sourceInput.value = '';
+    renderSourceFields();
+    renderTargetFields();
+    renderMappingsTable();
+  }
+
+  function loadSample() {
+    sourceFields.length = 0;
+    mappings.length = 0;
+    
+    ['codigo_material', 'descricao', 'unidade', 'preco', 'grupo', 'centro'].forEach(f => {
+      sourceFields.push(f);
+    });
+    
+    sourceInput.value = '{\n  "codigo_material": "MAT001",\n  "descricao": "Produto Exemplo",\n  "unidade": "UN",\n  "preco": 99.90,\n  "grupo": "01",\n  "centro": "1000"\n}';
+    
+    renderSourceFields();
+    window.showToast?.('Exemplo carregado! Arraste os campos para mapear.');
+  }
+
+  function exportJson() {
+    const output = mappings.map(m => ({
+      source: m.source,
+      target: m.target,
+      segment: m.segment,
+      idoc: m.idoc
+    }));
+    
+    navigator.clipboard.writeText(JSON.stringify(output, null, 2)).then(() => {
+      window.showToast?.('JSON copiado para clipboard!');
+    });
+  }
+
+  function copyMappings() {
+    const output = mappings.map(m => `${m.source} → ${m.target} (${m.idoc}/${m.segment})`).join('\n');
+    navigator.clipboard.writeText(output).then(() => {
+      window.showToast?.('Mapeamentos copiados!');
+    });
+  }
+
+  // Event listeners
+  processSourceBtn.addEventListener('click', processSource);
+  addSourceBtn.addEventListener('click', () => {
+    const name = prompt('Nome do campo:');
+    if (name && !sourceFields.includes(name.trim())) {
+      sourceFields.push(name.trim());
+      renderSourceFields();
+    }
+  });
+  targetSearch.addEventListener('input', renderTargetFields);
+  clearAllBtn.addEventListener('click', clearAll);
+  sampleBtn.addEventListener('click', loadSample);
+  exportJsonBtn.addEventListener('click', exportJson);
+  copyMappingsBtn.addEventListener('click', copyMappings);
+
+  targetFieldsList.addEventListener('scroll', drawConnections);
+  sourceFieldsList.addEventListener('scroll', drawConnections);
+  window.addEventListener('resize', drawConnections);
+
+  // Init
+  initIdocFilter();
+  renderSourceFields();
+  renderTargetFields();
+})();
+</script>
+
+<style is:global>
+  /* ========== CONTAINER ========== */
+  .map-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  /* ========== TOOLBAR ========== */
+  .map-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .map-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .map-count {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 6px 12px;
+    background: var(--meta-bg);
+    border-radius: 20px;
+  }
+
+  /* ========== BUTTONS ========== */
+  .map-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--card-bg);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .map-btn:hover {
+    background: var(--meta-bg);
+  }
+
+  .map-btn-primary {
+    background: var(--brand-blue);
+    border-color: var(--brand-blue);
+    color: white;
+  }
+
+  .map-btn-primary:hover {
+    background: #2563eb;
+  }
+
+  .map-btn-danger:hover {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
+
+  .map-btn-xs {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--card-bg);
+    color: var(--text-main);
+    cursor: pointer;
+  }
+
+  .map-btn-xs:hover {
+    background: var(--meta-bg);
+  }
+
+  .map-btn-xs.map-btn-primary {
+    background: var(--brand-blue);
+    border-color: var(--brand-blue);
+    color: white;
+  }
+
+  /* ========== GRID ========== */
+  .map-grid {
+    display: grid;
+    grid-template-columns: 1fr 60px 1.5fr;
+    gap: var(--spacing-sm);
+    min-height: 500px;
+  }
+
+  /* ========== PANELS ========== */
+  .map-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .map-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--meta-bg);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .map-panel-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--heading-color);
+  }
+
+  .map-panel-toolbar {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+  }
+
+  .map-textarea {
+    flex: 1;
+    min-height: 50px;
+    padding: var(--spacing-xs);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.75rem;
+    background: var(--code-bg);
+    color: var(--text-main);
+    resize: vertical;
+  }
+
+  .map-search {
+    flex: 1;
+    min-width: 120px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    background: var(--card-bg);
+    color: var(--text-main);
+  }
+
+  .map-search:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+  }
+
+  .map-field-counter {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    background: var(--meta-bg);
+    border-radius: 10px;
+  }
+
+  /* ========== FILTER ========== */
+  .map-filter {
+    position: relative;
+    min-width: 180px;
+  }
+
+  .map-filter-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-main);
+    transition: all 0.15s ease;
+  }
+
+  .map-filter-trigger:hover {
+    border-color: var(--brand-blue);
+  }
+
+  .map-filter.map-filter-open .map-filter-trigger {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  }
+
+  .map-chevron {
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .map-filter.map-filter-open .map-chevron {
+    transform: rotate(180deg);
+  }
+
+  .map-filter-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    min-width: 240px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+    z-index: 1001;
+    overflow: hidden;
+  }
+
+  :global([data-theme="dark"]) .map-filter-dropdown {
+    background: #1a1a2e;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .map-filter.map-filter-open .map-filter-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .map-filter-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 4px;
+  }
+
+  .map-filter-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    transition: background 0.1s ease;
+  }
+
+  .map-filter-option:hover {
+    background: var(--meta-bg);
+  }
+
+  .map-filter-option.map-filter-selected {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--brand-blue);
+    font-weight: 600;
+  }
+
+  .map-filter-count {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    background: var(--meta-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* ========== FIELDS LIST ========== */
+  .map-fields-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-xs);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .map-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 60px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: center;
+    padding: var(--spacing-md);
+  }
+
+  /* ========== FIELD ITEMS ========== */
+  .map-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--meta-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    transition: all 0.15s ease;
+  }
+
+  .map-field-source {
+    cursor: grab;
+  }
+
+  .map-field-source:active {
+    cursor: grabbing;
+  }
+
+  .map-field.map-dragging {
+    opacity: 0.5;
+    border-style: dashed;
+  }
+
+  .map-field-target.map-drop-target {
+    border-color: var(--brand-blue);
+    border-style: dashed;
+  }
+
+  .map-field-target.map-drag-over {
+    background: var(--info-bg);
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+
+  .map-field.map-mapped {
+    background: var(--success-bg);
+    border-color: var(--success-border);
+  }
+
+  .map-field-icon {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .map-field-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .map-field-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .map-field-name {
+    font-weight: 600;
+    color: var(--heading-color);
+    font-family: 'Consolas', monospace;
+  }
+
+  .map-field-meta {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+  }
+
+  .map-field-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .map-field-type {
+    font-size: 0.6rem;
+    padding: 3px 6px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    white-space: nowrap;
+  }
+
+  .map-field-remove {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    opacity: 0.5;
+    transition: opacity 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .map-field-remove:hover {
+    opacity: 1;
+    color: var(--danger-text);
+  }
+
+  /* ========== CANVAS ========== */
+  .map-canvas {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .map-svg {
+    position: absolute;
+    top: 0;
+    left: -400%;
+    width: 900%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .map-connection {
+    fill: none;
+    stroke: var(--success-border);
+    stroke-width: 2;
+    opacity: 0.7;
+  }
+
+  .map-canvas-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.7;
+  }
+
+  /* ========== OUTPUT ========== */
+  .map-output {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .map-output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--meta-bg);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .map-output-header h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--heading-color);
+  }
+
+  .map-output-table {
+    padding: var(--spacing-sm);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .map-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  .map-table th {
+    text-align: left;
+    padding: 6px 8px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .map-table td {
+    padding: 8px;
+  }
+
+  .map-table tbody tr:hover {
+    background: var(--meta-bg);
+  }
+
+  .map-cell-source {
+    color: var(--brand-blue);
+    font-weight: 600;
+    font-family: 'Consolas', monospace;
+  }
+
+  .map-cell-arrow {
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .map-cell-target {
+    color: var(--success-text);
+    font-weight: 600;
+    font-family: 'Consolas', monospace;
+  }
+
+  .map-cell-segment {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 900px) {
+    .map-grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+    }
+
+    .map-canvas {
+      display: none;
+    }
+
+    .map-panel {
+      max-height: 300px;
+    }
+  }
+</style>

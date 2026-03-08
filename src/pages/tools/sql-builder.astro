@@ -1,0 +1,1362 @@
+---
+/**
+ * SQL Builder - Gerador de expressões SQL para campos 4MDG
+ */
+import ToolLayout from '@features/tools/layouts/ToolLayout.astro';
+---
+
+<ToolLayout 
+  title="SQL Builder" 
+  description="Gere expressões SQL para campos individuais do 4MDG"
+  icon="⚡"
+>
+  <div class="sql-builder">
+    <!-- Info -->
+    <div class="info-box">
+      <div class="info-icon">💡</div>
+      <div class="info-content">
+        <strong>Como funciona:</strong> Cada etapa do fluxo 4MDG é uma "answer". 
+        Etapa 1 = <code>ans1</code>, Etapa 2 = <code>ans2</code>, etc. 
+        Os campos são acessados via <code>ans{'{n}'}.data-&gt;&gt;'{'{guid}'}'</code>
+      </div>
+    </div>
+
+    <!-- Navegação -->
+    <nav class="tool-nav">
+      <div class="nav-group">
+        <span class="nav-label">Texto</span>
+        <div class="nav-buttons">
+          <button class="nav-btn active" data-tool="substring">SUBSTRING</button>
+          <button class="nav-btn" data-tool="translate">TRANSLATE</button>
+          <button class="nav-btn" data-tool="concat">CONCAT</button>
+          <button class="nav-btn" data-tool="lpad">LPAD</button>
+        </div>
+      </div>
+      <div class="nav-group">
+        <span class="nav-label">Lógica</span>
+        <div class="nav-buttons">
+          <button class="nav-btn" data-tool="case">CASE WHEN</button>
+          <button class="nav-btn" data-tool="coalesce">COALESCE</button>
+        </div>
+      </div>
+      <div class="nav-group">
+        <span class="nav-label">Data</span>
+        <div class="nav-buttons">
+          <button class="nav-btn" data-tool="date">FORMAT DATE</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- SUBSTRING -->
+    <div class="tool-panel active" id="panel-substring">
+      <h3 class="panel-title">SUBSTRING</h3>
+      <p class="panel-desc">Extrai parte de uma string a partir de uma posição.</p>
+      
+      <div class="field-source">
+        <div class="form-field">
+          <label>Etapa do Fluxo</label>
+          <input type="number" class="input-etapa" id="substrEtapa" placeholder="1, 2, 3..." min="1" />
+          <span class="field-hint">Número da etapa no 4MDG</span>
+        </div>
+        <div class="form-field flex-2">
+          <label>GUID do Campo</label>
+          <input type="text" class="input-guid" id="substrGuid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+          <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Posição Inicial</label>
+          <input type="number" id="substrPos" value="1" min="1" />
+        </div>
+        <div class="form-field">
+          <label>Quantidade de Caracteres</label>
+          <input type="number" id="substrLen" value="10" min="1" />
+        </div>
+      </div>
+      
+      <button class="btn-generate" data-tool="substring">Gerar Expressão</button>
+    </div>
+
+    <!-- TRANSLATE -->
+    <div class="tool-panel" id="panel-translate">
+      <h3 class="panel-title">TRANSLATE</h3>
+      <p class="panel-desc">Substitui caracteres em uma string (ex: remover acentos).</p>
+      
+      <div class="field-source">
+        <div class="form-field">
+          <label>Etapa do Fluxo</label>
+          <input type="number" class="input-etapa" id="translateEtapa" placeholder="1, 2, 3..." min="1" />
+          <span class="field-hint">Número da etapa no 4MDG</span>
+        </div>
+        <div class="form-field flex-2">
+          <label>GUID do Campo</label>
+          <input type="text" class="input-guid" id="translateGuid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+          <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Caracteres a Substituir</label>
+          <input type="text" id="translateFrom" placeholder="áéíóú" />
+        </div>
+        <div class="form-field">
+          <label>Substituir Por</label>
+          <input type="text" id="translateTo" placeholder="aeiou" />
+        </div>
+      </div>
+      
+      <div class="presets">
+        <span class="presets-label">Presets:</span>
+        <button class="preset-btn" data-from="áàâãäéèêëíìîïóòôõöúùûüçñÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇÑ" data-to="aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN">Remover Acentos</button>
+        <button class="preset-btn" data-from="abcdefghijklmnopqrstuvwxyz" data-to="ABCDEFGHIJKLMNOPQRSTUVWXYZ">Maiúsculas</button>
+        <button class="preset-btn" data-from="ABCDEFGHIJKLMNOPQRSTUVWXYZ" data-to="abcdefghijklmnopqrstuvwxyz">Minúsculas</button>
+      </div>
+      
+      <button class="btn-generate" data-tool="translate">Gerar Expressão</button>
+    </div>
+
+    <!-- CONCAT -->
+    <div class="tool-panel" id="panel-concat">
+      <h3 class="panel-title">CONCAT</h3>
+      <p class="panel-desc">Concatena múltiplos campos ou textos literais.</p>
+      
+      <div class="concat-fields" id="concatFields">
+        <div class="concat-part" data-type="field">
+          <div class="part-header">
+            <span class="part-number">1</span>
+            <select class="part-type-select">
+              <option value="field" selected>Campo 4MDG</option>
+              <option value="literal">Texto Literal</option>
+            </select>
+            <button class="btn-remove-part" title="Remover">×</button>
+          </div>
+          <div class="part-field-inputs">
+            <div class="form-field">
+              <label>Etapa do Fluxo</label>
+              <input type="number" class="part-etapa" placeholder="1, 2, 3..." min="1" />
+              <span class="field-hint">Número da etapa no 4MDG</span>
+            </div>
+            <div class="form-field flex-2">
+              <label>GUID do Campo</label>
+              <input type="text" class="part-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+              <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+            </div>
+          </div>
+          <div class="part-literal-input" style="display: none;">
+            <div class="form-field">
+              <label>Texto Literal</label>
+              <input type="text" class="part-literal" placeholder="Ex: ' - ' ou 'texto fixo'" />
+              <span class="field-hint">Texto fixo que será inserido na concatenação</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="concat-part" data-type="literal">
+          <div class="part-header">
+            <span class="part-number">2</span>
+            <select class="part-type-select">
+              <option value="field">Campo 4MDG</option>
+              <option value="literal" selected>Texto Literal</option>
+            </select>
+            <button class="btn-remove-part" title="Remover">×</button>
+          </div>
+          <div class="part-field-inputs" style="display: none;">
+            <div class="form-field">
+              <label>Etapa do Fluxo</label>
+              <input type="number" class="part-etapa" placeholder="1, 2, 3..." min="1" />
+              <span class="field-hint">Número da etapa no 4MDG</span>
+            </div>
+            <div class="form-field flex-2">
+              <label>GUID do Campo</label>
+              <input type="text" class="part-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+              <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+            </div>
+          </div>
+          <div class="part-literal-input">
+            <div class="form-field">
+              <label>Texto Literal</label>
+              <input type="text" class="part-literal" placeholder="Ex: ' - ' ou 'texto fixo'" value=" - " />
+              <span class="field-hint">Texto fixo que será inserido na concatenação</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="concat-part" data-type="field">
+          <div class="part-header">
+            <span class="part-number">3</span>
+            <select class="part-type-select">
+              <option value="field" selected>Campo 4MDG</option>
+              <option value="literal">Texto Literal</option>
+            </select>
+            <button class="btn-remove-part" title="Remover">×</button>
+          </div>
+          <div class="part-field-inputs">
+            <div class="form-field">
+              <label>Etapa do Fluxo</label>
+              <input type="number" class="part-etapa" placeholder="1, 2, 3..." min="1" />
+              <span class="field-hint">Número da etapa no 4MDG</span>
+            </div>
+            <div class="form-field flex-2">
+              <label>GUID do Campo</label>
+              <input type="text" class="part-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+              <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+            </div>
+          </div>
+          <div class="part-literal-input" style="display: none;">
+            <div class="form-field">
+              <label>Texto Literal</label>
+              <input type="text" class="part-literal" placeholder="Ex: ' - ' ou 'texto fixo'" />
+              <span class="field-hint">Texto fixo que será inserido na concatenação</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-add-row" id="addConcatRow">+ Adicionar Parte</button>
+      
+      <button class="btn-generate" data-tool="concat">Gerar Expressão</button>
+    </div>
+
+    <!-- LPAD -->
+    <div class="tool-panel" id="panel-lpad">
+      <h3 class="panel-title">LPAD</h3>
+      <p class="panel-desc">Preenche à esquerda com caracteres (ex: zeros em MATNR).</p>
+      
+      <div class="field-source">
+        <div class="form-field">
+          <label>Etapa do Fluxo</label>
+          <input type="number" class="input-etapa" id="lpadEtapa" placeholder="1, 2, 3..." min="1" />
+          <span class="field-hint">Número da etapa no 4MDG</span>
+        </div>
+        <div class="form-field flex-2">
+          <label>GUID do Campo</label>
+          <input type="text" class="input-guid" id="lpadGuid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+          <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Tamanho Final</label>
+          <input type="number" id="lpadLen" value="18" min="1" />
+        </div>
+        <div class="form-field">
+          <label>Caractere de Preenchimento</label>
+          <input type="text" id="lpadChar" value="0" maxlength="1" />
+        </div>
+      </div>
+      
+      <div class="presets">
+        <span class="presets-label">Presets SAP:</span>
+        <button class="preset-btn" data-len="18" data-char="0">MATNR (18)</button>
+        <button class="preset-btn" data-len="40" data-char="0">MATNR_EXT (40)</button>
+        <button class="preset-btn" data-len="10" data-char="0">KUNNR/LIFNR (10)</button>
+        <button class="preset-btn" data-len="4" data-char="0">BUKRS/WERKS (4)</button>
+      </div>
+      
+      <button class="btn-generate" data-tool="lpad">Gerar Expressão</button>
+    </div>
+
+    <!-- CASE WHEN -->
+    <div class="tool-panel" id="panel-case">
+      <h3 class="panel-title">CASE WHEN</h3>
+      <p class="panel-desc">Cria expressões condicionais (se/então/senão).</p>
+      
+      <div class="field-source">
+        <div class="form-field">
+          <label>Etapa do Fluxo</label>
+          <input type="number" class="input-etapa" id="caseEtapa" placeholder="1, 2, 3..." min="1" />
+          <span class="field-hint">Número da etapa no 4MDG</span>
+        </div>
+        <div class="form-field flex-2">
+          <label>GUID do Campo</label>
+          <input type="text" class="input-guid" id="caseGuid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+          <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+        </div>
+      </div>
+      
+      <div class="case-conditions" id="caseConditions">
+        <div class="case-row">
+          <span class="case-label">WHEN</span>
+          <select class="case-operator">
+            <option value="=">=</option>
+            <option value="<>">≠</option>
+            <option value="LIKE">LIKE</option>
+            <option value="IS NULL">IS NULL</option>
+            <option value="IS NOT NULL">IS NOT NULL</option>
+          </select>
+          <input type="text" class="case-compare" placeholder="Valor (ex: 'A')" />
+          <span class="case-label">THEN</span>
+          <input type="text" class="case-result" placeholder="Resultado (ex: 'Ativo')" />
+          <button class="btn-remove-row" title="Remover">×</button>
+        </div>
+      </div>
+      <button class="btn-add-row" id="addCaseRow">+ Adicionar Condição</button>
+      
+      <div class="form-field" style="margin-top: var(--spacing-md);">
+        <label>ELSE (valor padrão se nenhuma condição for atendida)</label>
+        <input type="text" id="caseElse" placeholder="Ex: 'Desconhecido' ou NULL" />
+      </div>
+      
+      <button class="btn-generate" data-tool="case">Gerar Expressão</button>
+    </div>
+
+    <!-- COALESCE -->
+    <div class="tool-panel" id="panel-coalesce">
+      <h3 class="panel-title">COALESCE</h3>
+      <p class="panel-desc">Retorna o primeiro valor não nulo de uma lista.</p>
+      
+      <div class="coalesce-fields" id="coalesceFields">
+        <div class="coalesce-part" data-type="field">
+          <div class="part-header">
+            <span class="part-number">1</span>
+            <select class="part-type-select">
+              <option value="field" selected>Campo 4MDG</option>
+              <option value="literal">Valor Literal</option>
+            </select>
+            <button class="btn-remove-part" title="Remover">×</button>
+          </div>
+          <div class="part-field-inputs">
+            <div class="form-field">
+              <label>Etapa do Fluxo</label>
+              <input type="number" class="part-etapa" placeholder="1, 2, 3..." min="1" />
+              <span class="field-hint">Número da etapa no 4MDG</span>
+            </div>
+            <div class="form-field flex-2">
+              <label>GUID do Campo</label>
+              <input type="text" class="part-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+              <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+            </div>
+          </div>
+          <div class="part-literal-input" style="display: none;">
+            <div class="form-field">
+              <label>Valor Literal</label>
+              <input type="text" class="part-literal" placeholder="Ex: '' ou 'default'" />
+              <span class="field-hint">Valor padrão se todos os anteriores forem nulos</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="coalesce-part" data-type="literal">
+          <div class="part-header">
+            <span class="part-number">2</span>
+            <select class="part-type-select">
+              <option value="field">Campo 4MDG</option>
+              <option value="literal" selected>Valor Literal</option>
+            </select>
+            <button class="btn-remove-part" title="Remover">×</button>
+          </div>
+          <div class="part-field-inputs" style="display: none;">
+            <div class="form-field">
+              <label>Etapa do Fluxo</label>
+              <input type="number" class="part-etapa" placeholder="1, 2, 3..." min="1" />
+              <span class="field-hint">Número da etapa no 4MDG</span>
+            </div>
+            <div class="form-field flex-2">
+              <label>GUID do Campo</label>
+              <input type="text" class="part-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+              <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+            </div>
+          </div>
+          <div class="part-literal-input">
+            <div class="form-field">
+              <label>Valor Literal</label>
+              <input type="text" class="part-literal" placeholder="Ex: '' ou 'default'" value="''" />
+              <span class="field-hint">Valor padrão se todos os anteriores forem nulos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-add-row" id="addCoalesceRow">+ Adicionar Opção</button>
+      
+      <button class="btn-generate" data-tool="coalesce">Gerar Expressão</button>
+    </div>
+
+    <!-- FORMAT DATE -->
+    <div class="tool-panel" id="panel-date">
+      <h3 class="panel-title">FORMAT DATE</h3>
+      <p class="panel-desc">Formata datas do 4MDG para o padrão SAP (YYYYMMDD) ou outros.</p>
+      
+      <div class="field-source">
+        <div class="form-field">
+          <label>Etapa do Fluxo</label>
+          <input type="number" class="input-etapa" id="dateEtapa" placeholder="1, 2, 3..." min="1" />
+          <span class="field-hint">Número da etapa no 4MDG</span>
+        </div>
+        <div class="form-field flex-2">
+          <label>GUID do Campo</label>
+          <input type="text" class="input-guid" id="dateGuid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+          <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Formato de Entrada</label>
+          <select id="dateInputFormat">
+            <option value="iso">ISO (YYYY-MM-DD)</option>
+            <option value="br">BR (DD/MM/YYYY)</option>
+            <option value="us">US (MM/DD/YYYY)</option>
+            <option value="timestamp">Timestamp</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Formato de Saída</label>
+          <select id="dateOutputFormat">
+            <option value="sap">SAP (YYYYMMDD)</option>
+            <option value="iso">ISO (YYYY-MM-DD)</option>
+            <option value="br">BR (DD/MM/YYYY)</option>
+          </select>
+        </div>
+      </div>
+      
+      <button class="btn-generate" data-tool="date">Gerar Expressão</button>
+    </div>
+
+    <!-- Output -->
+    <div class="output-section">
+      <div class="output-header">
+        <h3>Expressão SQL Gerada</h3>
+        <button class="btn-copy" id="copyBtn">Copiar</button>
+      </div>
+      <pre class="sql-output" id="sqlOutput">-- Selecione uma ferramenta e preencha os campos</pre>
+    </div>
+  </div>
+</ToolLayout>
+
+<style>
+  .sql-builder {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  /* Info Box */
+  .info-box {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 10px;
+  }
+
+  .info-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+
+  .info-content {
+    font-size: 0.85rem;
+    color: var(--text-main);
+    line-height: 1.5;
+  }
+
+  .info-content code {
+    background: var(--meta-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.8rem;
+  }
+
+  /* Navegação */
+  .tool-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+  }
+
+  .nav-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .nav-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 50px;
+  }
+
+  .nav-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+  }
+
+  .nav-btn {
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    background: var(--meta-bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .nav-btn:hover {
+    background: var(--card-bg);
+    color: var(--text-main);
+    border-color: var(--text-muted);
+  }
+
+  .nav-btn.active {
+    background: var(--brand-blue);
+    color: white;
+    border-color: var(--brand-blue);
+  }
+
+  /* Painéis */
+  .tool-panel {
+    display: none;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+  }
+
+  .tool-panel.active {
+    display: flex;
+  }
+
+  .panel-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin: 0;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+  }
+
+  .panel-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* Field Source (Etapa + GUID) */
+  .field-source {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--meta-bg);
+    border-radius: 10px;
+    border: 1px dashed var(--border-color);
+    align-items: flex-start;
+  }
+
+  .field-source .form-field:first-child {
+    flex: 0 0 140px;
+  }
+
+  .field-source .form-field.flex-2 {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Forms */
+  .form-row {
+    display: flex;
+    gap: var(--spacing-md);
+  }
+
+  .form-row .form-field {
+    flex: 1;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-field label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .form-field input,
+  .form-field select {
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: var(--card-bg);
+    color: var(--text-main);
+  }
+
+  .form-field input:focus,
+  .form-field select:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+  }
+
+  .field-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.8;
+  }
+
+  .input-etapa {
+    width: 100%;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    text-align: center;
+  }
+
+  .input-guid {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85rem !important;
+  }
+
+  /* Presets */
+  .presets {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    padding: var(--spacing-sm);
+    background: var(--meta-bg);
+    border-radius: 8px;
+  }
+
+  .presets-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .preset-btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .preset-btn:hover {
+    border-color: var(--brand-blue);
+    color: var(--brand-blue);
+  }
+
+  /* Dynamic rows - CONCAT/COALESCE parts */
+  .concat-fields,
+  .coalesce-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  :global(.concat-part),
+  :global(.coalesce-part) {
+    background: var(--meta-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  :global(.part-header) {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  :global(.part-number) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: var(--brand-blue);
+    color: white;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  :global(.part-type-select) {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: var(--card-bg);
+    color: var(--text-main);
+    cursor: pointer;
+  }
+
+  :global(.btn-remove-part) {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  :global(.btn-remove-part:hover) {
+    background: var(--danger-text);
+    color: white;
+  }
+
+  :global(.part-field-inputs) {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    align-items: flex-start;
+  }
+
+  :global(.part-field-inputs .form-field:first-child) {
+    flex: 0 0 140px;
+  }
+
+  :global(.part-field-inputs .form-field.flex-2) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :global(.part-literal-input) {
+    padding: var(--spacing-md);
+  }
+
+  /* CASE rows */
+  .case-conditions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  :global(.case-row) {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: var(--meta-bg);
+    border-radius: 8px;
+  }
+
+  :global(.case-row select) {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    background: var(--card-bg);
+    color: var(--text-main);
+    flex-shrink: 0;
+  }
+
+  :global(.case-row input) {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: var(--card-bg);
+    color: var(--text-main);
+    min-width: 0;
+  }
+
+  :global(.case-label) {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--brand-blue);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    flex-shrink: 0;
+  }
+
+  :global(.case-operator) {
+    width: 100px !important;
+  }
+
+  :global(.btn-remove-row) {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  :global(.btn-remove-row:hover) {
+    background: var(--danger-text);
+    color: white;
+  }
+
+  .btn-add-row {
+    align-self: flex-start;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: transparent;
+    color: var(--brand-blue);
+    border: 1px dashed var(--brand-blue);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-add-row:hover {
+    background: rgba(59, 130, 246, 0.1);
+  }
+
+  /* Generate button */
+  .btn-generate {
+    align-self: flex-start;
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    background: var(--brand-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-generate:hover {
+    background: var(--brand-blue-hover);
+    transform: translateY(-1px);
+  }
+
+  /* Output */
+  .output-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--meta-bg);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .output-header h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin: 0;
+  }
+
+  .btn-copy {
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-copy:hover {
+    border-color: var(--brand-blue);
+    color: var(--brand-blue);
+  }
+
+  .sql-output {
+    margin: 0;
+    padding: var(--spacing-lg);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    white-space: pre-wrap;
+    word-break: break-all;
+    min-height: 60px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .tool-nav {
+      flex-direction: column;
+    }
+
+    .nav-group {
+      flex-wrap: wrap;
+    }
+
+    .field-source {
+      flex-direction: column;
+    }
+
+    .form-row {
+      flex-direction: column;
+    }
+
+    .concat-row,
+    .case-row,
+    .coalesce-row {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+
+<script>
+  // @ts-nocheck
+  // UUID regex pattern
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  // Helper: Build field reference
+  function buildFieldRef(etapa, guid) {
+    const e = parseInt(etapa);
+    const g = guid.trim().toLowerCase();
+    
+    if (!e || e < 1) return { error: 'Etapa inválida (deve ser número >= 1)' };
+    if (!UUID_REGEX.test(g)) return { error: 'GUID inválido (deve ser UUID v4)' };
+    
+    return { ref: `ans${e}.data->>'${g}'` };
+  }
+
+  // Navigation
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const panels = document.querySelectorAll('.tool-panel');
+  const sqlOutput = document.getElementById('sqlOutput');
+  const copyBtn = document.getElementById('copyBtn');
+
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tool = btn.dataset.tool;
+      navBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      panels.forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + tool)?.classList.add('active');
+    });
+  });
+
+  // Generate handlers
+  document.querySelectorAll('.btn-generate').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tool = btn.dataset.tool;
+      let sql = '';
+
+      switch (tool) {
+        case 'substring': sql = generateSubstring(); break;
+        case 'translate': sql = generateTranslate(); break;
+        case 'concat': sql = generateConcat(); break;
+        case 'lpad': sql = generateLpad(); break;
+        case 'case': sql = generateCase(); break;
+        case 'coalesce': sql = generateCoalesce(); break;
+        case 'date': sql = generateDate(); break;
+      }
+
+      sqlOutput.textContent = sql;
+    });
+  });
+
+  // SUBSTRING
+  function generateSubstring() {
+    const result = buildFieldRef(
+      document.getElementById('substrEtapa').value,
+      document.getElementById('substrGuid').value
+    );
+    if (result.error) return `-- Erro: ${result.error}`;
+
+    const pos = document.getElementById('substrPos').value || '1';
+    const len = document.getElementById('substrLen').value || '10';
+
+    return `SUBSTRING(${result.ref}, ${pos}, ${len})`;
+  }
+
+  // TRANSLATE
+  function generateTranslate() {
+    const result = buildFieldRef(
+      document.getElementById('translateEtapa').value,
+      document.getElementById('translateGuid').value
+    );
+    if (result.error) return `-- Erro: ${result.error}`;
+
+    const from = document.getElementById('translateFrom').value;
+    const to = document.getElementById('translateTo').value;
+
+    if (!from || !to) return '-- Preencha os caracteres a substituir';
+
+    return `TRANSLATE(${result.ref}, '${from}', '${to}')`;
+  }
+
+  // CONCAT
+  function generateConcat() {
+    const parts = document.querySelectorAll('#concatFields .concat-part');
+    const values = [];
+
+    for (const part of parts) {
+      const type = part.dataset.type;
+      
+      if (type === 'literal') {
+        const literal = part.querySelector('.part-literal').value.trim();
+        if (!literal) continue;
+        values.push(`'${literal}'`);
+      } else {
+        const etapa = part.querySelector('.part-etapa').value;
+        const guid = part.querySelector('.part-guid').value;
+        if (!etapa || !guid) continue;
+        const result = buildFieldRef(etapa, guid);
+        if (result.error) return `-- Erro: ${result.error}`;
+        values.push(result.ref);
+      }
+    }
+
+    if (values.length === 0) return '-- Adicione pelo menos um campo ou texto';
+    if (values.length === 1) return values[0];
+
+    return `CONCAT(${values.join(', ')})`;
+  }
+
+  // LPAD
+  function generateLpad() {
+    const result = buildFieldRef(
+      document.getElementById('lpadEtapa').value,
+      document.getElementById('lpadGuid').value
+    );
+    if (result.error) return `-- Erro: ${result.error}`;
+
+    const len = document.getElementById('lpadLen').value || '18';
+    const char = document.getElementById('lpadChar').value || '0';
+
+    return `LPAD(${result.ref}, ${len}, '${char}')`;
+  }
+
+  // CASE WHEN
+  function generateCase() {
+    const result = buildFieldRef(
+      document.getElementById('caseEtapa').value,
+      document.getElementById('caseGuid').value
+    );
+    if (result.error) return `-- Erro: ${result.error}`;
+
+    const rows = document.querySelectorAll('#caseConditions .case-row');
+    const elseVal = document.getElementById('caseElse').value.trim();
+
+    let sql = 'CASE';
+
+    rows.forEach(row => {
+      const op = row.querySelector('.case-operator').value;
+      const compare = row.querySelector('.case-compare').value.trim();
+      const resultVal = row.querySelector('.case-result').value.trim();
+
+      if (resultVal) {
+        if (op === 'IS NULL' || op === 'IS NOT NULL') {
+          sql += `\n  WHEN ${result.ref} ${op} THEN ${resultVal}`;
+        } else if (compare) {
+          sql += `\n  WHEN ${result.ref} ${op} ${compare} THEN ${resultVal}`;
+        }
+      }
+    });
+
+    if (elseVal) {
+      sql += `\n  ELSE ${elseVal}`;
+    }
+
+    sql += '\nEND';
+
+    return sql;
+  }
+
+  // COALESCE
+  function generateCoalesce() {
+    const parts = document.querySelectorAll('#coalesceFields .coalesce-part');
+    const values = [];
+
+    for (const part of parts) {
+      const type = part.dataset.type;
+      
+      if (type === 'literal') {
+        const literal = part.querySelector('.part-literal').value.trim();
+        if (!literal) continue;
+        values.push(literal); // literal já vem com aspas se necessário
+      } else {
+        const etapa = part.querySelector('.part-etapa').value;
+        const guid = part.querySelector('.part-guid').value;
+        if (!etapa || !guid) continue;
+        const result = buildFieldRef(etapa, guid);
+        if (result.error) return `-- Erro: ${result.error}`;
+        values.push(result.ref);
+      }
+    }
+
+    if (values.length === 0) return '-- Adicione pelo menos uma opção';
+
+    return `COALESCE(${values.join(', ')})`;
+  }
+
+  // FORMAT DATE
+  function generateDate() {
+    const result = buildFieldRef(
+      document.getElementById('dateEtapa').value,
+      document.getElementById('dateGuid').value
+    );
+    if (result.error) return `-- Erro: ${result.error}`;
+
+    const inputFormat = document.getElementById('dateInputFormat').value;
+    const outputFormat = document.getElementById('dateOutputFormat').value;
+
+    // ISO input (YYYY-MM-DD) é o padrão vindo do 4MDG
+    if (inputFormat === 'iso') {
+      if (outputFormat === 'sap') {
+        // YYYY-MM-DD → YYYYMMDD
+        return `REPLACE(${result.ref}, '-', '')`;
+      } else if (outputFormat === 'br') {
+        // YYYY-MM-DD → DD/MM/YYYY
+        return `SUBSTRING(${result.ref}, 9, 2) || '/' || SUBSTRING(${result.ref}, 6, 2) || '/' || SUBSTRING(${result.ref}, 1, 4)`;
+      } else {
+        return result.ref; // já é ISO
+      }
+    }
+
+    if (inputFormat === 'br') {
+      // DD/MM/YYYY
+      if (outputFormat === 'sap') {
+        return `SUBSTRING(${result.ref}, 7, 4) || SUBSTRING(${result.ref}, 4, 2) || SUBSTRING(${result.ref}, 1, 2)`;
+      } else if (outputFormat === 'iso') {
+        return `SUBSTRING(${result.ref}, 7, 4) || '-' || SUBSTRING(${result.ref}, 4, 2) || '-' || SUBSTRING(${result.ref}, 1, 2)`;
+      } else {
+        return result.ref;
+      }
+    }
+
+    if (inputFormat === 'us') {
+      // MM/DD/YYYY
+      if (outputFormat === 'sap') {
+        return `SUBSTRING(${result.ref}, 7, 4) || SUBSTRING(${result.ref}, 1, 2) || SUBSTRING(${result.ref}, 4, 2)`;
+      } else if (outputFormat === 'iso') {
+        return `SUBSTRING(${result.ref}, 7, 4) || '-' || SUBSTRING(${result.ref}, 1, 2) || '-' || SUBSTRING(${result.ref}, 4, 2)`;
+      } else {
+        return result.ref;
+      }
+    }
+
+    if (inputFormat === 'timestamp') {
+      // Timestamp → usar TO_CHAR
+      const formats = {
+        sap: 'YYYYMMDD',
+        iso: 'YYYY-MM-DD',
+        br: 'DD/MM/YYYY'
+      };
+      return `TO_CHAR((${result.ref})::timestamp, '${formats[outputFormat]}')`;
+    }
+
+    return result.ref;
+  }
+
+  // Part management for CONCAT and COALESCE
+  function updatePartNumbers(container) {
+    const parts = container.querySelectorAll('.concat-part, .coalesce-part');
+    parts.forEach((part, i) => {
+      part.querySelector('.part-number').textContent = i + 1;
+    });
+  }
+
+  function togglePartType(part) {
+    const type = part.querySelector('.part-type-select').value;
+    const fieldInputs = part.querySelector('.part-field-inputs');
+    const literalInput = part.querySelector('.part-literal-input');
+    
+    part.dataset.type = type;
+    
+    if (type === 'literal') {
+      fieldInputs.style.display = 'none';
+      literalInput.style.display = 'block';
+    } else {
+      fieldInputs.style.display = 'flex';
+      literalInput.style.display = 'none';
+    }
+  }
+
+  function attachPartHandlers(part) {
+    // Remove button
+    part.querySelector('.btn-remove-part')?.addEventListener('click', () => {
+      const container = part.parentElement;
+      if (container.children.length > 1) {
+        part.remove();
+        updatePartNumbers(container);
+      }
+    });
+
+    // Type toggle
+    const typeSelect = part.querySelector('.part-type-select');
+    if (typeSelect) {
+      typeSelect.addEventListener('change', () => togglePartType(part));
+    }
+  }
+
+  // Attach to existing parts
+  document.querySelectorAll('.concat-part, .coalesce-part').forEach(attachPartHandlers);
+
+  // Add concat part
+  document.getElementById('addConcatRow')?.addEventListener('click', () => {
+    const container = document.getElementById('concatFields');
+    const partNum = container.children.length + 1;
+    const part = document.createElement('div');
+    part.className = 'concat-part';
+    part.dataset.type = 'field';
+    part.innerHTML = `
+      <div class="part-header">
+        <span class="part-number">${partNum}</span>
+        <select class="part-type-select">
+          <option value="field" selected>Campo 4MDG</option>
+          <option value="literal">Texto Literal</option>
+        </select>
+        <button class="btn-remove-part" title="Remover">×</button>
+      </div>
+      <div class="part-field-inputs">
+        <div class="form-field">
+          <label>Etapa do Fluxo</label>
+          <input type="number" class="part-etapa" placeholder="1, 2, 3..." min="1" />
+          <span class="field-hint">Número da etapa no 4MDG</span>
+        </div>
+        <div class="form-field flex-2">
+          <label>GUID do Campo</label>
+          <input type="text" class="part-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+          <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+        </div>
+      </div>
+      <div class="part-literal-input" style="display: none;">
+        <div class="form-field">
+          <label>Texto Literal</label>
+          <input type="text" class="part-literal" placeholder="Ex: ' - ' ou 'texto fixo'" />
+          <span class="field-hint">Texto fixo que será inserido na concatenação</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(part);
+    attachPartHandlers(part);
+  });
+
+  // Add coalesce part
+  document.getElementById('addCoalesceRow')?.addEventListener('click', () => {
+    const container = document.getElementById('coalesceFields');
+    const partNum = container.children.length + 1;
+    const part = document.createElement('div');
+    part.className = 'coalesce-part';
+    part.dataset.type = 'field';
+    part.innerHTML = `
+      <div class="part-header">
+        <span class="part-number">${partNum}</span>
+        <select class="part-type-select">
+          <option value="field" selected>Campo 4MDG</option>
+          <option value="literal">Valor Literal</option>
+        </select>
+        <button class="btn-remove-part" title="Remover">×</button>
+      </div>
+      <div class="part-field-inputs">
+        <div class="form-field">
+          <label>Etapa do Fluxo</label>
+          <input type="number" class="part-etapa" placeholder="1, 2, 3..." min="1" />
+          <span class="field-hint">Número da etapa no 4MDG</span>
+        </div>
+        <div class="form-field flex-2">
+          <label>GUID do Campo</label>
+          <input type="text" class="part-guid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+          <span class="field-hint">UUID do campo no 4MDG (minúsculo, com hífens)</span>
+        </div>
+      </div>
+      <div class="part-literal-input" style="display: none;">
+        <div class="form-field">
+          <label>Valor Literal</label>
+          <input type="text" class="part-literal" placeholder="Ex: '' ou 'default'" />
+          <span class="field-hint">Valor padrão se todos os anteriores forem nulos</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(part);
+    attachPartHandlers(part);
+  });
+
+  // CASE row handlers
+  function attachCaseRowHandlers(row) {
+    row.querySelector('.btn-remove-row')?.addEventListener('click', () => {
+      if (row.parentElement.children.length > 1) {
+        row.remove();
+      }
+    });
+  }
+
+  document.querySelectorAll('.case-row').forEach(attachCaseRowHandlers);
+
+  // Add case row
+  document.getElementById('addCaseRow')?.addEventListener('click', () => {
+    const container = document.getElementById('caseConditions');
+    const row = document.createElement('div');
+    row.className = 'case-row';
+    row.innerHTML = `
+      <span class="case-label">WHEN</span>
+      <select class="case-operator">
+        <option value="=">=</option>
+        <option value="<>">≠</option>
+        <option value="LIKE">LIKE</option>
+        <option value="IS NULL">IS NULL</option>
+        <option value="IS NOT NULL">IS NOT NULL</option>
+      </select>
+      <input type="text" class="case-compare" placeholder="Valor" />
+      <span class="case-label">THEN</span>
+      <input type="text" class="case-result" placeholder="Resultado" />
+      <button class="btn-remove-row" title="Remover">×</button>
+    `;
+    container.appendChild(row);
+    attachCaseRowHandlers(row);
+  });
+
+  // Presets
+  document.querySelectorAll('#panel-lpad .preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('lpadLen').value = btn.dataset.len;
+      document.getElementById('lpadChar').value = btn.dataset.char;
+    });
+  });
+
+  document.querySelectorAll('#panel-translate .preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('translateFrom').value = btn.dataset.from;
+      document.getElementById('translateTo').value = btn.dataset.to;
+    });
+  });
+
+  // Copy
+  copyBtn?.addEventListener('click', () => {
+    const text = sqlOutput.textContent || '';
+    navigator.clipboard.writeText(text).then(() => {
+      window.showToast?.('SQL copiado!');
+    });
+  });
+</script>

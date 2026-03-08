@@ -1,0 +1,530 @@
+---
+import type { NavGroup } from '@core/types';
+import Search from './Search.astro';
+/**
+ * Header.astro - Header principal com navegação
+ * Inclui dropdowns, busca e toggle de tema
+ */
+import ThemeToggle from './ThemeToggle.astro';
+
+// Estrutura de navegação
+const navigation: NavGroup[] = [
+  {
+    label: 'Ferramentas',
+    icon: '🛠️',
+    items: [
+      { label: 'Testador de Campo', url: '/tools/idoc-field-tester', icon: '🧪' },
+      { label: 'Validador de Payload', url: '/tools/idoc-payload-validator', icon: '📋' },
+      { label: 'SQL Builder', url: '/tools/sql-builder', icon: '🔧' },
+      { label: 'JSON Studio', url: '/tools/json-studio', icon: '🎨' },
+      { label: 'JSON Diff', url: '/tools/json-diff', icon: '🔀' },
+      { label: 'Visual Mapper', url: '/tools/mapper', icon: '🗺️' },
+    ],
+  },
+  {
+    label: 'Documentação',
+    icon: '📚',
+    items: [
+      { label: 'Como Funciona', url: '/docs/getting-started', icon: '🚀' },
+      { label: 'Boas Práticas', url: '/docs/best-practices', icon: '⭐' },
+      { label: 'Arquitetura', url: '/docs/architecture', icon: '🏗️' },
+      { label: 'Troubleshooting', url: '/docs/troubleshooting', icon: '🔧' },
+      { label: 'Glossário SAP', url: '/docs/glossary', icon: '📖' },
+    ],
+  },
+  {
+    label: 'IDocs',
+    icon: '📦',
+    items: [
+      { label: 'Templates', url: '/idocs/templates', icon: '📋' },
+      { label: 'Business Partner', url: '/idocs/business-partner', icon: '👤' },
+      { label: 'Materials', url: '/idocs/materials', icon: '📦' },
+      { label: 'Materials Retail', url: '/idocs/materials-retail', icon: '👕' },
+      { label: 'Material Characteristics', url: '/idocs/material-characteristics', icon: '🏷️' },
+      { label: 'Material QM', url: '/idocs/material-qm', icon: '🔬' },
+      { label: 'Customers', url: '/idocs/customers', icon: '🏢' },
+      { label: 'Vendors', url: '/idocs/vendors', icon: '🚚' },
+      { label: 'Addresses', url: '/idocs/addresses', icon: '📫' },
+      { label: 'Services', url: '/idocs/services', icon: '🪛' },
+    ],
+  },
+];
+---
+
+<header class="main-header" role="banner">
+  <div class="header-left">
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
+    <a href="/" class="brand">
+      4MDG Hub <span class="brand-sub">Documentação & Ferramentas</span>
+    </a>
+  </div>
+  
+  <nav class="main-nav" id="mainNav" role="navigation" aria-label="Menu principal">
+    <a href="/search" class="mobile-search-link">🔍 Pesquisar</a>
+    {navigation.map((group, groupIndex) => (
+      <div class="nav-dropdown" data-dropdown={groupIndex}>
+        <button 
+          class="nav-dropdown-btn" 
+          aria-haspopup="true" 
+          aria-expanded="false"
+          aria-controls={`dropdown-${groupIndex}`}
+          id={`dropdown-btn-${groupIndex}`}
+        >
+          <span>{group.icon} {group.label}</span>
+          <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+            <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          </svg>
+        </button>
+        <div 
+          class="dropdown-content" 
+          role="menu" 
+          aria-labelledby={`dropdown-btn-${groupIndex}`}
+          id={`dropdown-${groupIndex}`}
+        >
+          {group.items.map((item) => (
+            <a href={item.url} class="dropdown-item" role="menuitem" tabindex="-1">
+              <span class="dropdown-icon" aria-hidden="true">{item.icon}</span>
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </div>
+    ))}
+  </nav>
+
+  <div class="header-right">
+    <Search />
+    <ThemeToggle />
+  </div>
+</header>
+
+<div class="mobile-nav-overlay" id="mobileNavOverlay" aria-hidden="true"></div>
+
+<style>
+  /* ===== HEADER PRINCIPAL ===== */
+  .main-header {
+    position: relative;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    gap: 24px;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+  }
+
+  .brand {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .brand-sub {
+    font-weight: 400;
+    opacity: 0.7;
+    font-size: 0.85rem;
+  }
+
+  /* ===== NAVEGAÇÃO DESKTOP ===== */
+  .main-nav {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .mobile-search-link {
+    display: none;
+  }
+
+  .nav-dropdown {
+    position: relative;
+  }
+
+  .nav-dropdown-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    padding: 8px 16px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .nav-dropdown-btn:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .nav-dropdown.open .nav-dropdown-btn {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.25);
+  }
+
+  .dropdown-arrow {
+    transition: transform 0.2s;
+  }
+
+  .nav-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-content {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 240px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px) scale(0.98);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1001;
+    padding: 6px;
+    overflow: hidden;
+  }
+
+  :global([data-theme="dark"]) .dropdown-content {
+    background: #1e293b;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+  }
+
+  .nav-dropdown.open .dropdown-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    color: #334155;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    margin: 2px 0;
+  }
+
+  :global([data-theme="dark"]) .dropdown-item {
+    color: #cbd5e1;
+  }
+
+  .dropdown-item:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    transform: translateX(2px);
+  }
+
+  :global([data-theme="dark"]) .dropdown-item:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+  }
+
+  .dropdown-icon {
+    font-size: 1.1rem;
+    width: 24px;
+    text-align: center;
+  }
+
+  /* ===== HEADER RIGHT ===== */
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+
+
+  /* ===== MOBILE MENU ===== */
+  .mobile-menu-btn {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+  }
+
+  .mobile-menu-btn span {
+    width: 22px;
+    height: 2px;
+    background: white;
+    transition: all 0.3s;
+  }
+
+  .mobile-nav-overlay {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 998;
+  }
+
+  .mobile-nav-overlay.open {
+    display: block;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 1200px) {
+    .brand-sub {
+      display: none;
+    }
+  }
+
+  @media (max-width: 1000px) {
+    .nav-dropdown-btn {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (max-width: 850px) {
+    .main-header {
+      padding: 0 12px;
+      gap: 12px;
+    }
+
+    .header-right :global(.search-wrapper) {
+      display: none;
+    }
+
+    .mobile-menu-btn {
+      display: flex;
+    }
+
+    .mobile-search-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 15px;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .mobile-search-link:hover {
+      background: rgba(59, 130, 246, 0.3);
+    }
+
+    .main-nav {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background: #1e293b;
+      flex-direction: column;
+      padding: 15px;
+      gap: 5px;
+      transform: translateY(-100%);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+      z-index: 999;
+      max-height: calc(100vh - 60px);
+      overflow-y: auto;
+    }
+
+    .main-nav.open {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .nav-dropdown {
+      width: 100%;
+    }
+
+    .nav-dropdown-btn {
+      width: 100%;
+      justify-content: space-between;
+      padding: 12px 15px;
+    }
+
+    .dropdown-content {
+      position: static;
+      transform: none;
+      box-shadow: none;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      margin-top: 5px;
+      max-height: 0;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .nav-dropdown.open .dropdown-content {
+      max-height: 500px;
+      padding: 8px 0;
+    }
+
+    .dropdown-item {
+      color: #cbd5e1;
+      padding: 12px 20px;
+    }
+
+    .dropdown-item:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+  }
+</style>
+
+<script>
+  // Dropdown toggle with ARIA support
+  document.querySelectorAll('.nav-dropdown-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const dropdown = (e.currentTarget as HTMLElement).closest('.nav-dropdown');
+      const isOpen = dropdown?.classList.contains('open');
+      
+      // Close other dropdowns
+      document.querySelectorAll('.nav-dropdown.open').forEach(d => {
+        if (d !== dropdown) {
+          d.classList.remove('open');
+          d.querySelector('.nav-dropdown-btn')?.setAttribute('aria-expanded', 'false');
+        }
+      });
+      
+      dropdown?.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      
+      // Focus first item when opening
+      if (!isOpen) {
+        const firstItem = dropdown?.querySelector('.dropdown-item') as HTMLElement;
+        firstItem?.focus();
+      }
+    });
+    
+    // Keyboard navigation for dropdown buttons
+    btn.addEventListener('keydown', (e) => {
+      const evt = e as KeyboardEvent;
+      const dropdown = (evt.currentTarget as HTMLElement).closest('.nav-dropdown');
+      
+      if (evt.key === 'Enter' || evt.key === ' ') {
+        evt.preventDefault();
+        (evt.currentTarget as HTMLElement).click();
+      } else if (evt.key === 'ArrowDown') {
+        evt.preventDefault();
+        dropdown?.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        const firstItem = dropdown?.querySelector('.dropdown-item') as HTMLElement;
+        firstItem?.focus();
+      } else if (evt.key === 'Escape') {
+        dropdown?.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+  
+  // Keyboard navigation for dropdown items
+  document.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('keydown', (e) => {
+      const evt = e as KeyboardEvent;
+      const dropdown = (evt.currentTarget as HTMLElement).closest('.nav-dropdown');
+      const items = Array.from(dropdown?.querySelectorAll('.dropdown-item') || []) as HTMLElement[];
+      const currentIndex = items.indexOf(evt.currentTarget as HTMLElement);
+      
+      if (evt.key === 'ArrowDown') {
+        evt.preventDefault();
+        const next = items[currentIndex + 1] || items[0];
+        next?.focus();
+      } else if (evt.key === 'ArrowUp') {
+        evt.preventDefault();
+        const prev = items[currentIndex - 1] || items[items.length - 1];
+        prev?.focus();
+      } else if (evt.key === 'Escape') {
+        evt.preventDefault();
+        dropdown?.classList.remove('open');
+        dropdown?.querySelector('.nav-dropdown-btn')?.setAttribute('aria-expanded', 'false');
+        (dropdown?.querySelector('.nav-dropdown-btn') as HTMLElement)?.focus();
+      } else if (evt.key === 'Tab' && !evt.shiftKey && currentIndex === items.length - 1) {
+        dropdown?.classList.remove('open');
+        dropdown?.querySelector('.nav-dropdown-btn')?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!(e.target as HTMLElement).closest('.nav-dropdown')) {
+      document.querySelectorAll('.nav-dropdown.open').forEach(d => {
+        d.classList.remove('open');
+        d.querySelector('.nav-dropdown-btn')?.setAttribute('aria-expanded', 'false');
+      });
+    }
+  });
+
+  // Mobile menu toggle with ARIA
+  const mobileBtn = document.getElementById('mobileMenuBtn');
+  const mainNav = document.getElementById('mainNav');
+  const overlay = document.getElementById('mobileNavOverlay');
+
+  function toggleMobileMenu() {
+    const isOpen = mainNav?.classList.contains('open');
+    mainNav?.classList.toggle('open');
+    overlay?.classList.toggle('open');
+    mobileBtn?.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    overlay?.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+    
+    // Trap focus in mobile menu when open
+    if (!isOpen) {
+      const firstFocusable = mainNav?.querySelector('button, a') as HTMLElement;
+      firstFocusable?.focus();
+    }
+  }
+
+  mobileBtn?.addEventListener('click', toggleMobileMenu);
+  overlay?.addEventListener('click', toggleMobileMenu);
+  
+  // Close mobile menu on escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mainNav?.classList.contains('open')) {
+      toggleMobileMenu();
+      mobileBtn?.focus();
+    }
+  });
+</script>

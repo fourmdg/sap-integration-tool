@@ -1,0 +1,660 @@
+---
+/**
+ * JSON Field Validator - Valida campos contra definições de IDocs SAP
+ * Restaurado para comportamento original: baseado em IDocs, não regras manuais
+ */
+import ToolLayout from '@features/tools/layouts/ToolLayout.astro';
+
+import { ADDRESSES_DATA } from '@idocs/data/addresses';
+import { BUSINESS_PARTNER_DATA } from '@idocs/data/business_partner';
+import { CUSTOMERS_DATA } from '@idocs/data/customers';
+import { MATERIAL_CHARACTERISTICS_DATA } from '@idocs/data/material_characteristics';
+import { MATERIAL_QM_DATA } from '@idocs/data/material_qm';
+import { MATERIALS_RETAIL_DATA } from '@idocs/data/materials_retail';
+// Importar todos os dados de IDocs
+import { MATMAS_DATA } from '@idocs/data/matmas';
+import { SERVICES_DATA } from '@idocs/data/services';
+import { VENDORS_DATA } from '@idocs/data/vendors';
+
+// Preparar dados para o client-side
+const idocOptions = [
+  { value: 'MATMAS', label: 'MATMAS (Materials)' },
+  { value: 'MATMAS_RETAIL', label: 'MATMAS (Materials Retail)' },
+  { value: 'MATMAS_CHAR', label: 'MATMAS (Characteristics)' },
+  { value: 'MATMAS_QM', label: 'MATMAS (Quality Management)' },
+  { value: 'BPMAS', label: 'BPMAS (Business Partner)' },
+  { value: 'DEBMAS', label: 'DEBMAS (Customers)' },
+  { value: 'CREMAS', label: 'CREMAS (Vendors)' },
+  { value: 'ADRMAS', label: 'ADRMAS (Addresses)' },
+  { value: 'SRVMAS', label: 'SRVMAS (Services)' },
+];
+
+// Serializar segmentos para client-side
+const idocSegments = {
+  MATMAS: MATMAS_DATA.segments,
+  BPMAS: BUSINESS_PARTNER_DATA.segments,
+  DEBMAS: CUSTOMERS_DATA.segments,
+  CREMAS: VENDORS_DATA.segments,
+  ADRMAS: ADDRESSES_DATA.segments,
+  SRVMAS: SERVICES_DATA.segments,
+  MATMAS_RETAIL: MATERIALS_RETAIL_DATA.segments,
+  MATMAS_CHAR: MATERIAL_CHARACTERISTICS_DATA.segments,
+  MATMAS_QM: MATERIAL_QM_DATA.segments,
+};
+---
+
+<ToolLayout 
+  title="Validador de Payload IDOC" 
+  description="Valide payloads JSON contra segmentos e campos de IDocs SAP"
+  icon="📋"
+>
+  <div class="validator-content">
+    <div class="config-row">
+      <div class="config-field">
+        <label class="field-label" for="idocSelect">IDoc</label>
+        <select id="idocSelect" class="config-select">
+          {idocOptions.map(opt => (
+            <option value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <label class="field-label" for="jsonInput">JSON de Entrada</label>
+      <textarea 
+        id="jsonInput" 
+        class="code-textarea" 
+        placeholder='Cole seu JSON aqui para validar contra as definições do IDoc selecionado...'
+        rows="12"
+      ></textarea>
+    </div>
+
+    <button class="btn btn-primary" id="validateBtn">⚡ VALIDAR CAMPOS</button>
+
+    <div id="resultsSection" class="results-section">
+      <div class="results-header">
+        <h3 class="results-title">Relatório de Validação</h3>
+        <span id="resultsSummary" class="results-summary"></span>
+      </div>
+      
+      <div id="resultsList" class="results-list"></div>
+    </div>
+  </div>
+</ToolLayout>
+
+<script is:inline define:vars={{ idocSegments }}>
+  // Dados dos IDocs disponíveis no client-side
+  window.IDOC_SEGMENTS = idocSegments;
+</script>
+
+<style>
+  .validator-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .config-row {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+  }
+
+  .config-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .field-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .config-select {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-main);
+    min-width: 220px;
+    cursor: pointer;
+  }
+
+  .config-select:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+  }
+
+  .input-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .code-textarea {
+    width: 100%;
+    padding: var(--spacing-md);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    background: var(--code-bg);
+    color: #e2e8f0;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    resize: vertical;
+  }
+
+  .code-textarea:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+  }
+
+  .btn {
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    align-self: flex-start;
+  }
+
+  .btn-primary {
+    background: var(--brand-blue);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--brand-blue-hover);
+  }
+
+  .results-section {
+    display: none;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .results-section.show {
+    display: block;
+  }
+
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--meta-bg);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .results-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--heading-color);
+  }
+
+  .results-summary {
+    font-size: 0.85rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .results-summary.success {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  .results-summary.warning {
+    background: var(--warning-bg);
+    color: var(--warning-text);
+  }
+
+  .results-summary.error {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
+
+  .results-list {
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  :global(.segment-group) {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  :global(.segment-header) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--meta-bg);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--heading-color);
+    cursor: pointer;
+  }
+
+  :global(.segment-header:hover) {
+    background: var(--border-color);
+  }
+
+  :global(.segment-badge) {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  :global(.segment-badge.ok) {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  :global(.segment-badge.warn) {
+    background: var(--warning-bg);
+    color: var(--warning-text);
+  }
+
+  :global(.segment-badge.err) {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
+
+  :global(.segment-fields) {
+    padding: var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  :global(.field-result) {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 6px var(--spacing-sm);
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+
+  :global(.field-result.pass) {
+    background: rgba(34, 197, 94, 0.1);
+  }
+
+  :global(.field-result.warn) {
+    background: rgba(234, 179, 8, 0.1);
+  }
+
+  :global(.field-result.fail) {
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  :global(.field-name) {
+    font-weight: 600;
+    min-width: 120px;
+    font-family: monospace;
+  }
+
+  :global(.field-status) {
+    flex-shrink: 0;
+  }
+
+  :global(.field-message) {
+    flex: 1;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  :global(.unknown-fields) {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 8px;
+  }
+
+  :global(.unknown-fields h4) {
+    margin: 0 0 var(--spacing-sm);
+    font-size: 0.9rem;
+    color: var(--warning-text);
+  }
+
+  :global(.unknown-list) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  :global(.unknown-tag) {
+    padding: 4px 8px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 768px) {
+    .config-row {
+      flex-direction: column;
+    }
+
+    .config-select {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  declare global {
+    interface Window {
+      IDOC_SEGMENTS: Record<string, Record<string, { description: string; fields: Array<{ name: string; description: string; type: string }> }>>;
+    }
+  }
+
+  interface FieldValidation {
+    name: string;
+    status: 'pass' | 'warn' | 'fail';
+    message: string;
+    expected?: string;
+    actual?: string;
+  }
+
+  interface SegmentValidation {
+    segment: string;
+    fields: FieldValidation[];
+    unknown: string[];
+  }
+
+  const idocSelect = document.getElementById('idocSelect') as HTMLSelectElement;
+  const jsonInput = document.getElementById('jsonInput') as HTMLTextAreaElement;
+  const validateBtn = document.getElementById('validateBtn') as HTMLButtonElement;
+  const resultsSection = document.getElementById('resultsSection') as HTMLDivElement;
+  const resultsList = document.getElementById('resultsList') as HTMLDivElement;
+  const resultsSummary = document.getElementById('resultsSummary') as HTMLSpanElement;
+  // Parse type string like "CHAR(18)" or "NUMC(10)"
+  function parseType(typeStr: string): { baseType: string; length: number | null } {
+    const match = typeStr.match(/^(\w+)\((\d+)\)$/);
+    if (match) {
+      return { baseType: match[1], length: parseInt(match[2]) };
+    }
+    return { baseType: typeStr, length: null };
+  }
+
+  // Validate a field value against its type definition
+  function validateField(value: any, typeStr: string): { status: 'pass' | 'warn' | 'fail'; message: string } {
+    if (value === undefined || value === null) {
+      return { status: 'pass', message: 'Campo vazio (opcional)' };
+    }
+
+    const strValue = String(value);
+    const { baseType, length } = parseType(typeStr);
+
+    // Check length
+    if (length !== null && strValue.length > length) {
+      return { 
+        status: 'fail', 
+        message: `Excede tamanho máximo: ${strValue.length}/${length} chars` 
+      };
+    }
+
+    // Validate by type
+    switch (baseType.toUpperCase()) {
+      case 'CHAR':
+        // Any string is valid for CHAR
+        return { status: 'pass', message: `OK (${strValue.length}/${length || '?'} chars)` };
+
+      case 'NUMC':
+        // Must be numeric characters only
+        if (!/^\d*$/.test(strValue)) {
+          return { status: 'fail', message: 'Deve conter apenas dígitos (NUMC)' };
+        }
+        return { status: 'pass', message: `OK (${strValue.length}/${length || '?'} digits)` };
+
+      case 'DATS':
+        // Date format: YYYYMMDD
+        if (strValue && !/^\d{8}$/.test(strValue)) {
+          return { status: 'warn', message: 'Formato de data esperado: YYYYMMDD' };
+        }
+        return { status: 'pass', message: 'OK (YYYYMMDD)' };
+
+      case 'TIMS':
+        // Time format: HHMMSS
+        if (strValue && !/^\d{6}$/.test(strValue)) {
+          return { status: 'warn', message: 'Formato de hora esperado: HHMMSS' };
+        }
+        return { status: 'pass', message: 'OK (HHMMSS)' };
+
+      case 'DEC':
+      case 'CURR':
+      case 'QUAN':
+        // Decimal numbers
+        if (strValue && !/^-?\d*\.?\d+$/.test(strValue)) {
+          return { status: 'fail', message: 'Deve ser valor numérico decimal' };
+        }
+        return { status: 'pass', message: 'OK (decimal)' };
+
+      case 'UNIT':
+      case 'CUKY':
+        // Unit or currency code
+        return { status: 'pass', message: `OK (${baseType})` };
+
+      case 'LANG':
+        // Language code
+        if (length && strValue.length > length) {
+          return { status: 'fail', message: `Código de idioma muito longo` };
+        }
+        return { status: 'pass', message: 'OK (idioma)' };
+
+      default:
+        return { status: 'pass', message: `OK (${typeStr})` };
+    }
+  }
+
+  // Find all segments in JSON
+  function findSegments(obj: any, segments: Record<string, any>): Map<string, any[]> {
+    const found = new Map<string, any[]>();
+
+    function search(current: any, path: string = '') {
+      if (typeof current !== 'object' || current === null) return;
+
+      if (Array.isArray(current)) {
+        current.forEach((item, i) => search(item, `${path}[${i}]`));
+        return;
+      }
+
+      for (const [key, value] of Object.entries(current)) {
+        // Check if key is a known segment
+        if (segments[key]) {
+          const list = found.get(key) || [];
+          if (Array.isArray(value)) {
+            list.push(...value);
+          } else {
+            list.push(value);
+          }
+          found.set(key, list);
+        }
+        
+        // Continue searching
+        search(value, `${path}.${key}`);
+      }
+    }
+
+    search(obj);
+    return found;
+  }
+
+  // Validate segments
+  function validateSegments(json: any, idocType: string): SegmentValidation[] {
+    const segments = window.IDOC_SEGMENTS[idocType];
+    if (!segments) {
+      return [];
+    }
+
+    const results: SegmentValidation[] = [];
+    const foundSegments = findSegments(json, segments);
+
+    // Validate each found segment
+    for (const [segName, instances] of foundSegments) {
+      const segDef = segments[segName];
+      if (!segDef) continue;
+
+      for (const instance of instances) {
+        if (typeof instance !== 'object' || instance === null) continue;
+
+        const fieldResults: FieldValidation[] = [];
+        const unknown: string[] = [];
+        const definedFields = new Set(segDef.fields.map((f: any) => f.name));
+
+        // Validate defined fields
+        for (const field of segDef.fields) {
+          const value = instance[field.name];
+          if (value !== undefined) {
+            const validation = validateField(value, field.type);
+            fieldResults.push({
+              name: field.name,
+              status: validation.status,
+              message: validation.message,
+              expected: field.type
+            });
+          }
+        }
+
+        // Find unknown fields
+        for (const key of Object.keys(instance)) {
+          if (!definedFields.has(key)) {
+            unknown.push(key);
+          }
+        }
+
+        if (fieldResults.length > 0 || unknown.length > 0) {
+          results.push({ segment: segName, fields: fieldResults, unknown });
+        }
+      }
+    }
+
+    return results;
+  }
+
+  // Render results
+  function renderResults(validations: SegmentValidation[]) {
+    let totalPass = 0;
+    let totalWarn = 0;
+    let totalFail = 0;
+
+    validations.forEach(v => {
+      v.fields.forEach(f => {
+        if (f.status === 'pass') totalPass++;
+        else if (f.status === 'warn') totalWarn++;
+        else totalFail++;
+      });
+    });
+
+    const totalUnknown = validations.reduce((sum, v) => sum + v.unknown.length, 0);
+
+    // Summary
+    if (totalFail > 0) {
+      resultsSummary.textContent = `❌ ${totalFail} erros, ${totalWarn} avisos, ${totalPass} OK`;
+      resultsSummary.className = 'results-summary error';
+    } else if (totalWarn > 0) {
+      resultsSummary.textContent = `⚠️ ${totalWarn} avisos, ${totalPass} OK`;
+      resultsSummary.className = 'results-summary warning';
+    } else {
+      resultsSummary.textContent = `✅ ${totalPass} campos válidos`;
+      resultsSummary.className = 'results-summary success';
+    }
+
+    // Render segments
+    let html = '';
+
+    for (const validation of validations) {
+      const failCount = validation.fields.filter(f => f.status === 'fail').length;
+      const warnCount = validation.fields.filter(f => f.status === 'warn').length;
+      const badgeClass = failCount > 0 ? 'err' : warnCount > 0 ? 'warn' : 'ok';
+      const badgeText = failCount > 0 ? `${failCount} erros` : warnCount > 0 ? `${warnCount} avisos` : 'OK';
+
+      html += `
+        <div class="segment-group">
+          <div class="segment-header">
+            <span>📦 ${validation.segment}</span>
+            <span class="segment-badge ${badgeClass}">${badgeText}</span>
+          </div>
+          <div class="segment-fields">
+            ${validation.fields.map(f => `
+              <div class="field-result ${f.status}">
+                <span class="field-status">${f.status === 'pass' ? '✅' : f.status === 'warn' ? '⚠️' : '❌'}</span>
+                <span class="field-name">${f.name}</span>
+                <span class="field-message">${f.message}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    if (totalUnknown > 0) {
+      const allUnknown = validations.flatMap(v => v.unknown);
+      html += `
+        <div class="unknown-fields">
+          <h4>⚠️ Campos não definidos no IDoc (${allUnknown.length})</h4>
+          <div class="unknown-list">
+            ${allUnknown.map(f => `<span class="unknown-tag">${f}</span>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    if (validations.length === 0) {
+      html = `
+        <div class="unknown-fields">
+          <h4>⚠️ Nenhum campo do IDoc encontrado</h4>
+          <p style="margin: 0; font-size: 0.85rem;">
+            Verifique se o JSON contém segmentos válidos do IDoc selecionado ou 
+            tente o formato "Flat" se os campos estão no nível raiz.
+          </p>
+        </div>
+      `;
+    }
+
+    resultsList.innerHTML = html;
+    resultsSection.classList.add('show');
+  }
+
+  // Validate button
+  validateBtn.addEventListener('click', () => {
+    let json: any;
+    
+    try {
+      json = JSON.parse(jsonInput.value);
+    } catch (e: any) {
+      resultsSummary.textContent = '❌ JSON inválido';
+      resultsSummary.className = 'results-summary error';
+      resultsList.innerHTML = `
+        <div class="field-result fail">
+          <span class="field-status">❌</span>
+          <span class="field-message">Erro de parse: ${e.message}</span>
+        </div>
+      `;
+      resultsSection.classList.add('show');
+      return;
+    }
+
+    const idocType = idocSelect.value;
+    const validations = validateSegments(json, idocType);
+    renderResults(validations);
+  });
+</script>

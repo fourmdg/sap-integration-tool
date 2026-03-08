@@ -1,0 +1,309 @@
+---
+/**
+ * Página: Guia de Integração SAP - Do Zero ao IDoc
+ */
+import DocsLayout from '@docs/layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Guia de Integração" description="Entenda a jornada do dado: do site/app até virar registro no SAP">
+  <div class="hero hero-dark">
+    <h1>Como funciona a Integração SAP?</h1>
+    <p>Entenda a jornada do dado: do seu site/app até virar um registro oficial dentro do ERP.</p>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="step-card">
+    <div class="step-number">1</div>
+    <div class="step-content">
+      <h2>A Origem (Payload JSON)</h2>
+      <p>
+        Tudo começa no sistema externo (Site, CRM, App). Hoje em dia, o mundo fala
+        <strong>JSON</strong> via API REST.
+      </p>
+      <div class="code-block">
+        {"{ \"cliente\": \"Empresa X\", \"cnpj\": \"12.345.678/0001-90\", \"email\": \"contato@x.com\" }"}
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-card">
+    <div class="step-number">2</div>
+    <div class="step-content">
+      <h2>O Tradutor (Middleware)</h2>
+      <p>
+        O dado sai da origem e chega no Middleware SAP. Aqui temos dois caminhos possíveis,
+        dependendo da tecnologia da sua empresa:
+      </p>
+
+      <div class="comparison-grid">
+        <div class="comp-card comp-cpi">
+          <div class="comp-header">🚀 CPI (Nuvem / Moderno)</div>
+          <p>
+            <strong>Cloud Platform Integration.</strong><br/>
+            Mantém a agilidade. Ele recebe o JSON e <strong>continua trafegando JSON</strong>.
+            A conversão é mínima e mapeada diretamente para a API do SAP.
+          </p>
+        </div>
+        <div class="comp-card comp-pi">
+          <div class="comp-header">🏢 PI/PO (On-Premise / Legado)</div>
+          <p>
+            <strong>Process Orchestration.</strong><br/>
+            Sistema mais antigo. Ele pega o JSON e obrigatoriamente
+            <strong>converte para XML</strong> (IDoc clássico) para conseguir falar com o SAP ECC.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step-card">
+    <div class="step-number">3</div>
+    <div class="step-content">
+      <h2>A Entrega (JSON vs XML)</h2>
+      <p>
+        Veja a diferença do que chega tecnicamente no SAP. O conteúdo é o mesmo (mapeado), mas
+        o formato muda drasticamente.
+      </p>
+
+      <div class="format-example">
+        <span class="format-label format-cpi">Via CPI (JSON Mapeado)</span>
+        <div class="code-block code-cpi">
+          {"{ \"NAME1\": \"Empresa X\", \"STCD1\": \"12345678000190\", \"SMTP_ADDR\": \"contato@x.com\" }"}
+        </div>
+      </div>
+
+      <div class="format-example">
+        <span class="format-label format-pi">Via PI/PO (XML IDoc)</span>
+        <pre class="code-block code-pi">&lt;E1KNA1M&gt;
+  &lt;NAME1&gt;Empresa X&lt;/NAME1&gt;
+  &lt;STCD1&gt;12345678000190&lt;/STCD1&gt;
+  &lt;SMTP_ADDR&gt;contato@x.com&lt;/SMTP_ADDR&gt;
+&lt;/E1KNA1M&gt;</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-card">
+    <div class="step-number">4</div>
+    <div class="step-content">
+      <h2>Processamento no SAP</h2>
+      <p>
+        O SAP recebe o pacote. Se for <strong>XML</strong>, entra via porta IDoc (WE02). Se
+        for <strong>JSON</strong> (CPI), entra via Proxy ou API OData.
+      </p>
+      <p>
+        Independente do formato, se o dado estiver "sujo" (ex: CEP errado), o SAP rejeita e gera erro.
+      </p>
+      
+      <div class="callout callout-info">
+        <span class="callout-icon">💡</span>
+        <div class="callout-content">
+          <strong>Dica:</strong> Consulte nosso <a href="/docs/glossary" class="doc-link">Glossário</a> para
+          entender o que cada campo técnico (NAME1, STCD1) espera.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 - 4MDG -->
+  <div class="step-card step-highlight">
+    <div class="step-number step-icon-emoji">🚀</div>
+    <div class="step-content">
+      <h2>O Atalho Inteligente (4MDG)</h2>
+      <p>
+        Cansado de configurar De-Para no CPI ou mapear XML no PI?
+      </p>
+      <p>
+        A plataforma <strong>4MDG</strong> entrega o dado
+        <strong>pronto, validado e saneado</strong>. Você não precisa se preocupar se é JSON
+        ou XML, nós garantimos que o SAP vai aceitar de primeira.
+      </p>
+      <a href="https://4mdg.com.br/" target="_blank" class="cta-button">
+        Conhecer a Automação 4MDG →
+      </a>
+    </div>
+  </div>
+</DocsLayout>
+
+<style is:global>
+  /* Step Cards - Getting Started */
+  .step-card {
+    display: flex;
+    gap: var(--spacing-lg);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .step-number {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: var(--brand-blue);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.25rem;
+  }
+
+  .step-icon-emoji {
+    background: var(--brand-purple);
+    font-size: 1.5rem;
+  }
+
+  .step-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .step-content h2 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .step-content p {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .step-content p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Highlighted step (4MDG) */
+  .step-highlight {
+    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+    border: none;
+    color: white;
+  }
+
+  .step-highlight .step-number {
+    background: white;
+    color: #7c3aed;
+  }
+
+  .step-highlight .step-content h2 {
+    color: white;
+  }
+
+  .step-highlight .step-content p {
+    color: #e9d5ff;
+  }
+
+  /* Code blocks */
+  .code-block {
+    background: var(--code-bg);
+    color: #e2e8f0;
+    padding: var(--spacing-md);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85rem;
+    overflow-x: auto;
+    border-left: 3px solid var(--brand-blue);
+    margin: var(--spacing-sm) 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .code-cpi { border-left-color: #f59e0b; }
+  .code-pi { border-left-color: #64748b; }
+
+  /* Format examples */
+  .format-example {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .format-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .format-cpi { color: #f59e0b; }
+  .format-pi { color: #64748b; }
+
+  /* Comparison grid */
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+  }
+
+  .comp-card {
+    background: var(--meta-bg);
+    padding: var(--spacing-md);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-top-width: 3px;
+  }
+
+  .comp-cpi { border-top-color: #f59e0b; }
+  .comp-pi { border-top-color: #64748b; }
+
+  .comp-header {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-main);
+  }
+
+  .comp-card p {
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* CTA Button */
+  .cta-button {
+    display: inline-block;
+    background: white;
+    color: #7c3aed;
+    font-weight: 700;
+    padding: 12px 24px;
+    border-radius: 30px;
+    text-decoration: none;
+    margin-top: var(--spacing-sm);
+    transition: all 0.2s;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .step-card {
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+    }
+
+    .step-content h2 {
+      font-size: 1.1rem;
+    }
+
+    .comparison-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

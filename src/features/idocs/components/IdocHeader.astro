@@ -1,0 +1,92 @@
+---
+/**
+ * IdocHeader.astro - Header padronizado para páginas de IDoc
+ * Exibe título, descrição e badge do tipo
+ */
+interface Props {
+  /** Nome do IDoc (ex: BPMAS, MATMAS) */
+  idocType: string;
+  /** Título descritivo (ex: Business Partner) */
+  title: string;
+  /** Descrição do IDoc */
+  description: string;
+}
+
+const { idocType, title, description } = Astro.props;
+---
+
+<header class="idoc-header">
+  <div class="idoc-header-top">
+    <span class="idoc-badge">{idocType}</span>
+    <h1 class="idoc-title">{title}</h1>
+  </div>
+  <p class="idoc-description">{description}</p>
+</header>
+
+<style>
+  .idoc-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .idoc-header-top {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .idoc-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand-blue);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .idoc-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
+  .idoc-description {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .idoc-header {
+      padding: var(--spacing-md);
+    }
+
+    .idoc-header-top {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
+    }
+
+    .idoc-title {
+      font-size: 1.25rem;
+    }
+
+    .idoc-description {
+      font-size: 0.9rem;
+    }
+  }
+</style>

@@ -1,0 +1,361 @@
+---
+/**
+ * Página: Troubleshooting & Status SAP
+ */
+import DocsLayout from '@docs/layouts/DocsLayout.astro';
+
+const statusCodes = [
+  {
+    code: '53',
+    type: 'Sucesso',
+    status: 'success',
+    meaning: '<strong>Documento lançado</strong><br/>O processo foi concluído com sucesso.',
+    action: 'Nenhuma ação necessária.',
+  },
+  {
+    code: '51',
+    type: 'Erro',
+    status: 'error',
+    meaning:
+      '<strong>Doc. aplicação não lançado</strong><br/>Erro funcional (dados inválidos para o negócio).',
+    action:
+      'Verificar o log detalhado no status. Geralmente requer correção na origem e reenvio, ou correção manual na BD87.',
+  },
+  {
+    code: '64',
+    type: 'Aguardando',
+    status: 'warning',
+    meaning:
+      '<strong>Pronto para processamento</strong><br/>O IDoc chegou, mas o JOB ainda não rodou.',
+    action: 'Aguardar o job <code>RBDAPP01</code> ou processar manualmente na <code>BD87</code>.',
+  },
+  {
+    code: '56',
+    type: 'Config',
+    status: 'error',
+    meaning:
+      '<strong>IDoc com estrutura incorreta</strong><br/>Segmento faltando ou parceiro não configurado.',
+    action:
+      'Verificar transação <code>WE20</code> (Perfil de Parceiro) e se o payload XML contém todos os segmentos obrigatórios.',
+  },
+  {
+    code: '68',
+    type: 'Falha',
+    status: 'error',
+    meaning:
+      '<strong>Erro - sem processamento posterior</strong><br/>IDoc marcado manualmente para não ser processado.',
+    action:
+      'Verificar auditoria (quem marcou?). Geralmente indica um IDoc duplicado que foi cancelado.',
+  },
+  {
+    code: '69',
+    type: 'Audit',
+    status: 'warning',
+    meaning: '<strong>IDoc foi editado</strong><br/>Os dados foram alterados manualmente.',
+    action: 'Atenção: Indica intervenção manual. Verificar integridade dos dados.',
+  },
+];
+
+const errors = [
+  {
+    cat: 'Formato',
+    title: 'Data Inválida (dd.mm.yyyy)',
+    code: 'Date Format',
+    symptom: 'IDoc quebra ou data entra como 00.00.0000.',
+    cause: 'O SAP espera <code>YYYYMMDD</code> puro. Formatos com barras (/) ou pontos (.) falham.',
+    solution:
+      'Use a função <strong>FORMAT DATE</strong>. Converta <code>31/12/2025</code> para <code>20251231</code>.',
+  },
+  {
+    cat: 'Formato',
+    title: 'Objeto não encontrado (Zeros)',
+    code: 'Leading Zeros',
+    symptom: 'Erro "Cliente 123 não existe", mas o cliente existe.',
+    cause: 'Campos numéricos (KUNNR, MATNR, LIFNR) exigem zeros à esquerda.',
+    solution:
+      "Use a função <strong>LPAD</strong>. Preencha com '0' até o tamanho total (ex: 10).<br/><code>123</code> -> <code>0000000123</code>.",
+  },
+  {
+    cat: 'Numérico',
+    title: 'Erro de Valor/Montante',
+    code: 'Decimal Format',
+    symptom: 'Valor 100,00 entra como 10000 ou erro de conversão.',
+    cause:
+      'O SAP (via IDoc) espera ponto <code>.</code> como decimal e <strong>nenhum</strong> separador de milhar.',
+    solution:
+      'Use <strong>TRANSLATE</strong> ou Replace.<br/>Errado: <code>1.234,56</code> | Certo: <code>1234.56</code>.',
+  },
+  {
+    cat: 'Validação',
+    title: 'Estouro de Campo',
+    code: 'Length Exceeded',
+    symptom: 'Erro técnico "Value is too long for field X".',
+    cause: 'Enviar 40 caracteres num campo CHAR(35) (ex: Endereço, Nome).',
+    solution:
+      'Use a função <strong>SUBSTRING</strong> para cortar o excesso ou divida o valor em dois campos.',
+  },
+  {
+    cat: 'Domínio',
+    title: 'Unidade não prevista',
+    code: 'ISO Code',
+    symptom: 'Erro "Unidade PC não existe".',
+    cause: 'O IDoc espera o código ISO (Tabela T006) e não o comercial.',
+    solution:
+      'Faça um De/Para.<br/>Peça -> <strong>PCE</strong> (ISO) ou <strong>ST</strong> (SAP Internal).',
+  },
+  {
+    cat: 'Encoding',
+    title: 'Caracteres Inválidos (XML)',
+    code: 'Parsing Error',
+    symptom: 'O fluxo falha antes de entrar no SAP (Erro de Parse XML).',
+    cause:
+      'Caracteres como <code>&</code>, <code><</code>, <code>></code> no meio do texto quebram o XML.',
+    solution: 'Escape os caracteres na origem.<br/><code>&</code> vira <code>&amp;amp;</code>',
+  },
+  {
+    cat: 'Regional',
+    title: 'Incompatibilidade Região/País',
+    code: 'Region Check',
+    symptom: 'Erro "Região SP não definida para o país US".',
+    cause: 'Tentar enviar um estado (UF) que não pertence ao país informado (Tabela T005S).',
+    solution: 'Valide a combinação País/UF antes do envio. SP é BR, CA é US (California).',
+  },
+  {
+    cat: 'Bloqueio',
+    title: 'Objeto Bloqueado',
+    code: 'Lock Entry',
+    symptom: 'Erro "O objeto está sendo processado pelo usuário X".',
+    cause: 'Alguém está com o cadastro aberto na tela (GUI) enquanto o IDoc tenta salvar.',
+    solution: 'Não é erro de dados. Reprocessar o IDoc (BD87) após alguns minutos.',
+  },
+  {
+    cat: 'Fiscal',
+    title: 'CNPJ/CPF Inválido',
+    code: 'Tax Number',
+    symptom: 'Erro de validação "Dígito verificador inválido".',
+    cause: 'O SAP valida matematicamente os documentos fiscais brasileiros (STCD1/STCD2).',
+    solution: 'Saneamento de dados. Não é possível integrar documentos fictícios ou errados.',
+  },
+  {
+    cat: 'Estrutura',
+    title: 'Segmento Obrigatório Faltando',
+    code: 'Mandatory Seg',
+    symptom: 'Status 26 ou erro de sintaxe "Segmento E1MARAM obrigatório".',
+    cause: 'O IDoc foi montado sem um segmento pai/filho exigido pela hierarquia.',
+    solution:
+      'Revisar a estrutura do JSON/XML gerado. Campos chave exigem seus segmentos container.',
+  },
+];
+---
+
+<DocsLayout title="Troubleshooting" description="Códigos de status e solução de erros SAP">
+  <div id="status-codes" style="margin-bottom: 50px;">
+    <div class="section-header">
+      <h2>Códigos de Status IDoc (Transação WE02/WE05)</h2>
+    </div>
+
+    <div class="table-wrapper card">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 8%;">Cod</th>
+            <th style="width: 10%;">Tipo</th>
+            <th style="width: 35%;">Significado</th>
+            <th style="width: 47%;">Ação Recomendada</th>
+          </tr>
+        </thead>
+        <tbody>
+          {statusCodes.map((item) => (
+            <tr>
+              <td><span class={`status-badge status-${item.status}`}>{item.code}</span></td>
+              <td>{item.type}</td>
+              <td set:html={item.meaning} />
+              <td set:html={item.action} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="mapping-errors" style="margin-bottom: 50px;">
+    <div class="section-header">
+      <h2>Erros de Dados e Mapeamento</h2>
+    </div>
+
+    <div class="error-grid">
+      {errors.map((error) => (
+        <div class="error-card">
+          <span class="cat-tag">{error.cat}</span>
+          <h3 class="error-title">
+            {error.title}
+            <span class="error-code">{error.code}</span>
+          </h3>
+          <p><strong>Sintoma:</strong> {error.symptom}</p>
+          <p><strong>Causa:</strong> <span set:html={error.cause} /></p>
+          <div class="solution-box">
+            <span class="solution-title">Solução</span>
+            <span set:html={error.solution} />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</DocsLayout>
+
+<style>
+  .section-header {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+  }
+
+  .section-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-main);
+  }
+
+  /* Table Styles */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    background: var(--code-bg);
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    border-bottom: 2px solid var(--border);
+  }
+
+  td {
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    vertical-align: top;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .status-success { background: #dcfce7; color: #166534; }
+  .status-error { background: #fee2e2; color: #991b1b; }
+  .status-warning { background: #fef3c7; color: #92400e; }
+
+  /* Error Cards */
+  .error-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .error-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .error-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .cat-tag {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .error-title {
+    margin: 0 0 15px 0;
+    color: #b91c1c;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .error-code {
+    font-size: 0.75rem;
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .error-card p {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .solution-box {
+    background: var(--code-bg);
+    border-left: 4px solid var(--primary);
+    padding: 12px;
+    margin-top: auto;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .solution-title {
+    display: block;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 5px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 768px) {
+    .error-grid {
+      grid-template-columns: 1fr;
+    }
+
+    table, thead, tbody, th, td, tr {
+      display: block;
+    }
+
+    thead tr {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+    }
+
+    tr {
+      margin-bottom: 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      background: var(--card-bg);
+    }
+
+    td {
+      border: none;
+      padding: 8px 0;
+    }
+  }
+</style>

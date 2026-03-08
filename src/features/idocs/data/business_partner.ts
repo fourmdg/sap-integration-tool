@@ -1,0 +1,1091 @@
+/**
+ * Dados do IDoc BPMAS - Business Partner
+ * Gerado automaticamente de idocs/business-partner.html
+ */
+import type { IdocData, IdocTreeNode, SegmentDefinition } from '@core/types';
+
+export const IDOC_TREE: IdocTreeNode[] = [
+  {
+    segment: 'BUPARTNER',
+    max: 1,
+    children: [
+      {
+        segment: 'CENTRALDATA',
+        max: 1,
+        children: [],
+      },
+      {
+        segment: 'ADDRESSDATA',
+        max: 9999,
+        children: [],
+      },
+      {
+        segment: 'TAX_DATA',
+        max: 9999,
+        children: [],
+      },
+      {
+        segment: 'BUSINESSPARTNERROLE',
+        max: 9999,
+        children: [],
+      },
+      {
+        segment: 'CENTRALDATAPERSON',
+        max: 1,
+        children: [],
+      },
+      {
+        segment: 'CENTRALDATAORGANIZATION',
+        max: 1,
+        children: [],
+      },
+      {
+        segment: 'CENTRALDATAGROUP',
+        max: 1,
+        children: [],
+      },
+      {
+        segment: 'CENTRALDATA_X',
+        max: 1,
+        children: [],
+      },
+      {
+        segment: 'CENTRALDATAPERSON_X',
+        max: 1,
+        children: [],
+      },
+      {
+        segment: 'CENTRALDATAORGANIZATION_X',
+        max: 1,
+        children: [],
+      },
+      {
+        segment: 'CENTRALDATAGROUP_X',
+        max: 1,
+        children: [],
+      },
+    ],
+  },
+];
+
+export const SEGMENT_DEFINITIONS: Record<string, SegmentDefinition> = {
+  BUPARTNER: {
+    description: 'Estrutura principal do Parceiro de Negócios',
+    fields: [
+      {
+        name: 'BUSINESSPARTNEREXTERN',
+        description: 'Nº parceiro de negócios (Externo)',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'NATURALPERSON',
+        description: 'É Pessoa Física (Flag Fiscal)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'PARTNERCATEGORY',
+        description: 'Categoria do parceiro (1=Pessoa, 2=Org, 3=Grupo)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'PARTNERGROUP',
+        description: 'Agrupamento de parceiros (BP Grouping)',
+        type: 'CHAR(4)',
+      },
+    ],
+  },
+  CENTRALDATA: {
+    description: 'Dados Centrais (Comuns a todas categorias)',
+    fields: [
+      {
+        name: 'AUTHORIZATIONGROUP',
+        description: 'Grupo de autorizações',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'CENTRALARCHIVINGFLAG',
+        description: 'Marcação para arquivamento',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'CENTRALBLOCK',
+        description: 'Bloqueio central',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'COMM_TYPE',
+        description: 'Meio comunicação padrão',
+        type: 'CHAR(3)',
+      },
+      {
+        name: 'CONTACTALLOWANCE',
+        description: 'Permissão de contato',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'DATAORIGINTYPE',
+        description: 'Tipos de origem dos dados',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'NOTRELEASED',
+        description: 'Código: não liberado',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'PARTNEREXTERNAL',
+        description: 'Nº parceiro no sistema externo',
+        type: 'CHAR(20)',
+      },
+      {
+        name: 'PARTNERLANGUAGE',
+        description: 'Idioma do Parceiro',
+        type: 'LANG(1)',
+      },
+      {
+        name: 'PARTNERLANGUAGEISO',
+        description: 'Idioma ISO (2 chars)',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'PARTNERTYPE',
+        description: 'Tipo de parceiro de negócios',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'PRINT_MODE',
+        description: 'Formato da impressão',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'SEARCHTERM1',
+        description: 'Termo de pesquisa 1',
+        type: 'CHAR(20)',
+      },
+      {
+        name: 'SEARCHTERM2',
+        description: 'Termo de pesquisa 2',
+        type: 'CHAR(20)',
+      },
+      {
+        name: 'TITLELETTER',
+        description: 'Vocativo',
+        type: 'CHAR(50)',
+      },
+      {
+        name: 'TITLE_KEY',
+        description: 'Chave de forma de tratamento (Sr, Sra, Empresa)',
+        type: 'CHAR(4)',
+      },
+    ],
+  },
+  ADDRESSDATA: {
+    description: 'Dados de Endereço',
+    fields: [
+      {
+        name: 'STREET',
+        description: 'Rua / Logradouro',
+        type: 'CHAR(60)',
+      },
+      {
+        name: 'HOUSE_NO',
+        description: 'Número',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'HOUSE_NO2',
+        description: 'Complemento do nº',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'CITY',
+        description: 'Cidade',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'POSTL_COD1',
+        description: 'CEP (Código Postal)',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'COUNTRY',
+        description: 'País (Chave SAP ex: BR)',
+        type: 'CHAR(3)',
+      },
+      {
+        name: 'COUNTRYISO',
+        description: 'País ISO (ex: BR)',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'REGION',
+        description: 'Região/Estado (UF)',
+        type: 'CHAR(3)',
+      },
+      {
+        name: 'DISTRICT',
+        description: 'Bairro',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'TAXJURCODE',
+        description: 'Domicílio Fiscal',
+        type: 'CHAR(15)',
+      },
+      {
+        name: 'LANGU',
+        description: 'Idioma do endereço',
+        type: 'LANG(1)',
+      },
+      {
+        name: 'VALIDFROMDATE',
+        description: 'Válido desde',
+        type: 'DATS(8)',
+      },
+      {
+        name: 'VALIDTODATE',
+        description: 'Válido até',
+        type: 'DATS(8)',
+      },
+      {
+        name: 'STR_SUPPL1',
+        description: 'Rua 2 (Complemento)',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'STR_SUPPL2',
+        description: 'Rua 3',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'STR_SUPPL3',
+        description: 'Rua 4',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'LOCATION',
+        description: 'Rua 5 (Location)',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'BUILDING',
+        description: 'Edifício',
+        type: 'CHAR(20)',
+      },
+      {
+        name: 'FLOOR',
+        description: 'Andar',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'ROOM_NO',
+        description: 'Sala / Apartamento',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'TIME_ZONE',
+        description: 'Fuso Horário',
+        type: 'CHAR(6)',
+      },
+      {
+        name: 'TRANSPZONE',
+        description: 'Zona de transporte',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'PO_BOX',
+        description: 'Caixa Postal',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'POSTL_COD2',
+        description: 'CEP Caixa Postal',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'C_O_NAME',
+        description: 'A/C (Care of)',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'EXTADDRESSNUMBER',
+        description: 'ID Endereço Externo',
+        type: 'CHAR(20)',
+      },
+      {
+        name: 'CHCKSTATUS',
+        description: 'Status de verificação para file de localidades',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'CITY_NO',
+        description: 'Codificação da localidade para file de localidades e ruas',
+        type: 'CHAR(12)',
+      },
+      {
+        name: 'COMM_TYPE',
+        description: 'Meio comunicação (chave) (administração endereços central)',
+        type: 'CHAR(3)',
+      },
+      {
+        name: 'COUNTY',
+        description: 'Distrito',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'COUNTY_NO',
+        description: 'Código para município',
+        type: 'CHAR(8)',
+      },
+      {
+        name: 'DELI_SERV_NUMBER',
+        description: 'Nº do serviço de entrega',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'DELI_SERV_TYPE',
+        description: 'Tipo do serviço de entrega',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'DISTRCT_NO',
+        description: 'Codificação do bairro para file de bairros e ruas',
+        type: 'CHAR(8)',
+      },
+      {
+        name: 'DONT_USE_P',
+        description: 'Código para impossibilidade entrega em endereço caixa postal',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'DONT_USE_S',
+        description: 'Código para impossibilidade entrega no endereço de rua',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'HOMECITYNO',
+        description: 'Codificação local.residência diferente p/file ruas/localids.',
+        type: 'CHAR(12)',
+      },
+      {
+        name: 'HOME_CITY',
+        description: 'Localidade de residência (diferente da localidade postal)',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'HOUSE_NO3',
+        description: 'Área do nº (não suportado)',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'LANGUISO',
+        description: 'Código de idiomas SAP de 2 dígitos',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'MOVE_ADDR_GUID',
+        description: 'ID único em representação de caracteres',
+        type: 'CHAR(32)',
+      },
+      {
+        name: 'MOVE_ADDRESS',
+        description: 'Nº do endereço de destino de mudança em mudanças de endereço',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'MOVE_DATE',
+        description: 'Data de mudança',
+        type: 'DATS(8)',
+      },
+      {
+        name: 'PBOXCIT_NO',
+        description: 'Codificação localidade por caixa postal (file localidades)',
+        type: 'CHAR(12)',
+      },
+      {
+        name: 'PCODE1_EXT',
+        description: 'Ampl.p/cód.postal local, p.ex.cód.ZIP+4+2 (não suportado)',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'PCODE2_EXT',
+        description: 'Ampliação p/cód.postal da caixa postal (não suportada)',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'PCODE3_EXT',
+        description: 'Ampliação p/cód.postal de cliente importante (não suportada)',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'POBOX_CTRY',
+        description: 'País/região da caixa postal',
+        type: 'CHAR(3)',
+      },
+      {
+        name: 'POSTL_COD3',
+        description: 'Código postal da empresa (para clientes importantes)',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'PO_BOX_CIT',
+        description: 'Localidade da caixa postal',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'PO_BOX_LOBBY',
+        description: 'Agência da caixa postal (PO Box Lobby)',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'PO_BOX_REG',
+        description: 'Região para a caixa postal (país, estado, província, ...)',
+        type: 'CHAR(3)',
+      },
+      {
+        name: 'PO_CTRYISO',
+        description: 'Código ISO do país/região',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'PO_W_O_NO',
+        description: 'Código: indicação de caixa postal sem nº',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'REGIOGROUP',
+        description: 'Agrupamento da estrutura regional',
+        type: 'CHAR(8)',
+      },
+      {
+        name: 'STANDARDADDRESS',
+        description: 'Seleção: endereço é endereço standard',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'STREET_NO',
+        description: 'Codificação da rua para file de localidades e ruas',
+        type: 'CHAR(12)',
+      },
+      {
+        name: 'STR_ABBR',
+        description: 'Abreviatura da denominação de rua (não suportada)',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'TOWNSHIP',
+        description: 'Cidade',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'TOWNSHIP_NO',
+        description: 'Código para cidade',
+        type: 'CHAR(8)',
+      },
+    ],
+  },
+  TAX_DATA: {
+    description: 'Dados Fiscais (CNPJ, CPF, IE)',
+    fields: [
+      {
+        name: 'TAXTYPE',
+        description: 'Tipo de imposto (ex: BR1 para CNPJ, BR2 para CPF)',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'TAXNUMBER',
+        description: 'Número Fiscal (Formatado ou não)',
+        type: 'CHAR(20)',
+      },
+      {
+        name: 'TAXNUMXL',
+        description: 'Número Fiscal Longo (Se maior que 20 chars)',
+        type: 'CHAR(60)',
+      },
+    ],
+  },
+  BUSINESSPARTNERROLE: {
+    description: 'Funções do Parceiro (FLCU00, FLCU01, etc)',
+    fields: [
+      {
+        name: 'PARTNERROLE',
+        description: 'Função de parceiro (ex: FLCU01 - Cliente)',
+        type: 'CHAR(6)',
+      },
+    ],
+  },
+  CENTRALDATAPERSON: {
+    description: 'Dados Pessoais (Categoria 1)',
+    fields: [
+      {
+        name: 'FIRSTNAME',
+        description: 'Primeiro nome',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'LASTNAME',
+        description: 'Sobrenome',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'FULLNAME',
+        description: 'Nome completo',
+        type: 'CHAR(80)',
+      },
+      {
+        name: 'BIRTHDATE',
+        description: 'Data de nascimento',
+        type: 'DATS(8)',
+      },
+      {
+        name: 'BIRTHPLACE',
+        description: 'Local de nascimento',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'MIDDLENAME',
+        description: 'Nome do meio',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'SECONDNAME',
+        description: 'Segundo sobrenome',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'NICKNAME',
+        description: 'Apelido / Conhecido como',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'TITLE_ACA1',
+        description: 'Título acadêmico 1',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'TITLE_ACA2',
+        description: 'Título acadêmico 2',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'TITLE_SPPL',
+        description: 'Complemento título (ex: Dr.)',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'PREFIX1',
+        description: 'Prefixo nome',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'PREFIX2',
+        description: 'Prefixo nome 2',
+        type: 'CHAR(4)',
+      },
+      {
+        name: 'GENDER',
+        description: 'Gênero (Legado)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'SEX',
+        description: 'Sexo',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'MARITALSTATUS',
+        description: 'Estado civil',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NATIONALITY',
+        description: 'Nacionalidade',
+        type: 'CHAR(3)',
+      },
+      {
+        name: 'CORRESPONDLANGUAGE',
+        description: 'Idioma correspondência',
+        type: 'LANG(1)',
+      },
+      {
+        name: 'BIRTHDT_STATUS',
+        description: 'Data de nascimento: status',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'BIRTHNAME',
+        description: 'Sobrenome de solteiro do parceiro de negócios',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'CORRESPONDLANGUAGEISO',
+        description: 'Código de idiomas SAP de 2 dígitos',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'COUNTRYORIGIN',
+        description: 'País/região de procedência em não residentes',
+        type: 'CHAR(3)',
+      },
+      {
+        name: 'DEATHDATE',
+        description: 'Data de morte do parceiro de negócios',
+        type: 'DATS(8)',
+      },
+      {
+        name: 'EMPLOYER',
+        description: 'Nome do empregador de uma pessoa física',
+        type: 'CHAR(35)',
+      },
+      {
+        name: 'INITIALS',
+        description: 'Inicial do segundo nome ou iniciais da pessoa',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'NAMCOUNTRY',
+        description: 'País/região para regra de edição de nomes',
+        type: 'CHAR(3)',
+      },
+      {
+        name: 'NAMCOUNTRYISO',
+        description: 'Código ISO do país/região',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'NAMEFORMAT',
+        description: 'Formato para a edição de nomes',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'NATIONALITYISO',
+        description: 'Código ISO do país/região',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'OCCUPATION',
+        description: 'Ocupação do parceiro de negócios',
+        type: 'CHAR(4)',
+      },
+    ],
+  },
+  CENTRALDATAORGANIZATION: {
+    description: 'Dados da Organização (Categoria 2)',
+    fields: [
+      {
+        name: 'NAME1',
+        description: 'Nome 1 (Razão Social)',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'NAME2',
+        description: 'Nome 2',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'NAME3',
+        description: 'Nome 3',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'NAME4',
+        description: 'Nome 4',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'INDUSTRYSECTOR',
+        description: 'Setor Industrial (Ramo)',
+        type: 'CHAR(10)',
+      },
+      {
+        name: 'LEGALFORM',
+        description: 'Forma Jurídica',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'FOUNDATIONDATE',
+        description: 'Data de fundação',
+        type: 'DATS(8)',
+      },
+      {
+        name: 'LIQUIDATIONDATE',
+        description: 'Data de liquidação',
+        type: 'DATS(8)',
+      },
+      {
+        name: 'CHK_DIGIT',
+        description: 'Dígito de controle da matrícula internacional da empresa',
+        type: 'NUMC(1)',
+      },
+      {
+        name: 'LEGALORG',
+        description: 'Pessoa jurídica da organização',
+        type: 'CHAR(2)',
+      },
+      {
+        name: 'LOC_NO_1',
+        description: 'Nº global de localização (parte 1)',
+        type: 'NUMC(7)',
+      },
+      {
+        name: 'LOC_NO_2',
+        description: 'Número global de localização (parte 2)',
+        type: 'NUMC(5)',
+      },
+    ],
+  },
+  CENTRALDATAGROUP: {
+    description: 'Dados de Grupo (Categoria 3)',
+    fields: [
+      {
+        name: 'NAMEGROUP1',
+        description: 'Nome 1 (Grupo)',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'NAMEGROUP2',
+        description: 'Nome 2 (Grupo)',
+        type: 'CHAR(40)',
+      },
+      {
+        name: 'GROUPTYPE',
+        description: 'Tipo de grupo',
+        type: 'CHAR(4)',
+      },
+    ],
+  },
+  CENTRALDATA_X: {
+    description: 'Flags de Atualização (Dados Centrais)',
+    fields: [
+      {
+        name: 'AUTHORIZATIONGROUP',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'PARTNERLANGUAGE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'PARTNERTYPE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'TITLE_KEY',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'CENTRALARCHIVINGFLAG',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'CENTRALBLOCK',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'COMM_TYPE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'CONTACTALLOWANCE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'DATAORIGINTYPE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NOTRELEASED',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'PARTNEREXTERNAL',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'PARTNERLANGUAGEISO',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'PRINT_MODE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'SEARCHTERM1',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'SEARCHTERM2',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'TITLELETTER',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+    ],
+  },
+  CENTRALDATAPERSON_X: {
+    description: 'Flags de Atualização (Pessoa)',
+    fields: [
+      {
+        name: 'FIRSTNAME',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'LASTNAME',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'BIRTHDATE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'BIRTHDT_STATUS',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'BIRTHNAME',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'BIRTHPLACE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'CORRESPONDLANGUAGE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'CORRESPONDLANGUAGEISO',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'COUNTRYORIGIN',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'DEATHDATE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'EMPLOYER',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'FULLNAME',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'GENDER',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'INITIALS',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'MARITALSTATUS',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'MIDDLENAME',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NAMCOUNTRY',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NAMCOUNTRYISO',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NAMEFORMAT',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NATIONALITY',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NATIONALITYISO',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NICKNAME',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'OCCUPATION',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'PREFIX1',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'PREFIX2',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'SECONDNAME',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'SEX',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'TITLE_ACA1',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'TITLE_ACA2',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'TITLE_SPPL',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+    ],
+  },
+  CENTRALDATAORGANIZATION_X: {
+    description: 'Flags de Atualização (Org)',
+    fields: [
+      {
+        name: 'NAME1',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'INDUSTRYSECTOR',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'CHK_DIGIT',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'FOUNDATIONDATE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'LEGALFORM',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'LEGALORG',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'LIQUIDATIONDATE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'LOC_NO_1',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'LOC_NO_2',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NAME2',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NAME3',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NAME4',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+    ],
+  },
+  CENTRALDATAGROUP_X: {
+    description: 'Flags de Atualização (Grupo)',
+    fields: [
+      {
+        name: 'GROUPTYPE',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NAMEGROUP1',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+      {
+        name: 'NAMEGROUP2',
+        description: 'Atualizar? (X)',
+        type: 'CHAR(1)',
+      },
+    ],
+  },
+};
+
+export const BUSINESS_PARTNER_DATA: IdocData = {
+  title: 'BPMAS - Business Partner',
+  description: 'IDoc BPMAS para distribuição de dados mestres',
+  tree: IDOC_TREE,
+  segments: SEGMENT_DEFINITIONS,
+};
+
+export default BUSINESS_PARTNER_DATA;
