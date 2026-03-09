@@ -5,40 +5,61 @@
  */
 import BaseLayout from '@core/layouts/BaseLayout.astro';
 import IdocSidebar from '../components/IdocSidebar.astro';
-import type { IdocTreeNode, SegmentDefinition } from '../types';
+import type { IdocSegment } from '../types';
 
 interface Props {
   title: string;
   description: string;
-  tree: IdocTreeNode[];
-  segments: Record<string, SegmentDefinition>;
+  tree: IdocSegment[];
 }
 
-const { title, description, tree, segments } = Astro.props;
+const { title, description, tree } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description}>
-  <IdocSidebar tree={tree} segments={segments} slot="sidebar" />
+  <IdocSidebar tree={tree} slot="sidebar" />
   <slot />
 </BaseLayout>
 
 <style is:global>
   /* Layout com sidebar para IDocs */
-  body:has(.idoc-sidebar) .workspace {
+  body.scrollable-body:has(.idoc-sidebar) .workspace {
     display: flex !important;
+    flex-direction: row !important;
     height: auto !important;
+    overflow: visible !important;
+    align-items: flex-start;
   }
-  
-  body:has(.idoc-sidebar) main#mainContent {
+
+  body.scrollable-body:has(.idoc-sidebar) .idoc-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    flex-shrink: 0;
+  }
+
+  body.scrollable-body:has(.idoc-sidebar) main#mainContent {
     flex: 1;
     padding: var(--spacing-lg);
     max-width: calc(100% - 280px);
+    min-width: 0;
   }
-  
+
   @media (max-width: 768px) {
-    body:has(.idoc-sidebar) main#mainContent {
+    body.scrollable-body:has(.idoc-sidebar) .workspace {
+      flex-direction: column !important;
+    }
+
+    /* Sidebar fica fixed no mobile, não ocupa espaço no fluxo */
+    body.scrollable-body:has(.idoc-sidebar) .idoc-sidebar {
+      position: fixed;
+      height: auto;
+    }
+
+    body.scrollable-body:has(.idoc-sidebar) main#mainContent {
       max-width: 100%;
-      padding: var(--spacing-md);
+      padding: var(--spacing-lg);
+      width: 100%;
     }
   }
 </style>

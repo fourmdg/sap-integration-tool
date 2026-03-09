@@ -1,0 +1,42 @@
+---
+/**
+ * PÁGINA DINÂMICA DE IDOCS
+ *
+ * Gera automaticamente todas as rotas de IDoc baseado nos dados disponíveis.
+ * Adicione um novo arquivo .ts em data/ e ele já aparece aqui!
+ */
+import IdocHeader from '@idocs/components/IdocHeader.astro';
+import PayloadModal from '@idocs/components/PayloadModal.astro';
+import SegmentCard from '@idocs/components/SegmentCard.astro';
+import { ALL_IDOCS, getIdocSegments } from '@idocs/data';
+import type { IdocInfo } from '@idocs/data';
+import IdocLayout from '@idocs/layouts/IdocLayout.astro';
+
+export function getStaticPaths() {
+  return ALL_IDOCS.map((idoc) => ({
+    params: { slug: idoc.slug },
+    props: { idoc },
+  }));
+}
+
+interface Props {
+  idoc: IdocInfo;
+}
+
+const { idoc } = Astro.props;
+const segments = getIdocSegments(idoc);
+---
+
+<IdocLayout title={idoc.data.title} description={idoc.description} tree={idoc.data.tree}>
+  <IdocHeader idocType={idoc.code} title={idoc.title} description={idoc.description} />
+
+  <section class="segments-list">
+    {segments.map((segment) => <SegmentCard segment={segment} />)}
+  </section>
+
+  <PayloadModal />
+</IdocLayout>
+
+<style>
+  .segments-list { display: flex; flex-direction: column; gap: var(--spacing-lg); }
+</style>

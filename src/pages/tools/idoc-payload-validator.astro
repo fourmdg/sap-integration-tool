@@ -1,50 +1,25 @@
 ---
 /**
  * JSON Field Validator - Valida campos contra definições de IDocs SAP
- * Restaurado para comportamento original: baseado em IDocs, não regras manuais
+ * Usa dados centralizados do registro de IDocs
  */
 import ToolLayout from '@features/tools/layouts/ToolLayout.astro';
+import { ALL_IDOCS, createSegmentMap } from '@idocs/data';
 
-import { ADDRESSES_DATA } from '@idocs/data/addresses';
-import { BUSINESS_PARTNER_DATA } from '@idocs/data/business_partner';
-import { CUSTOMERS_DATA } from '@idocs/data/customers';
-import { MATERIAL_CHARACTERISTICS_DATA } from '@idocs/data/material_characteristics';
-import { MATERIAL_QM_DATA } from '@idocs/data/material_qm';
-import { MATERIALS_RETAIL_DATA } from '@idocs/data/materials_retail';
-// Importar todos os dados de IDocs
-import { MATMAS_DATA } from '@idocs/data/matmas';
-import { SERVICES_DATA } from '@idocs/data/services';
-import { VENDORS_DATA } from '@idocs/data/vendors';
+// Preparar dados para o client-side (gerado dinamicamente)
+const idocOptions = ALL_IDOCS.map((idoc) => ({
+  value: idoc.code,
+  label: `${idoc.code} (${idoc.title})`,
+}));
 
-// Preparar dados para o client-side
-const idocOptions = [
-  { value: 'MATMAS', label: 'MATMAS (Materials)' },
-  { value: 'MATMAS_RETAIL', label: 'MATMAS (Materials Retail)' },
-  { value: 'MATMAS_CHAR', label: 'MATMAS (Characteristics)' },
-  { value: 'MATMAS_QM', label: 'MATMAS (Quality Management)' },
-  { value: 'BPMAS', label: 'BPMAS (Business Partner)' },
-  { value: 'DEBMAS', label: 'DEBMAS (Customers)' },
-  { value: 'CREMAS', label: 'CREMAS (Vendors)' },
-  { value: 'ADRMAS', label: 'ADRMAS (Addresses)' },
-  { value: 'SRVMAS', label: 'SRVMAS (Services)' },
-];
-
-// Serializar segmentos para client-side
-const idocSegments = {
-  MATMAS: MATMAS_DATA.segments,
-  BPMAS: BUSINESS_PARTNER_DATA.segments,
-  DEBMAS: CUSTOMERS_DATA.segments,
-  CREMAS: VENDORS_DATA.segments,
-  ADRMAS: ADDRESSES_DATA.segments,
-  SRVMAS: SERVICES_DATA.segments,
-  MATMAS_RETAIL: MATERIALS_RETAIL_DATA.segments,
-  MATMAS_CHAR: MATERIAL_CHARACTERISTICS_DATA.segments,
-  MATMAS_QM: MATERIAL_QM_DATA.segments,
-};
+// Serializar segmentos para client-side (dinâmico)
+const idocSegments = Object.fromEntries(
+  ALL_IDOCS.map((idoc) => [idoc.code, createSegmentMap(idoc)])
+);
 ---
 
-<ToolLayout 
-  title="Validador de Payload IDOC" 
+<ToolLayout
+  title="Validador de Payload IDOC"
   description="Valide payloads JSON contra segmentos e campos de IDocs SAP"
   icon="📋"
 >
@@ -62,9 +37,9 @@ const idocSegments = {
 
     <div class="input-section">
       <label class="field-label" for="jsonInput">JSON de Entrada</label>
-      <textarea 
-        id="jsonInput" 
-        class="code-textarea" 
+      <textarea
+        id="jsonInput"
+        class="code-textarea"
         placeholder='Cole seu JSON aqui para validar contra as definições do IDoc selecionado...'
         rows="12"
       ></textarea>
@@ -77,7 +52,7 @@ const idocSegments = {
         <h3 class="results-title">Relatório de Validação</h3>
         <span id="resultsSummary" class="results-summary"></span>
       </div>
-      
+
       <div id="resultsList" class="results-list"></div>
     </div>
   </div>
@@ -406,9 +381,9 @@ const idocSegments = {
 
     // Check length
     if (length !== null && strValue.length > length) {
-      return { 
-        status: 'fail', 
-        message: `Excede tamanho máximo: ${strValue.length}/${length} chars` 
+      return {
+        status: 'fail',
+        message: `Excede tamanho máximo: ${strValue.length}/${length} chars`
       };
     }
 
@@ -488,7 +463,7 @@ const idocSegments = {
           }
           found.set(key, list);
         }
-        
+
         // Continue searching
         search(value, `${path}.${key}`);
       }
@@ -623,7 +598,7 @@ const idocSegments = {
         <div class="unknown-fields">
           <h4>⚠️ Nenhum campo do IDoc encontrado</h4>
           <p style="margin: 0; font-size: 0.85rem;">
-            Verifique se o JSON contém segmentos válidos do IDoc selecionado ou 
+            Verifique se o JSON contém segmentos válidos do IDoc selecionado ou
             tente o formato "Flat" se os campos estão no nível raiz.
           </p>
         </div>
@@ -637,7 +612,7 @@ const idocSegments = {
   // Validate button
   validateBtn.addEventListener('click', () => {
     let json: any;
-    
+
     try {
       json = JSON.parse(jsonInput.value);
     } catch (e: any) {

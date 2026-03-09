@@ -7,37 +7,22 @@ export interface IdocField {
   name: string;
   description: string;
   type: string;
-  len?: string;
 }
 
-/** Definição de um segmento */
-export interface SegmentDefinition {
-  description: string;
-  fields: IdocField[];
-  max?: number;
-}
-
-/** Nó da árvore IDoc */
-export interface IdocTreeNode {
+/** Nó da árvore IDoc com campos embutidos */
+export interface IdocSegment {
   segment: string;
+  description: string;
   max: number;
-  children: IdocTreeNode[];
+  fields: IdocField[];
+  children: IdocSegment[];
 }
 
 /** Estrutura completa de um IDoc */
 export interface IdocData {
-  /** Slug/identificador (ex: "materials", "customers") */
-  slug?: string;
-  /** Título para exibição */
   title: string;
-  /** Descrição curta */
   description: string;
-  /** Ícone emoji */
-  icon?: string;
-  /** Árvore hierárquica de segmentos */
-  tree: IdocTreeNode[];
-  /** Definições detalhadas de cada segmento */
-  segments: Record<string, SegmentDefinition>;
+  tree: IdocSegment[];
 }
 
 /** Item de navegação */

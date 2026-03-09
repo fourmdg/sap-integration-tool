@@ -3,16 +3,14 @@
  * SegmentCard.astro - Card de um segmento IDoc
  * Exibe tabela de campos e botões de exportação
  */
-import type { IdocField, SegmentDefinition } from '../types';
+import type { IdocField, IdocSegment } from '../types';
 
 interface Props {
-  name: string;
-  segment: SegmentDefinition;
-  maxOccurs: number;
+  segment: IdocSegment;
 }
 
-const { name, segment, maxOccurs } = Astro.props;
-const { description, fields } = segment;
+const { segment } = Astro.props;
+const { segment: name, description, max: maxOccurs, fields } = segment;
 ---
 
 <section class="segment-card" id={name}>
@@ -33,7 +31,7 @@ const { description, fields } = segment;
     </div>
     {description && <p class="segment-desc">{description}</p>}
   </header>
-  
+
   <div class="segment-body">
     <table class="fields-table">
       <thead>
@@ -68,7 +66,7 @@ const { description, fields } = segment;
     margin-bottom: var(--spacing-lg);
     scroll-margin-top: 80px;
   }
-  
+
   .segment-header {
     display: flex;
     flex-direction: column;
@@ -77,14 +75,14 @@ const { description, fields } = segment;
     border-bottom: 1px solid var(--border-color);
     border-radius: 12px 12px 0 0;
   }
-  
+
   .segment-title-row {
     display: flex;
     align-items: center;
     gap: 12px;
     width: 100%;
   }
-  
+
   .segment-name {
     font-family: 'Consolas', monospace;
     font-size: 1.1rem;
@@ -92,7 +90,7 @@ const { description, fields } = segment;
     color: var(--heading-color);
     margin: 0;
   }
-  
+
   .segment-max {
     font-size: 0.75rem;
     color: #64748b;
@@ -107,14 +105,14 @@ const { description, fields } = segment;
     gap: 8px;
     margin-left: auto;
   }
-  
+
   .segment-desc {
     color: var(--text-muted);
     font-size: 0.875rem;
     margin: 10px 0 0 0;
     line-height: 1.5;
   }
-  
+
   .btn-action {
     display: flex;
     align-items: center;
@@ -128,24 +126,24 @@ const { description, fields } = segment;
     cursor: pointer;
     transition: all 0.2s;
   }
-  
+
   .btn-action:hover {
     background: rgba(255,255,255,0.1);
     color: var(--text-color);
     border-color: var(--brand-blue);
   }
-  
+
   .segment-body {
     padding: 0;
     overflow-x: auto;
   }
-  
+
   .fields-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.85rem;
   }
-  
+
   .fields-table th {
     text-align: left;
     padding: 12px 16px;
@@ -157,24 +155,24 @@ const { description, fields } = segment;
     letter-spacing: 0.5px;
     border-bottom: 1px solid var(--border-color);
   }
-  
+
   .fields-table td {
     padding: 12px 16px;
     border-bottom: 1px solid rgba(255,255,255,0.03);
     vertical-align: top;
   }
-  
+
   .fields-table tbody tr:hover {
     background: rgba(255,255,255,0.02);
   }
-  
+
   .fields-table tbody tr:last-child td {
     border-bottom: none;
   }
-  
+
   .col-field { width: 180px; }
   .col-type { width: 120px; }
-  
+
   .field-name code {
     font-family: 'Consolas', monospace;
     color: #60a5fa;
@@ -184,12 +182,12 @@ const { description, fields } = segment;
     padding: 2px 6px;
     border-radius: 4px;
   }
-  
+
   .field-desc {
     color: var(--text-color);
     line-height: 1.5;
   }
-  
+
   .type-badge {
     display: inline-block;
     padding: 2px 8px;
@@ -199,18 +197,5 @@ const { description, fields } = segment;
     font-size: 0.75rem;
     font-family: 'Consolas', monospace;
   }
-  
-  @media (max-width: 768px) {
-    .segment-header {
-      padding: 1rem;
-    }
-    
-    .fields-table th,
-    .fields-table td {
-      padding: 10px 12px;
-    }
-    
-    .col-field { width: 140px; }
-    .col-type { width: 90px; }
-  }
+
 </style>

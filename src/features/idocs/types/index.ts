@@ -5,8 +5,7 @@
 
 export type {
   IdocField,
-  SegmentDefinition,
-  IdocTreeNode,
+  IdocSegment,
   IdocData,
 } from '@core/types';
 
@@ -18,17 +17,4 @@ export interface IdocMeta {
   description: string;
   icon: string;
   segmentCount: number;
-}
-
-/** Props do SegmentCard */
-export interface SegmentCardProps {
-  name: string;
-  description: string;
-  max: number;
-  fields: Array<{
-    name: string;
-    desc: string;
-    type: string;
-    len: string;
-  }>;
 }

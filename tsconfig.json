@@ -11,5 +11,6 @@
       "@shared/*": ["src/shared/*"],
       "@home/*": ["src/features/home/*"]
     }
-  }
+  },
+  "exclude": ["scripts/**/*"]
 }

@@ -3,16 +3,15 @@
  * IdocSidebar.astro - Sidebar com árvore de segmentos
  * Navegação hierárquica clicável para âncoras
  */
-import type { IdocTreeNode, SegmentDefinition } from '../types';
+import type { IdocSegment } from '../types';
 import { flattenTree } from '../utils/tree';
 import TreeNode from './TreeNode.astro';
 
 interface Props {
-  tree: IdocTreeNode[];
-  segments: Record<string, SegmentDefinition>;
+  tree: IdocSegment[];
 }
 
-const { tree, segments } = Astro.props;
+const { tree } = Astro.props;
 const nodeCount = flattenTree(tree).length;
 ---
 
@@ -22,15 +21,15 @@ const nodeCount = flattenTree(tree).length;
     <span class="sidebar-count">{nodeCount}</span>
     <button class="sidebar-close" id="closeSidebar" aria-label="Fechar">✕</button>
   </div>
-  
+
   <div class="sidebar-content">
     <div class="tree-container" id="treeContainer">
       {tree.map((node) => (
-        <TreeNode node={node} segments={segments} level={0} />
+        <TreeNode node={node} level={0} />
       ))}
     </div>
   </div>
-  
+
   <div class="sidebar-footer">
     <button class="btn-expand-all" id="expandAll">Expandir tudo</button>
     <button class="btn-collapse-all" id="collapseAll">Recolher tudo</button>
@@ -59,6 +58,7 @@ const nodeCount = flattenTree(tree).length;
   }
 
   .sidebar-header {
+    position: relative;
     padding: 0.5rem 0.75rem;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     display: flex;
@@ -153,37 +153,84 @@ const nodeCount = flattenTree(tree).length;
   .sidebar-overlay {
     display: none;
     position: fixed;
-    top: 60px;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(2px);
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
     z-index: 1100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
   .sidebar-overlay.open {
     display: block;
+    opacity: 1;
   }
 
-  /* Mobile styles */
+  /* Mobile styles - Bottom Sheet */
   @media (max-width: 768px) {
     .idoc-sidebar {
       position: fixed;
-      top: 60px;
-      left: -300px;
-      height: calc(100vh - 60px);
+      top: auto;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
       z-index: 1200;
-      transition: left 0.3s ease;
-      box-shadow: 5px 0 20px rgba(0,0,0,0.3);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
+      border-radius: 16px 16px 0 0;
+      border-right: none;
     }
 
     .idoc-sidebar.open {
-      left: 0;
+      transform: translateY(0);
+    }
+
+    .sidebar-header {
+      padding: 1rem;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .sidebar-header::before {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 4px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+    }
+
+    .sidebar-title {
+      font-size: 0.9rem;
     }
 
     .sidebar-close {
       display: block;
+      font-size: 1.4rem;
+      padding: 8px;
+    }
+
+    .sidebar-content {
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    .sidebar-footer {
+      padding: 0.75rem 1rem;
+      padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 20px));
+    }
+
+    .sidebar-footer button {
+      padding: 10px 14px;
+      font-size: 0.8rem;
     }
 
     .sidebar-toggle {
@@ -233,11 +280,11 @@ const nodeCount = flattenTree(tree).length;
     entries.forEach(entry => {
       const id = entry.target.id;
       const link = document.querySelector(`.node-link[href="#${id}"]`);
-      
+
       if (entry.isIntersecting) {
         document.querySelectorAll('.node-link.active').forEach(l => l.classList.remove('active'));
         link?.classList.add('active');
-        
+
         // Expand parent nodes
         let parent = link?.closest('.tree-node')?.parentElement?.closest('.tree-node');
         while (parent) {
@@ -261,7 +308,7 @@ const nodeCount = flattenTree(tree).length;
       if (href) {
         const target = document.querySelector(href);
         target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        
+
         // Close sidebar on mobile
         if (window.innerWidth <= 768) {
           toggleSidebar();

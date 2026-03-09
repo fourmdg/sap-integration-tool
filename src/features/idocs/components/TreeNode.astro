@@ -2,15 +2,14 @@
 /**
  * TreeNode.astro - Componente recursivo para nós da árvore
  */
-import type { IdocTreeNode, SegmentDefinition } from '../types';
+import type { IdocSegment } from '../types';
 
 interface Props {
-  node: IdocTreeNode;
-  segments: Record<string, SegmentDefinition>;
+  node: IdocSegment;
   level?: number;
 }
 
-const { node, segments, level = 0 } = Astro.props;
+const { node, level = 0 } = Astro.props;
 const hasChildren = node.children.length > 0;
 ---
 
@@ -31,7 +30,7 @@ const hasChildren = node.children.length > 0;
   {hasChildren && (
     <div class="node-children">
       {node.children.map((child) => (
-        <Astro.self node={child} segments={segments} level={level + 1} />
+        <Astro.self node={child} level={level + 1} />
       ))}
     </div>
   )}

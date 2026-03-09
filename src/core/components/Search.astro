@@ -1,159 +1,20 @@
 ---
-import { ADDRESSES_DATA } from '@idocs/data/addresses';
-import { BUSINESS_PARTNER_DATA } from '@idocs/data/business_partner';
-import { CUSTOMERS_DATA } from '@idocs/data/customers';
-import { MATERIAL_CHARACTERISTICS_DATA } from '@idocs/data/material_characteristics';
-import { MATERIAL_QM_DATA } from '@idocs/data/material_qm';
-import { MATERIALS_RETAIL_DATA } from '@idocs/data/materials_retail';
 /**
  * Search.astro - Componente de busca global
- * Índice gerado em build-time, incluindo campos de IDocs
+ * Índice gerado em build-time usando fonte centralizada
  */
-import { MATMAS_DATA } from '@idocs/data/matmas';
-import { SERVICES_DATA } from '@idocs/data/services';
-import { VENDORS_DATA } from '@idocs/data/vendors';
+import { FULL_SEARCH_INDEX } from '@idocs/data';
 
-// Gerar índice de busca em build-time
-interface SearchItem {
-  title: string;
-  url: string;
-  type: 'tool' | 'idoc' | 'doc' | 'field' | 'segment';
-  description: string;
-  segment?: string;
-}
-
-const searchIndex: SearchItem[] = [
-  // Ferramentas
-  {
-    title: 'Testador de Campo IDOC',
-    url: '/tools/idoc-field-tester',
-    type: 'tool',
-    description: 'Teste e valide campos SAP individualmente',
-  },
-  {
-    title: 'SQL Builder',
-    url: '/tools/sql-builder',
-    type: 'tool',
-    description: 'Construa queries SQL dinâmicas para PostgreSQL',
-  },
-  {
-    title: 'JSON Studio',
-    url: '/tools/json-studio',
-    type: 'tool',
-    description: 'Visualize e explore JSON com interface avançada',
-  },
-  {
-    title: 'JSON Diff',
-    url: '/tools/json-diff',
-    type: 'tool',
-    description: 'Compare dois JSONs lado a lado',
-  },
-  {
-    title: 'Visual Mapper',
-    url: '/tools/mapper',
-    type: 'tool',
-    description: 'Mapeamento visual de campos',
-  },
-  {
-    title: 'Validador de Payload IDOC',
-    url: '/tools/idoc-payload-validator',
-    type: 'tool',
-    description: 'Valide payloads contra IDocs SAP',
-  },
-
-  // Documentação
-  {
-    title: 'Como Funciona',
-    url: '/docs/getting-started',
-    type: 'doc',
-    description: 'Guia inicial do portal',
-  },
-  {
-    title: 'Boas Práticas',
-    url: '/docs/best-practices',
-    type: 'doc',
-    description: 'Padrões recomendados',
-  },
-  {
-    title: 'Arquitetura',
-    url: '/docs/architecture',
-    type: 'doc',
-    description: 'Visão técnica do sistema',
-  },
-  {
-    title: 'Troubleshooting',
-    url: '/docs/troubleshooting',
-    type: 'doc',
-    description: 'Resolução de problemas',
-  },
-  { title: 'Glossário SAP', url: '/docs/glossary', type: 'doc', description: 'Termos técnicos' },
-];
-
-// IDocs com suas páginas
-const idocs = [
-  { data: MATMAS_DATA, slug: 'materials', badge: 'MATMAS' },
-  { data: BUSINESS_PARTNER_DATA, slug: 'business-partner', badge: 'BPMAS' },
-  { data: CUSTOMERS_DATA, slug: 'customers', badge: 'DEBMAS' },
-  { data: VENDORS_DATA, slug: 'vendors', badge: 'CREMAS' },
-  { data: ADDRESSES_DATA, slug: 'addresses', badge: 'ADRMAS' },
-  { data: SERVICES_DATA, slug: 'services', badge: 'SRVMAS' },
-  { data: MATERIALS_RETAIL_DATA, slug: 'materials-retail', badge: 'MATMAS Retail' },
-  {
-    data: MATERIAL_CHARACTERISTICS_DATA,
-    slug: 'material-characteristics',
-    badge: 'Characteristics',
-  },
-  { data: MATERIAL_QM_DATA, slug: 'material-qm', badge: 'QM' },
-];
-
-// Adicionar IDocs e seus campos/segmentos
-for (const { data, slug, badge } of idocs) {
-  // Página do IDoc
-  searchIndex.push({
-    title: data.title,
-    url: `/idocs/${slug}`,
-    type: 'idoc',
-    description: `${badge} - ${data.description}`,
-  });
-
-  // Segmentos e campos
-  for (const [segName, segDef] of Object.entries(data.segments)) {
-    // Segmento
-    searchIndex.push({
-      title: segName,
-      url: `/idocs/${slug}#${segName}`,
-      type: 'segment',
-      description: segDef.description,
-    });
-
-    // Campos do segmento
-    for (const field of segDef.fields) {
-      searchIndex.push({
-        title: field.name,
-        url: `/idocs/${slug}#${segName}`,
-        type: 'field',
-        description: `${field.description} - ${field.type}`,
-        segment: segName,
-      });
-    }
-  }
-}
-
-// Templates
-searchIndex.push({
-  title: 'Templates',
-  url: '/idocs/templates',
-  type: 'idoc',
-  description: 'Biblioteca de payloads JSON prontos',
-});
+// Usar índice centralizado
+const searchIndex = FULL_SEARCH_INDEX;
 ---
 
 <div class="search-wrapper">
-  <input 
-    type="text" 
-    class="search-input" 
-    id="globalSearch" 
-    placeholder="Buscar..." 
+  <input
+    type="text"
+    class="search-input"
+    id="globalSearch"
+    placeholder="Buscar..."
     autocomplete="off"
   />
   <div class="search-results" id="searchResults"></div>
@@ -297,15 +158,23 @@ searchIndex.push({
     background: var(--meta-bg);
   }
 
-  @media (max-width: 768px) {
-    .search-wrapper {
-      display: none;
+  @media (max-width: 900px) {
+    .search-input {
+      width: 100%;
+    }
+
+    .search-input:focus {
+      width: 100%;
+    }
+
+    .search-results {
+      width: 100%;
+      min-width: 280px;
     }
   }
 </style>
 
 <script is:inline define:vars={{ searchIndex }}>
-  // Índice gerado em build-time (inclui campos de IDocs)
   window.SEARCH_INDEX = searchIndex;
 </script>
 
@@ -326,9 +195,9 @@ searchIndex.push({
 
   function search(query: string): SearchItem[] {
     if (!query.trim()) return [];
-    
+
     const q = query.toLowerCase();
-    return window.SEARCH_INDEX.filter(item => 
+    return window.SEARCH_INDEX.filter(item =>
       item.title.toLowerCase().includes(q) ||
       item.description?.toLowerCase().includes(q) ||
       item.segment?.toLowerCase().includes(q)
@@ -374,7 +243,6 @@ searchIndex.push({
     container.classList.add('open');
   }
 
-  // Event listeners
   const input = document.getElementById('globalSearch') as HTMLInputElement;
   const resultsContainer = document.getElementById('searchResults');
 
@@ -388,14 +256,12 @@ searchIndex.push({
     }
   });
 
-  // Close on click outside
   document.addEventListener('click', (e) => {
     if (!(e.target as HTMLElement).closest('.search-wrapper')) {
       resultsContainer?.classList.remove('open');
     }
   });
 
-  // Close on escape and navigate on Enter
   input?.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       resultsContainer?.classList.remove('open');
