@@ -1,13 +1,13 @@
 /**
- * Dados do IDoc ADRMAS - Endereços
+ * Dados do IDoc ADRMAS - Mestre de Endereços
  * 22 segmentos, 287 campos
  * Gerado automaticamente a partir do HTML original
  */
 import type { IdocData } from '../types';
 
-export const ADDRESSES_DATA: IdocData = {
-  title: 'ADRMAS - Endereços',
-  description: 'IDoc para distribuição de dados de endereços',
+export const ADRMAS_DATA: IdocData = {
+  title: 'ADRMAS - Mestre de Endereços',
+  description: 'IDoc para distribuição de dados mestres',
   tree: [
     {
       segment: 'E1ADRMAS',
@@ -24,13 +24,21 @@ export const ADDRESSES_DATA: IdocData = {
           description: 'ID objeto do objeto proprietário para endereço',
           type: 'CHAR(70)',
         },
-        { name: 'OBJ_ID_EXT', description: 'Chave de objeto', type: 'CHAR(70)' },
+        {
+          name: 'OBJ_ID_EXT',
+          description: 'Chave de objeto',
+          type: 'CHAR(70)',
+        },
         {
           name: 'CONTEXT',
           description: 'Descrição semântica de um endereço de um objeto',
           type: 'NUMC(4)',
         },
-        { name: 'IV_CHECK_ADDRESS', description: 'Código: verificar endereço?', type: 'CHAR(1)' },
+        {
+          name: 'IV_CHECK_ADDRESS',
+          description: 'Código: verificar endereço?',
+          type: 'CHAR(1)',
+        },
         {
           name: 'IV_TIME_DEPENDENT_COMM_DATA',
           description: 'Código: período de validade para dados para comunicação',
@@ -58,19 +66,51 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Data "válido até" - no release atual só é possível 99991231',
               type: 'DATS(8)',
             },
-            { name: 'TITLE', description: 'Chave de forma de tratamento', type: 'CHAR(4)' },
-            { name: 'NAME', description: 'Nome 1', type: 'CHAR(40)' },
-            { name: 'NAME_2', description: 'Nome 2', type: 'CHAR(40)' },
-            { name: 'NAME_3', description: 'Nome 3', type: 'CHAR(40)' },
-            { name: 'NAME_4', description: 'Nome 4', type: 'CHAR(40)' },
+            {
+              name: 'TITLE',
+              description: 'Chave de forma de tratamento',
+              type: 'CHAR(4)',
+            },
+            {
+              name: 'NAME',
+              description: 'Nome 1',
+              type: 'CHAR(40)',
+            },
+            {
+              name: 'NAME_2',
+              description: 'Nome 2',
+              type: 'CHAR(40)',
+            },
+            {
+              name: 'NAME_3',
+              description: 'Nome 3',
+              type: 'CHAR(40)',
+            },
+            {
+              name: 'NAME_4',
+              description: 'Nome 4',
+              type: 'CHAR(40)',
+            },
             {
               name: 'CONV_NAME',
               description: 'Campo de nome convertido (com forma de tratamento)',
               type: 'CHAR(50)',
             },
-            { name: 'C_O_NAME', description: 'Nome c/o', type: 'CHAR(40)' },
-            { name: 'CITY', description: 'Local', type: 'CHAR(40)' },
-            { name: 'DISTRICT', description: 'Bairro', type: 'CHAR(40)' },
+            {
+              name: 'C_O_NAME',
+              description: 'Nome c/o',
+              type: 'CHAR(40)',
+            },
+            {
+              name: 'CITY',
+              description: 'Local',
+              type: 'CHAR(40)',
+            },
+            {
+              name: 'DISTRICT',
+              description: 'Bairro',
+              type: 'CHAR(40)',
+            },
             {
               name: 'CITY_NO',
               description: 'Codificação da localidade para file de localidades e ruas',
@@ -91,8 +131,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Agrupamento da estrutura regional',
               type: 'CHAR(8)',
             },
-            { name: 'POSTL_COD1', description: 'Código postal da localidade', type: 'CHAR(10)' },
-            { name: 'POSTL_COD2', description: 'Código postal da cx.postal', type: 'CHAR(10)' },
+            {
+              name: 'POSTL_COD1',
+              description: 'Código postal da localidade',
+              type: 'CHAR(10)',
+            },
+            {
+              name: 'POSTL_COD2',
+              description: 'Código postal da cx.postal',
+              type: 'CHAR(10)',
+            },
             {
               name: 'POSTL_COD3',
               description: 'Código postal da empresa (para clientes importantes)',
@@ -113,13 +161,21 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Ampliação p/cód.postal de cliente importante (não suportada)',
               type: 'CHAR(10)',
             },
-            { name: 'PO_BOX', description: 'Caixa postal', type: 'CHAR(10)' },
+            {
+              name: 'PO_BOX',
+              description: 'Caixa postal',
+              type: 'CHAR(10)',
+            },
             {
               name: 'PO_W_O_NO',
               description: 'Código: indicação de caixa postal sem nº',
               type: 'CHAR(1)',
             },
-            { name: 'PO_BOX_CIT', description: 'Localidade da caixa postal', type: 'CHAR(40)' },
+            {
+              name: 'PO_BOX_CIT',
+              description: 'Localidade da caixa postal',
+              type: 'CHAR(40)',
+            },
             {
               name: 'PBOXCIT_NO',
               description: 'Codificação localidade por caixa postal (file localidades)',
@@ -130,15 +186,31 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Região para a caixa postal (país, estado, província, ...)',
               type: 'CHAR(3)',
             },
-            { name: 'POBOX_CTRY', description: 'País da caixa postal', type: 'CHAR(3)' },
-            { name: 'PO_CTRYISO', description: 'Código ISO do país', type: 'CHAR(2)' },
-            { name: 'DELIV_DIS', description: 'Distrito postal (não suportado)', type: 'CHAR(15)' },
+            {
+              name: 'POBOX_CTRY',
+              description: 'País da caixa postal',
+              type: 'CHAR(3)',
+            },
+            {
+              name: 'PO_CTRYISO',
+              description: 'Código ISO do país',
+              type: 'CHAR(2)',
+            },
+            {
+              name: 'DELIV_DIS',
+              description: 'Distrito postal (não suportado)',
+              type: 'CHAR(15)',
+            },
             {
               name: 'TRANSPZONE',
               description: 'Zona de transporte para a qual ou da qual é fornecido',
               type: 'CHAR(10)',
             },
-            { name: 'STREET', description: 'Rua', type: 'CHAR(60)' },
+            {
+              name: 'STREET',
+              description: 'Rua',
+              type: 'CHAR(60)',
+            },
             {
               name: 'STREET_NO',
               description: 'Codificação da rua para file de localidades e ruas',
@@ -149,19 +221,71 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Abreviatura da denominação de rua (não suportada)',
               type: 'CHAR(2)',
             },
-            { name: 'HOUSE_NO', description: 'Nº', type: 'CHAR(10)' },
-            { name: 'HOUSE_NO2', description: 'Complemento do nº', type: 'CHAR(10)' },
-            { name: 'HOUSE_NO3', description: 'Área do nº (não suportado)', type: 'CHAR(10)' },
-            { name: 'STR_SUPPL1', description: 'Rua 2', type: 'CHAR(40)' },
-            { name: 'STR_SUPPL2', description: 'Rua 3', type: 'CHAR(40)' },
-            { name: 'STR_SUPPL3', description: 'Rua 4', type: 'CHAR(40)' },
-            { name: 'LOCATION', description: 'Rua 5', type: 'CHAR(40)' },
-            { name: 'BUILDING', description: 'Edifício (nº ou sigla)', type: 'CHAR(20)' },
-            { name: 'FLOOR', description: 'Andar do edifício', type: 'CHAR(10)' },
-            { name: 'ROOM_NO', description: 'Nº morada, apartamento ou sala', type: 'CHAR(10)' },
-            { name: 'COUNTRY', description: 'Chave do país', type: 'CHAR(3)' },
-            { name: 'COUNTRYISO', description: 'Código ISO do país', type: 'CHAR(2)' },
-            { name: 'LANGU', description: 'Código de idioma', type: 'LANG(1)' },
+            {
+              name: 'HOUSE_NO',
+              description: 'Nº',
+              type: 'CHAR(10)',
+            },
+            {
+              name: 'HOUSE_NO2',
+              description: 'Complemento do nº',
+              type: 'CHAR(10)',
+            },
+            {
+              name: 'HOUSE_NO3',
+              description: 'Área do nº (não suportado)',
+              type: 'CHAR(10)',
+            },
+            {
+              name: 'STR_SUPPL1',
+              description: 'Rua 2',
+              type: 'CHAR(40)',
+            },
+            {
+              name: 'STR_SUPPL2',
+              description: 'Rua 3',
+              type: 'CHAR(40)',
+            },
+            {
+              name: 'STR_SUPPL3',
+              description: 'Rua 4',
+              type: 'CHAR(40)',
+            },
+            {
+              name: 'LOCATION',
+              description: 'Rua 5',
+              type: 'CHAR(40)',
+            },
+            {
+              name: 'BUILDING',
+              description: 'Edifício (nº ou sigla)',
+              type: 'CHAR(20)',
+            },
+            {
+              name: 'FLOOR',
+              description: 'Andar do edifício',
+              type: 'CHAR(10)',
+            },
+            {
+              name: 'ROOM_NO',
+              description: 'Nº morada, apartamento ou sala',
+              type: 'CHAR(10)',
+            },
+            {
+              name: 'COUNTRY',
+              description: 'Chave do país',
+              type: 'CHAR(3)',
+            },
+            {
+              name: 'COUNTRYISO',
+              description: 'Código ISO do país',
+              type: 'CHAR(2)',
+            },
+            {
+              name: 'LANGU',
+              description: 'Código de idioma',
+              type: 'LANG(1)',
+            },
             {
               name: 'LANGU_ISO',
               description: 'Código de idiomas SAP de 2 dígitos',
@@ -172,8 +296,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Região (estado federal, estado federado, província, condado)',
               type: 'CHAR(3)',
             },
-            { name: 'SORT1', description: 'Termo de pesquisa 1', type: 'CHAR(20)' },
-            { name: 'SORT2', description: 'Termo de pesquisa 2', type: 'CHAR(20)' },
+            {
+              name: 'SORT1',
+              description: 'Termo de pesquisa 1',
+              type: 'CHAR(20)',
+            },
+            {
+              name: 'SORT2',
+              description: 'Termo de pesquisa 2',
+              type: 'CHAR(20)',
+            },
             {
               name: 'EXTENS_1',
               description: 'Ampl.(só p/conversão dds.) (p.ex.linha transmissão dds.)',
@@ -184,8 +316,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Ampliação (só p/conversão dados) (p.ex.telebox)',
               type: 'CHAR(40)',
             },
-            { name: 'TIME_ZONE', description: 'Fuso horário do endereço', type: 'CHAR(6)' },
-            { name: 'TAXJURCODE', description: 'Domicílio fiscal', type: 'CHAR(15)' },
+            {
+              name: 'TIME_ZONE',
+              description: 'Fuso horário do endereço',
+              type: 'CHAR(6)',
+            },
+            {
+              name: 'TAXJURCODE',
+              description: 'Domicílio fiscal',
+              type: 'CHAR(15)',
+            },
           ],
           children: [
             {
@@ -254,10 +394,26 @@ export const ADDRESSES_DATA: IdocData = {
                   description: 'Nº do serviço de entrega',
                   type: 'CHAR(10)',
                 },
-                { name: 'COUNTY_CODE', description: 'Código para município', type: 'CHAR(8)' },
-                { name: 'COUNTY', description: 'Distrito', type: 'CHAR(40)' },
-                { name: 'TOWNSHIP_CODE', description: 'Código para cidade', type: 'CHAR(8)' },
-                { name: 'TOWNSHIP', description: 'Cidade', type: 'CHAR(40)' },
+                {
+                  name: 'COUNTY_CODE',
+                  description: 'Código para município',
+                  type: 'CHAR(8)',
+                },
+                {
+                  name: 'COUNTY',
+                  description: 'Distrito',
+                  type: 'CHAR(40)',
+                },
+                {
+                  name: 'TOWNSHIP_CODE',
+                  description: 'Código para cidade',
+                  type: 'CHAR(8)',
+                },
+                {
+                  name: 'TOWNSHIP',
+                  description: 'Cidade',
+                  type: 'CHAR(40)',
+                },
               ],
               children: [],
             },
@@ -269,8 +425,16 @@ export const ADDRESSES_DATA: IdocData = {
             'Estrutura BAPI p/nºs de telefone (admin.endereços\n                                central)',
           max: 999999999,
           fields: [
-            { name: 'COUNTRY', description: 'País para nº de telefone/fax', type: 'CHAR(3)' },
-            { name: 'COUNTRYISO', description: 'Código ISO do país', type: 'CHAR(2)' },
+            {
+              name: 'COUNTRY',
+              description: 'País para nº de telefone/fax',
+              type: 'CHAR(3)',
+            },
+            {
+              name: 'COUNTRYISO',
+              description: 'Código ISO do país',
+              type: 'CHAR(2)',
+            },
             {
               name: 'STD_NO',
               description: 'Endereço remetente standard neste tipo de comunicação',
@@ -281,7 +445,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Nº telefone: código telefónico+nº',
               type: 'CHAR(30)',
             },
-            { name: 'EXTENSION', description: 'Nº de telefone: extensão', type: 'CHAR(10)' },
+            {
+              name: 'EXTENSION',
+              description: 'Nº de telefone: extensão',
+              type: 'CHAR(10)',
+            },
             {
               name: 'TEL_NO',
               description: 'Nº completo: código telefónico+nº+extensão',
@@ -307,8 +475,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
             {
               name: 'FLG_NOUSE',
               description: 'Código: sem utilizar este nº de comunicação',
@@ -333,15 +509,31 @@ export const ADDRESSES_DATA: IdocData = {
             'Estrutura BAPI p/nºs fax (administração endereços\n                                central)',
           max: 999999999,
           fields: [
-            { name: 'COUNTRY', description: 'País para nº de telefone/fax', type: 'CHAR(3)' },
-            { name: 'COUNTRYISO', description: 'Código ISO do país', type: 'CHAR(2)' },
+            {
+              name: 'COUNTRY',
+              description: 'País para nº de telefone/fax',
+              type: 'CHAR(3)',
+            },
+            {
+              name: 'COUNTRYISO',
+              description: 'Código ISO do país',
+              type: 'CHAR(2)',
+            },
             {
               name: 'STD_NO',
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'FAX', description: 'Nº de fax: prefixo + número', type: 'CHAR(30)' },
-            { name: 'EXTENSION', description: 'Nº fax: extensão', type: 'CHAR(10)' },
+            {
+              name: 'FAX',
+              description: 'Nº de fax: prefixo + número',
+              type: 'CHAR(30)',
+            },
+            {
+              name: 'EXTENSION',
+              description: 'Nº fax: extensão',
+              type: 'CHAR(10)',
+            },
             {
               name: 'FAX_NO',
               description: 'Nº completo: código telefónico+nº+extensão',
@@ -352,7 +544,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Nº de fax p/determinação de remetente',
               type: 'CHAR(30)',
             },
-            { name: 'FAX_GROUP', description: 'Grupo fax (G3, G4, ...)', type: 'CHAR(1)' },
+            {
+              name: 'FAX_GROUP',
+              description: 'Grupo fax (G3, G4, ...)',
+              type: 'CHAR(1)',
+            },
             {
               name: 'STD_RECIP',
               description: 'Código: destinatário standard para este nº',
@@ -368,8 +564,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
             {
               name: 'FLG_NOUSE',
               description: 'Código: sem utilizar este nº de comunicação',
@@ -393,14 +597,26 @@ export const ADDRESSES_DATA: IdocData = {
           description: 'Estrutura BAPI p/nºs teletex (admin.endereços central)',
           max: 999999999,
           fields: [
-            { name: 'COUNTRY', description: 'Chave do país', type: 'CHAR(3)' },
-            { name: 'COUNTRYISO', description: 'Código ISO do país', type: 'CHAR(2)' },
+            {
+              name: 'COUNTRY',
+              description: 'Chave do país',
+              type: 'CHAR(3)',
+            },
+            {
+              name: 'COUNTRYISO',
+              description: 'Código ISO do país',
+              type: 'CHAR(2)',
+            },
             {
               name: 'STD_NO',
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'TELETEX', description: 'Nº teletex', type: 'CHAR(30)' },
+            {
+              name: 'TELETEX',
+              description: 'Nº teletex',
+              type: 'CHAR(30)',
+            },
             {
               name: 'STD_RECIP',
               description: 'Código: destinatário standard para este nº',
@@ -416,8 +632,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
             {
               name: 'FLG_NOUSE',
               description: 'Código: sem utilizar este nº de comunicação',
@@ -442,14 +666,26 @@ export const ADDRESSES_DATA: IdocData = {
             'Estrutura BAPI p/nºs telex (administração endereços\n                                central)',
           max: 999999999,
           fields: [
-            { name: 'COUNTRY', description: 'Chave do país', type: 'CHAR(3)' },
-            { name: 'COUNTRYISO', description: 'Código ISO do país', type: 'CHAR(2)' },
+            {
+              name: 'COUNTRY',
+              description: 'Chave do país',
+              type: 'CHAR(3)',
+            },
+            {
+              name: 'COUNTRYISO',
+              description: 'Código ISO do país',
+              type: 'CHAR(2)',
+            },
             {
               name: 'STD_NO',
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'TELEX_NO', description: 'Nº telex', type: 'CHAR(30)' },
+            {
+              name: 'TELEX_NO',
+              description: 'Nº telex',
+              type: 'CHAR(30)',
+            },
             {
               name: 'STD_RECIP',
               description: 'Código: destinatário standard para este nº',
@@ -465,8 +701,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
             {
               name: 'FLG_NOUSE',
               description: 'Código: sem utilizar este nº de comunicação',
@@ -496,7 +740,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'E_MAIL', description: 'Endereço de e-mail', type: 'CHAR(241)' },
+            {
+              name: 'E_MAIL',
+              description: 'Endereço de e-mail',
+              type: 'CHAR(241)',
+            },
             {
               name: 'EMAIL_SRCH',
               description: 'Campo de pesquisa para o endereço de e-mail',
@@ -527,8 +775,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
             {
               name: 'FLG_NOUSE',
               description: 'Código: sem utilizar este nº de comunicação',
@@ -557,7 +813,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'SYMB_DEST', description: 'Destino simbólico', type: 'CHAR(10)' },
+            {
+              name: 'SYMB_DEST',
+              description: 'Destino simbólico',
+              type: 'CHAR(10)',
+            },
             {
               name: 'REC_TYPE',
               description: 'Tp.destinatário (atualmente o campo não está sendo utiliz.)',
@@ -588,8 +848,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
             {
               name: 'FLG_NOUSE',
               description: 'Código: sem utilizar este nº de comunicação',
@@ -619,22 +887,86 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'COUNTRY', description: 'Chave de países X.400', type: 'CHAR(3)' },
-            { name: 'COUNTRYISO', description: 'Código ISO do país', type: 'CHAR(2)' },
-            { name: 'ADM_DOM', description: 'Domínio de administração X.400', type: 'CHAR(16)' },
-            { name: 'PRIV_DOM', description: 'Domínio privado X.400', type: 'CHAR(16)' },
-            { name: 'ORGANIZATN', description: 'Organização X.400', type: 'CHAR(64)' },
-            { name: 'ORG_UNIT_1', description: 'Unidade organizacional 1 X.400', type: 'CHAR(32)' },
-            { name: 'ORG_UNIT_2', description: 'Unidade organizacional 2 X.400', type: 'CHAR(32)' },
-            { name: 'ORG_UNIT_3', description: 'Unidade organizacional 3 X.400', type: 'CHAR(32)' },
-            { name: 'ORG_UNIT_4', description: 'Unidade organizacional 4 X.400', type: 'CHAR(32)' },
-            { name: 'LASTNAME', description: 'Sobrenome X.400', type: 'CHAR(40)' },
-            { name: 'FIRSTNAME', description: 'Nome próprio X.400', type: 'CHAR(16)' },
-            { name: 'INITIALS', description: 'Iniciais X.400', type: 'CHAR(5)' },
-            { name: 'GENERATION', description: 'Geração X.400', type: 'CHAR(3)' },
-            { name: 'X_121_ADDR', description: 'Endereço de rede X.400 X.121', type: 'CHAR(15)' },
-            { name: 'TERM_ID', description: 'ID de terminal X.400', type: 'CHAR(24)' },
-            { name: 'TERM_TYPE', description: 'Categoria de terminal X.400', type: 'CHAR(1)' },
+            {
+              name: 'COUNTRY',
+              description: 'Chave de países X.400',
+              type: 'CHAR(3)',
+            },
+            {
+              name: 'COUNTRYISO',
+              description: 'Código ISO do país',
+              type: 'CHAR(2)',
+            },
+            {
+              name: 'ADM_DOM',
+              description: 'Domínio de administração X.400',
+              type: 'CHAR(16)',
+            },
+            {
+              name: 'PRIV_DOM',
+              description: 'Domínio privado X.400',
+              type: 'CHAR(16)',
+            },
+            {
+              name: 'ORGANIZATN',
+              description: 'Organização X.400',
+              type: 'CHAR(64)',
+            },
+            {
+              name: 'ORG_UNIT_1',
+              description: 'Unidade organizacional 1 X.400',
+              type: 'CHAR(32)',
+            },
+            {
+              name: 'ORG_UNIT_2',
+              description: 'Unidade organizacional 2 X.400',
+              type: 'CHAR(32)',
+            },
+            {
+              name: 'ORG_UNIT_3',
+              description: 'Unidade organizacional 3 X.400',
+              type: 'CHAR(32)',
+            },
+            {
+              name: 'ORG_UNIT_4',
+              description: 'Unidade organizacional 4 X.400',
+              type: 'CHAR(32)',
+            },
+            {
+              name: 'LASTNAME',
+              description: 'Sobrenome X.400',
+              type: 'CHAR(40)',
+            },
+            {
+              name: 'FIRSTNAME',
+              description: 'Nome próprio X.400',
+              type: 'CHAR(16)',
+            },
+            {
+              name: 'INITIALS',
+              description: 'Iniciais X.400',
+              type: 'CHAR(5)',
+            },
+            {
+              name: 'GENERATION',
+              description: 'Geração X.400',
+              type: 'CHAR(3)',
+            },
+            {
+              name: 'X_121_ADDR',
+              description: 'Endereço de rede X.400 X.121',
+              type: 'CHAR(15)',
+            },
+            {
+              name: 'TERM_ID',
+              description: 'ID de terminal X.400',
+              type: 'CHAR(24)',
+            },
+            {
+              name: 'TERM_TYPE',
+              description: 'Categoria de terminal X.400',
+              type: 'CHAR(1)',
+            },
             {
               name: 'UANID',
               description: 'ID numérica de agente de usuário X.400',
@@ -705,8 +1037,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
             {
               name: 'FLG_NOUSE',
               description: 'Código: sem utilizar este nº de comunicação',
@@ -735,7 +1075,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'LOG_DEST', description: 'Destino lógico RFC', type: 'CHAR(32)' },
+            {
+              name: 'LOG_DEST',
+              description: 'Destino lógico RFC',
+              type: 'CHAR(32)',
+            },
             {
               name: 'STD_RECIP',
               description: 'Código: destinatário standard para este nº',
@@ -751,8 +1095,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
             {
               name: 'FLG_NOUSE',
               description: 'Código: sem utilizar este nº de comunicação',
@@ -781,7 +1133,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'PRINT_DEST', description: 'Spool: dispositivo de saída', type: 'CHAR(4)' },
+            {
+              name: 'PRINT_DEST',
+              description: 'Spool: dispositivo de saída',
+              type: 'CHAR(4)',
+            },
             {
               name: 'STD_RECIP',
               description: 'Código: destinatário standard para este nº',
@@ -792,8 +1148,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
             {
               name: 'FLG_NOUSE',
               description: 'Código: sem utilizar este nº de comunicação',
@@ -823,7 +1187,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'DUMMY', description: 'Código de um caractere', type: 'CHAR(1)' },
+            {
+              name: 'DUMMY',
+              description: 'Código de um caractere',
+              type: 'CHAR(1)',
+            },
             {
               name: 'STD_RECIP',
               description: 'Código: destinatário standard para este nº',
@@ -834,7 +1202,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
             {
               name: 'RFCDEST',
               description: 'destino lógico (indicado em chamada de função)',
@@ -850,7 +1222,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'SSF identificador de conjunto de nomes',
               type: 'CHAR(10)',
             },
-            { name: 'SSF_PROF', description: 'Nome de perfil SSF', type: 'CHAR(132)' },
+            {
+              name: 'SSF_PROF',
+              description: 'Nome de perfil SSF',
+              type: 'CHAR(132)',
+            },
             {
               name: 'SSFIDPART1',
               description: 'SSF nome signatário/receptor: 1ª-8ª parte',
@@ -950,7 +1326,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'URI_TYPE', description: 'Código: qual o tipo de URI', type: 'CHAR(3)' },
+            {
+              name: 'URI_TYPE',
+              description: 'Código: qual o tipo de URI',
+              type: 'CHAR(3)',
+            },
             {
               name: 'URI',
               description: 'URI, por exemplo home page ou endereço ftp',
@@ -966,7 +1346,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
             {
               name: 'URI_PART1',
               description: 'Universal Resource Identifier (URI): 1ª-8ª parte',
@@ -1061,15 +1445,31 @@ export const ADDRESSES_DATA: IdocData = {
             'Estrutura BAPI p/nºs pager (administração endereços\n                                central)',
           max: 999999999,
           fields: [
-            { name: 'COUNTRY', description: 'País para nº de telefone/fax', type: 'CHAR(3)' },
-            { name: 'COUNTRYISO', description: 'Código ISO do país', type: 'CHAR(2)' },
+            {
+              name: 'COUNTRY',
+              description: 'País para nº de telefone/fax',
+              type: 'CHAR(3)',
+            },
+            {
+              name: 'COUNTRYISO',
+              description: 'Código ISO do país',
+              type: 'CHAR(2)',
+            },
             {
               name: 'STD_NO',
               description: 'Endereço remetente standard neste tipo de comunicação',
               type: 'CHAR(1)',
             },
-            { name: 'PAGER_TYPE', description: 'ServiçoPager', type: 'CHAR(4)' },
-            { name: 'PAGER', description: 'Nº pager', type: 'CHAR(30)' },
+            {
+              name: 'PAGER_TYPE',
+              description: 'ServiçoPager',
+              type: 'CHAR(4)',
+            },
+            {
+              name: 'PAGER',
+              description: 'Nº pager',
+              type: 'CHAR(30)',
+            },
             {
               name: 'PAGER_NO',
               description: 'Campo pesquisa normalizado para pager',
@@ -1095,8 +1495,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Endereço destinat.neste tp.comunic.(rede correio eletrônico)',
               type: 'CHAR(1)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
             {
               name: 'FLG_NOUSE',
               description: 'Código: sem utilizar este nº de comunicação',
@@ -1125,14 +1533,26 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Código de versão para endereços internacionais',
               type: 'CHAR(1)',
             },
-            { name: 'LANGU', description: 'Código de idioma', type: 'LANG(1)' },
+            {
+              name: 'LANGU',
+              description: 'Código de idioma',
+              type: 'LANG(1)',
+            },
             {
               name: 'LANGU_ISO',
               description: 'Código de idiomas SAP de 2 dígitos',
               type: 'CHAR(2)',
             },
-            { name: 'ADR_NOTES', description: 'Observações sobre endereço', type: 'CHAR(50)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'ADR_NOTES',
+              description: 'Observações sobre endereço',
+              type: 'CHAR(50)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
           ],
           children: [],
         },
@@ -1146,7 +1566,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Meio comunicação (chave) (administração endereços central)',
               type: 'CHAR(3)',
             },
-            { name: 'LANGU', description: 'Código de idioma', type: 'LANG(1)' },
+            {
+              name: 'LANGU',
+              description: 'Código de idioma',
+              type: 'LANG(1)',
+            },
             {
               name: 'LANGU_ISO',
               description: 'Código de idiomas SAP de 2 dígitos',
@@ -1157,8 +1581,16 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Observações sobre a ligação de comunicação',
               type: 'CHAR(50)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
           ],
           children: [],
         },
@@ -1172,7 +1604,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Meio comunicação (chave) (administração endereços central)',
               type: 'CHAR(3)',
             },
-            { name: 'CONSNUMBER', description: 'Nº sequencial', type: 'NUMC(3)' },
+            {
+              name: 'CONSNUMBER',
+              description: 'Nº sequencial',
+              type: 'NUMC(3)',
+            },
             {
               name: 'COMM_USAGE',
               description: 'Utilização de comunicação: campo chave',
@@ -1193,7 +1629,11 @@ export const ADDRESSES_DATA: IdocData = {
               description: 'Código: default para esta utilização',
               type: 'CHAR(1)',
             },
-            { name: 'ERRORFLAG', description: 'Código: registro não processado', type: 'CHAR(1)' },
+            {
+              name: 'ERRORFLAG',
+              description: 'Código: registro não processado',
+              type: 'CHAR(1)',
+            },
           ],
           children: [],
         },

@@ -1,13 +1,13 @@
 /**
- * Dados do IDoc QMMAS - Qualidade de Material
+ * Dados do IDoc MATQM - Dados de Qualidade
  * 1 segmentos, 36 campos
  * Gerado automaticamente a partir do HTML original
  */
 import type { IdocData } from '../types';
 
-export const MATERIAL_QM_DATA: IdocData = {
-  title: 'QMMAS - Qualidade de Material',
-  description: 'IDoc para distribuição de dados de qualidade de materiais',
+export const MATQM_DATA: IdocData = {
+  title: 'MATQM - Dados de Qualidade',
+  description: 'IDoc para distribuição de dados mestres',
   tree: [
     {
       segment: 'E1BP1001004_QMAT',
@@ -15,10 +15,26 @@ export const MATERIAL_QM_DATA: IdocData = {
         'Dds.controle QM material (QMAT) ALE distribuição com\n                                BAPI',
       max: 999999999,
       fields: [
-        { name: 'FUNCTION', description: 'Função', type: 'CHAR(3)' },
-        { name: 'INSPTYPE', description: 'Tipo de controle', type: 'CHAR(8)' },
-        { name: 'MATERIAL', description: 'Nº do material', type: 'CHAR(18)' },
-        { name: 'PLANT', description: 'Centro', type: 'CHAR(4)' },
+        {
+          name: 'FUNCTION',
+          description: 'Função',
+          type: 'CHAR(3)',
+        },
+        {
+          name: 'INSPTYPE',
+          description: 'Tipo de controle',
+          type: 'CHAR(8)',
+        },
+        {
+          name: 'MATERIAL',
+          description: 'Nº do material',
+          type: 'CHAR(18)',
+        },
+        {
+          name: 'PLANT',
+          description: 'Centro',
+          type: 'CHAR(4)',
+        },
         {
           name: 'IND_INSP_WITH_TSK_LIST',
           description: 'Controle com lista de tarefas',
@@ -59,12 +75,36 @@ export const MATERIAL_QM_DATA: IdocData = {
           description: 'Decisão de utilização automática prevista',
           type: 'CHAR(1)',
         },
-        { name: 'SAMPLING_PROCEDURE', description: 'Processo de amostra', type: 'CHAR(8)' },
-        { name: 'DYN_MODIF_RULE', description: 'Regra de controle dinâmico', type: 'CHAR(3)' },
-        { name: 'INSP_PERCENTAGE', description: 'Porcentagem de controle', type: 'DEC(3)' },
-        { name: 'IND_100_PERCENT_INSPECTION', description: 'Controle a 100%', type: 'CHAR(1)' },
-        { name: 'IND_SKIPS_ALLOWED', description: 'Skips permitidos', type: 'CHAR(1)' },
-        { name: 'IND_MANUAL_SAMPLE', description: 'Indicar amostra manualmente', type: 'CHAR(1)' },
+        {
+          name: 'SAMPLING_PROCEDURE',
+          description: 'Processo de amostra',
+          type: 'CHAR(8)',
+        },
+        {
+          name: 'DYN_MODIF_RULE',
+          description: 'Regra de controle dinâmico',
+          type: 'CHAR(3)',
+        },
+        {
+          name: 'INSP_PERCENTAGE',
+          description: 'Porcentagem de controle',
+          type: 'DEC(3)',
+        },
+        {
+          name: 'IND_100_PERCENT_INSPECTION',
+          description: 'Controle a 100%',
+          type: 'CHAR(1)',
+        },
+        {
+          name: 'IND_SKIPS_ALLOWED',
+          description: 'Skips permitidos',
+          type: 'CHAR(1)',
+        },
+        {
+          name: 'IND_MANUAL_SAMPLE',
+          description: 'Indicar amostra manualmente',
+          type: 'CHAR(1)',
+        },
         {
           name: 'IND_MANUAL_SAMPLE_CALC',
           description: 'Acionar cálculo de amostra manualmente',
@@ -75,7 +115,11 @@ export const MATERIAL_QM_DATA: IdocData = {
           description: 'Administração de nºs de série',
           type: 'CHAR(1)',
         },
-        { name: 'AVE_INSP_DURATION', description: 'Duração média do controle', type: 'DEC(3)' },
+        {
+          name: 'AVE_INSP_DURATION',
+          description: 'Duração média do controle',
+          type: 'DEC(3)',
+        },
         {
           name: 'CONTR_INSP_LOT_CREATE',
           description: 'Controle da criação de lote de controle (agrupamento lotes)',
@@ -106,7 +150,11 @@ export const MATERIAL_QM_DATA: IdocData = {
           description: 'Combinação tipo de controle - material está ativa',
           type: 'CHAR(1)',
         },
-        { name: 'PREFERRED_INSPTYPE', description: 'Tipo de controle preferido', type: 'CHAR(1)' },
+        {
+          name: 'PREFERRED_INSPTYPE',
+          description: 'Tipo de controle preferido',
+          type: 'CHAR(1)',
+        },
         {
           name: 'INSPTYPE_DELETE',
           description: 'Tps.contr.a serem eliminados (distr.ALE QM)',
@@ -137,7 +185,11 @@ export const MATERIAL_QM_DATA: IdocData = {
           description: 'Controle da unidade comercial',
           type: 'CHAR(1)',
         },
-        { name: 'MS_FLAG', description: 'Código: especificações múltiplas', type: 'CHAR(1)' },
+        {
+          name: 'MS_FLAG',
+          description: 'Código: especificações múltiplas',
+          type: 'CHAR(1)',
+        },
         {
           name: 'MATERIAL_LONG',
           description: 'Nº material (40 caracteres, necessário por razões técnicas)',
