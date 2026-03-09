@@ -31,8 +31,8 @@ const typeColorsJson = JSON.stringify(TYPE_COLORS);
 const totalFields = TOTAL_ALL_FIELDS;
 ---
 
-<ToolLayout 
-  title="Visual Mapper" 
+<ToolLayout
+  title="Visual Mapper"
   description="Mapeie campos de origem para destino SAP com drag and drop"
   icon="🔗"
 >
@@ -49,8 +49,14 @@ const totalFields = TOTAL_ALL_FIELDS;
       </div>
       <div class="map-toolbar-group">
         <span class="map-count" id="mappingCount">0 mapeamentos</span>
-        <button class="map-btn map-btn-primary" id="exportJsonBtn">
-          📥 Exportar JSON
+        <button class="map-btn" id="exportJsonBtn" title="Exportar como JSON">
+          💾 JSON
+        </button>
+        <button class="map-btn" id="exportExcelBtn" title="Exportar para Excel (CSV)">
+          📊 Excel
+        </button>
+        <button class="map-btn map-btn-primary" id="exportPdfBtn" title="Exportar como PDF">
+          📄 PDF
         </button>
       </div>
     </div>
@@ -64,9 +70,9 @@ const totalFields = TOTAL_ALL_FIELDS;
           <button class="map-btn-xs" id="addSourceBtn">+ Campo</button>
         </div>
         <div class="map-panel-toolbar">
-          <textarea 
-            id="sourceInput" 
-            class="map-textarea" 
+          <textarea
+            id="sourceInput"
+            class="map-textarea"
             placeholder="Cole aqui JSON ou CSV para extrair campos automaticamente..."
           ></textarea>
           <button class="map-btn-xs map-btn-primary" id="processSourceBtn">Processar</button>
@@ -129,7 +135,7 @@ const totalFields = TOTAL_ALL_FIELDS;
   const ALL_FIELDS = JSON.parse(sapFieldsJson);
   const ALL_IDOCS = JSON.parse(idocsJson);
   const TYPE_COLORS = JSON.parse(typeColorsJson);
-  
+
   // State
   const sourceFields = [];
   const mappings = [];
@@ -151,7 +157,7 @@ const totalFields = TOTAL_ALL_FIELDS;
   const clearAllBtn = document.getElementById('clearAllBtn');
   const sampleBtn = document.getElementById('sampleBtn');
   const connectionsSvg = document.getElementById('connectionsSvg');
-  
+
   // Filter elements
   const idocFilter = document.getElementById('idocFilter');
   const idocFilterTrigger = document.getElementById('idocFilterTrigger');
@@ -227,8 +233,8 @@ const totalFields = TOTAL_ALL_FIELDS;
 
     let filtered = ALL_FIELDS;
     if (selectedIdoc) filtered = filtered.filter(f => f.idoc === selectedIdoc);
-    if (search) filtered = filtered.filter(f => 
-      f.name.toLowerCase().includes(search) || 
+    if (search) filtered = filtered.filter(f =>
+      f.name.toLowerCase().includes(search) ||
       f.description.toLowerCase().includes(search) ||
       f.segment.toLowerCase().includes(search)
     );
@@ -338,11 +344,11 @@ const totalFields = TOTAL_ALL_FIELDS;
 
   function drawConnections() {
     connectionsSvg.innerHTML = '';
-    
+
     mappings.forEach(m => {
       const sourceEl = sourceFieldsList.querySelector(`[data-field="${m.source}"]`);
       const targetEl = targetFieldsList.querySelector(`[data-field="${m.target}"][data-segment="${m.segment}"]`);
-      
+
       if (!sourceEl || !targetEl) return;
 
       const sourceRect = sourceEl.getBoundingClientRect();
@@ -449,10 +455,10 @@ const totalFields = TOTAL_ALL_FIELDS;
   function removeSourceField(field) {
     const idx = sourceFields.indexOf(field);
     if (idx >= 0) sourceFields.splice(idx, 1);
-    
+
     const mappingIdx = mappings.findIndex(m => m.source === field);
     if (mappingIdx >= 0) mappings.splice(mappingIdx, 1);
-    
+
     renderSourceFields();
     renderMappingsTable();
   }
@@ -469,13 +475,13 @@ const totalFields = TOTAL_ALL_FIELDS;
   function loadSample() {
     sourceFields.length = 0;
     mappings.length = 0;
-    
+
     ['codigo_material', 'descricao', 'unidade', 'preco', 'grupo', 'centro'].forEach(f => {
       sourceFields.push(f);
     });
-    
+
     sourceInput.value = '{\n  "codigo_material": "MAT001",\n  "descricao": "Produto Exemplo",\n  "unidade": "UN",\n  "preco": 99.90,\n  "grupo": "01",\n  "centro": "1000"\n}';
-    
+
     renderSourceFields();
     window.showToast?.('Exemplo carregado! Arraste os campos para mapear.');
   }
@@ -487,7 +493,7 @@ const totalFields = TOTAL_ALL_FIELDS;
       segment: m.segment,
       idoc: m.idoc
     }));
-    
+
     navigator.clipboard.writeText(JSON.stringify(output, null, 2)).then(() => {
       window.showToast?.('JSON copiado para clipboard!');
     });
@@ -498,6 +504,109 @@ const totalFields = TOTAL_ALL_FIELDS;
     navigator.clipboard.writeText(output).then(() => {
       window.showToast?.('Mapeamentos copiados!');
     });
+  }
+
+  function exportExcel() {
+    if (mappings.length === 0) {
+      window.showToast?.('Nada para exportar!');
+      return;
+    }
+
+    // CSV com BOM para suportar acentos no Excel
+    let csvContent = "\uFEFFCampo Origem;Estrutura SAP;Campo SAP;Descrição Técnica\n";
+
+    mappings.forEach(m => {
+      const source = (m.source || '').replace(/;/g, ',');
+      const segment = (m.segment || 'N/A').replace(/;/g, ',');
+      const target = (m.target || '').replace(/;/g, ',');
+      const desc = (m.description || '').replace(/;/g, ',');
+      csvContent += `${source};${segment};${target};${desc}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    downloadFile(url, 'mapeamento_de_para.csv');
+    URL.revokeObjectURL(url);
+    window.showToast?.('CSV exportado!');
+  }
+
+  function exportPdf() {
+    if (mappings.length === 0) {
+      window.showToast?.('Nada para exportar!');
+      return;
+    }
+
+    const printWindow = window.open('', '', 'height=800,width=900');
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <title>Especificação de Mapeamento (DE/PARA)</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+          h1 { color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px; font-size: 1.5rem; }
+          .meta { color: #666; font-size: 0.85rem; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+          th { background: #1e40af; color: white; padding: 12px 8px; text-align: left; }
+          td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; }
+          tr:nth-child(even) { background: #f8fafc; }
+          .source { font-weight: 600; color: #1e40af; }
+          .target { font-weight: 600; color: #059669; }
+          .arrow { text-align: center; color: #94a3b8; }
+          .segment { font-size: 0.8rem; color: #64748b; }
+          .footer { margin-top: 40px; font-size: 0.75rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+          @media print {
+            body { padding: 20px; }
+            button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>📋 Especificação de Mapeamento (DE/PARA)</h1>
+        <p class="meta">Gerado em: ${new Date().toLocaleString('pt-BR')} | Total: ${mappings.length} campos mapeados</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Campo Origem</th>
+              <th></th>
+              <th>Campo SAP</th>
+              <th>Segmento / IDoc</th>
+              <th>Descrição</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${mappings.map(m => `
+              <tr>
+                <td class="source">${m.source}</td>
+                <td class="arrow">→</td>
+                <td class="target">${m.target}</td>
+                <td class="segment">${m.segment} / ${m.idoc}</td>
+                <td>${m.description || ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <div class="footer">
+          <p>Documento gerado automaticamente pelo Portal SAP - Visual Mapper</p>
+        </div>
+        <script>window.onload = function() { window.print(); }<\/script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  }
+
+  function downloadFile(url, fileName) {
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute('href', url);
+    downloadAnchorNode.setAttribute('download', fileName);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
   }
 
   // Event listeners
@@ -514,6 +623,8 @@ const totalFields = TOTAL_ALL_FIELDS;
   sampleBtn.addEventListener('click', loadSample);
   exportJsonBtn.addEventListener('click', exportJson);
   copyMappingsBtn.addEventListener('click', copyMappings);
+  document.getElementById('exportExcelBtn').addEventListener('click', exportExcel);
+  document.getElementById('exportPdfBtn').addEventListener('click', exportPdf);
 
   targetFieldsList.addEventListener('scroll', drawConnections);
   sourceFieldsList.addEventListener('scroll', drawConnections);
