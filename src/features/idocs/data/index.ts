@@ -8,14 +8,14 @@ import type { IdocData, IdocField, IdocSegment } from '@core/types';
 import { flattenTree } from '../utils/tree';
 
 // Importar dados de todos os IDocs (gerados automaticamente de /IDOC/*.html)
-import { ADRMAS_DATA } from './adrmas';
-import { ARTMAS_DATA } from './artmas';
-import { BUSINESS_PARTNER_DATA } from './business_partner';
-import { CLFMAS_DATA } from './clfmas';
-import { CREMAS_DATA } from './cremas';
-import { DEBMAS_DATA } from './debmas';
-import { MATMAS_DATA } from './matmas';
-import { MATQM_DATA } from './matqm';
+import { ADRMAS_DATA } from './ADRMAS03';
+import { ARTMAS_DATA } from './ARTMAS09';
+import { BUSINESS_PARTNER_DATA } from './BUPARTNER';
+import { CLFMAS_DATA } from './CLFMAS02';
+import { CREMAS_DATA } from './CREMAS06';
+import { DEBMAS_DATA } from './DEBMAS07';
+import { MATMAS_DATA } from './MATMAS05';
+import { MATQM_DATA } from './MATQM01';
 
 // ========================================
 // TIPOS EXPORTADOS
@@ -63,64 +63,64 @@ export interface SearchItem {
 
 export const ALL_IDOCS: IdocInfo[] = [
   {
-    code: 'MATMAS',
-    slug: 'matmas',
+    code: 'MATMAS05',
+    slug: 'MATMAS05',
     title: 'Materiais',
     description: 'Dados mestres de materiais SAP',
     icon: '📦',
     data: MATMAS_DATA,
   },
   {
-    code: 'ARTMAS',
-    slug: 'artmas',
+    code: 'ARTMAS09',
+    slug: 'ARTMAS09',
     title: 'Materiais - Varejo',
     description: 'Dados mestres de materiais de varejo',
     icon: '🛒',
     data: ARTMAS_DATA,
   },
   {
-    code: 'BPMAS',
-    slug: 'bpmas',
+    code: 'BUPARTNER',
+    slug: 'BUPARTNER',
     title: 'Parceiros de Negócio',
     description: 'Parceiros de negócio',
     icon: '🤝',
     data: BUSINESS_PARTNER_DATA,
   },
   {
-    code: 'DEBMAS',
-    slug: 'debmas',
+    code: 'DEBMAS07',
+    slug: 'DEBMAS07',
     title: 'Clientes',
     description: 'Dados mestres de clientes',
     icon: '👤',
     data: DEBMAS_DATA,
   },
   {
-    code: 'CREMAS',
-    slug: 'cremas',
+    code: 'CREMAS06',
+    slug: 'CREMAS06',
     title: 'Fornecedores',
     description: 'Dados mestres de fornecedores',
     icon: '🏭',
     data: CREMAS_DATA,
   },
   {
-    code: 'ADRMAS',
-    slug: 'adrmas',
+    code: 'ADRMAS03',
+    slug: 'ADRMAS03',
     title: 'Endereços',
     description: 'Dados de endereços',
     icon: '📍',
     data: ADRMAS_DATA,
   },
   {
-    code: 'CLFMAS',
-    slug: 'clfmas',
+    code: 'CLFMAS02',
+    slug: 'CLFMAS02',
     title: 'Materiais - Classificação',
     description: 'Características de classificação de materiais',
     icon: '🏷️',
     data: CLFMAS_DATA,
   },
   {
-    code: 'MATQM',
-    slug: 'matqm',
+    code: 'MATQM01',
+    slug: 'MATQM01',
     title: 'Materiais - Qualidade',
     description: 'Gestão de qualidade de materiais',
     icon: '✅',

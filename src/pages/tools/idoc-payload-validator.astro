@@ -1,20 +1,20 @@
 ---
 /**
  * JSON Field Validator - Valida campos contra definições de IDocs SAP
+ * Detecta automaticamente os IDocs presentes no JSON
  * Usa dados centralizados do registro de IDocs
  */
 import ToolLayout from '@features/tools/layouts/ToolLayout.astro';
 import { ALL_IDOCS, createSegmentMap } from '@idocs/data';
 
-// Preparar dados para o client-side (gerado dinamicamente)
-const idocOptions = ALL_IDOCS.map((idoc) => ({
-  value: idoc.code,
-  label: `${idoc.code} (${idoc.title})`,
-}));
-
 // Serializar segmentos para client-side (dinâmico)
 const idocSegments = Object.fromEntries(
   ALL_IDOCS.map((idoc) => [idoc.code, createSegmentMap(idoc)])
+);
+
+// Mapa de código do IDOC para título/info
+const idocInfo = Object.fromEntries(
+  ALL_IDOCS.map((idoc) => [idoc.code, { title: idoc.title, icon: idoc.icon }])
 );
 ---
 
@@ -24,28 +24,15 @@ const idocSegments = Object.fromEntries(
   icon="📋"
 >
   <div class="validator-content">
-    <div class="config-row">
-      <div class="config-field">
-        <label class="field-label" for="idocSelect">IDoc</label>
-        <select id="idocSelect" class="config-select">
-          {idocOptions.map(opt => (
-            <option value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-      </div>
-    </div>
-
     <div class="input-section">
       <label class="field-label" for="jsonInput">JSON de Entrada</label>
       <textarea
         id="jsonInput"
         class="code-textarea"
-        placeholder='Cole seu JSON aqui para validar contra as definições do IDoc selecionado...'
+        placeholder='Cole seu JSON aqui. O validador detecta automaticamente os IDocs presentes (ex: MATMAS05, DEBMAS07, ADRMAS03...)'
         rows="12"
       ></textarea>
     </div>
-
-    <button class="btn btn-primary" id="validateBtn">⚡ VALIDAR CAMPOS</button>
 
     <div id="resultsSection" class="results-section">
       <div class="results-header">
@@ -58,9 +45,10 @@ const idocSegments = Object.fromEntries(
   </div>
 </ToolLayout>
 
-<script is:inline define:vars={{ idocSegments }}>
+<script is:inline define:vars={{ idocSegments, idocInfo }}>
   // Dados dos IDocs disponíveis no client-side
   window.IDOC_SEGMENTS = idocSegments;
+  window.IDOC_INFO = idocInfo;
 </script>
 
 <style>
@@ -70,40 +58,12 @@ const idocSegments = Object.fromEntries(
     gap: var(--spacing-lg);
   }
 
-  .config-row {
-    display: flex;
-    gap: var(--spacing-lg);
-    flex-wrap: wrap;
-  }
-
-  .config-field {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-  }
-
   .field-label {
     font-size: 0.75rem;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-  }
-
-  .config-select {
-    padding: 10px 14px;
-    font-size: 0.9rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--card-bg);
-    color: var(--text-main);
-    min-width: 220px;
-    cursor: pointer;
-  }
-
-  .config-select:focus {
-    outline: none;
-    border-color: var(--brand-blue);
   }
 
   .input-section {
@@ -128,25 +88,6 @@ const idocSegments = Object.fromEntries(
   .code-textarea:focus {
     outline: none;
     border-color: var(--brand-blue);
-  }
-
-  .btn {
-    padding: 14px 28px;
-    font-size: 1rem;
-    font-weight: 700;
-    border-radius: 8px;
-    cursor: pointer;
-    border: none;
-    align-self: flex-start;
-  }
-
-  .btn-primary {
-    background: var(--brand-blue);
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background: var(--brand-blue-hover);
   }
 
   .results-section {
@@ -201,13 +142,105 @@ const idocSegments = Object.fromEntries(
     padding: var(--spacing-md);
     display: flex;
     flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  :global(.idoc-group) {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  :global(.idoc-header) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, var(--brand-blue) 0%, #6366f1 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  :global(.idoc-content) {
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
     gap: var(--spacing-sm);
-    max-height: 500px;
-    overflow-y: auto;
+  }
+
+  :global(.collapsible) {
+    margin-bottom: var(--spacing-md);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  :global(.collapsible summary) {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  :global(.collapsible summary::-webkit-details-marker) {
+    display: none;
+  }
+
+  :global(.collapsible summary::before) {
+    content: '▶';
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+  }
+
+  :global(.collapsible[open] summary::before) {
+    transform: rotate(90deg);
+  }
+
+  :global(.collapsible-content) {
+    padding: var(--spacing-sm) var(--spacing-md);
+    padding-top: 0;
+  }
+
+  :global(.collapsible.error) {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  :global(.collapsible.error summary) {
+    color: var(--danger-text);
+  }
+
+  :global(.collapsible.warning) {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+  }
+
+  :global(.collapsible.warning summary) {
+    color: var(--warning-text);
+  }
+
+  :global(.missing-list) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  :global(.missing-tag) {
+    padding: 4px 8px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8rem;
   }
 
   :global(.segment-group) {
-    background: var(--card-bg);
+    background: var(--meta-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     overflow: hidden;
@@ -218,15 +251,21 @@ const idocSegments = Object.fromEntries(
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-sm) var(--spacing-md);
-    background: var(--meta-bg);
-    font-weight: 700;
-    font-size: 0.9rem;
+    background: var(--card-bg);
+    font-weight: 600;
+    font-size: 0.85rem;
     color: var(--heading-color);
     cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
   }
 
   :global(.segment-header:hover) {
     background: var(--border-color);
+  }
+
+  :global(.segment-badges) {
+    display: flex;
+    gap: 6px;
   }
 
   :global(.segment-badge) {
@@ -249,6 +288,11 @@ const idocSegments = Object.fromEntries(
   :global(.segment-badge.err) {
     background: var(--danger-bg);
     color: var(--danger-text);
+  }
+
+  :global(.segment-badge.missing) {
+    background: rgba(100, 116, 139, 0.2);
+    color: var(--text-muted);
   }
 
   :global(.segment-fields) {
@@ -279,9 +323,13 @@ const idocSegments = Object.fromEntries(
     background: rgba(239, 68, 68, 0.1);
   }
 
+  :global(.field-result.missing) {
+    background: rgba(100, 116, 139, 0.1);
+  }
+
   :global(.field-name) {
     font-weight: 600;
-    min-width: 120px;
+    min-width: 150px;
     font-family: monospace;
   }
 
@@ -295,72 +343,46 @@ const idocSegments = Object.fromEntries(
     font-size: 0.8rem;
   }
 
-  :global(.unknown-fields) {
-    margin-top: var(--spacing-md);
-    padding: var(--spacing-md);
-    background: var(--warning-bg);
-    border: 1px solid var(--warning-border);
-    border-radius: 8px;
-  }
-
-  :global(.unknown-fields h4) {
-    margin: 0 0 var(--spacing-sm);
-    font-size: 0.9rem;
-    color: var(--warning-text);
-  }
-
-  :global(.unknown-list) {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-  }
-
-  :global(.unknown-tag) {
-    padding: 4px 8px;
-    background: rgba(0,0,0,0.1);
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 0.8rem;
-  }
-
-  @media (max-width: 768px) {
-    .config-row {
-      flex-direction: column;
-    }
-
-    .config-select {
-      width: 100%;
-    }
-  }
 </style>
 
 <script>
   declare global {
     interface Window {
       IDOC_SEGMENTS: Record<string, Record<string, { description: string; fields: Array<{ name: string; description: string; type: string }> }>>;
+      IDOC_INFO: Record<string, { title: string; icon: string }>;
     }
   }
 
   interface FieldValidation {
     name: string;
-    status: 'pass' | 'warn' | 'fail';
+    status: 'pass' | 'warn' | 'fail' | 'missing';
     message: string;
     expected?: string;
-    actual?: string;
   }
 
   interface SegmentValidation {
     segment: string;
+    description: string;
+    found: boolean;
     fields: FieldValidation[];
-    unknown: string[];
+    missingFields: string[];
+    unknownFields: string[];
   }
 
-  const idocSelect = document.getElementById('idocSelect') as HTMLSelectElement;
+  interface IdocValidation {
+    idocCode: string;
+    idocTitle: string;
+    idocIcon: string;
+    segments: SegmentValidation[];
+    missingSegments: string[];
+    unknownStructures: string[];
+  }
+
   const jsonInput = document.getElementById('jsonInput') as HTMLTextAreaElement;
-  const validateBtn = document.getElementById('validateBtn') as HTMLButtonElement;
   const resultsSection = document.getElementById('resultsSection') as HTMLDivElement;
   const resultsList = document.getElementById('resultsList') as HTMLDivElement;
   const resultsSummary = document.getElementById('resultsSummary') as HTMLSpanElement;
+
   // Parse type string like "CHAR(18)" or "NUMC(10)"
   function parseType(typeStr: string): { baseType: string; length: number | null } {
     const match = typeStr.match(/^(\w+)\((\d+)\)$/);
@@ -390,25 +412,21 @@ const idocSegments = Object.fromEntries(
     // Validate by type
     switch (baseType.toUpperCase()) {
       case 'CHAR':
-        // Any string is valid for CHAR
         return { status: 'pass', message: `OK (${strValue.length}/${length || '?'} chars)` };
 
       case 'NUMC':
-        // Must be numeric characters only
         if (!/^\d*$/.test(strValue)) {
           return { status: 'fail', message: 'Deve conter apenas dígitos (NUMC)' };
         }
         return { status: 'pass', message: `OK (${strValue.length}/${length || '?'} digits)` };
 
       case 'DATS':
-        // Date format: YYYYMMDD
         if (strValue && !/^\d{8}$/.test(strValue)) {
           return { status: 'warn', message: 'Formato de data esperado: YYYYMMDD' };
         }
         return { status: 'pass', message: 'OK (YYYYMMDD)' };
 
       case 'TIMS':
-        // Time format: HHMMSS
         if (strValue && !/^\d{6}$/.test(strValue)) {
           return { status: 'warn', message: 'Formato de hora esperado: HHMMSS' };
         }
@@ -417,7 +435,6 @@ const idocSegments = Object.fromEntries(
       case 'DEC':
       case 'CURR':
       case 'QUAN':
-        // Decimal numbers
         if (strValue && !/^-?\d*\.?\d+$/.test(strValue)) {
           return { status: 'fail', message: 'Deve ser valor numérico decimal' };
         }
@@ -425,11 +442,9 @@ const idocSegments = Object.fromEntries(
 
       case 'UNIT':
       case 'CUKY':
-        // Unit or currency code
         return { status: 'pass', message: `OK (${baseType})` };
 
       case 'LANG':
-        // Language code
         if (length && strValue.length > length) {
           return { status: 'fail', message: `Código de idioma muito longo` };
         }
@@ -440,62 +455,144 @@ const idocSegments = Object.fromEntries(
     }
   }
 
-  // Find all segments in JSON
-  function findSegments(obj: any, segments: Record<string, any>): Map<string, any[]> {
-    const found = new Map<string, any[]>();
+  // Detect IDOCs in the JSON payload (only at root level or first level)
+  function detectIdocs(json: any): string[] {
+    const knownIdocs = Object.keys(window.IDOC_SEGMENTS);
+    const found: string[] = [];
 
-    function search(current: any, path: string = '') {
-      if (typeof current !== 'object' || current === null) return;
+    if (typeof json !== 'object' || json === null) return found;
 
-      if (Array.isArray(current)) {
-        current.forEach((item, i) => search(item, `${path}[${i}]`));
-        return;
-      }
-
-      for (const [key, value] of Object.entries(current)) {
-        // Check if key is a known segment
-        if (segments[key]) {
-          const list = found.get(key) || [];
-          if (Array.isArray(value)) {
-            list.push(...value);
-          } else {
-            list.push(value);
-          }
-          found.set(key, list);
-        }
-
-        // Continue searching
-        search(value, `${path}.${key}`);
+    // Check root level keys
+    for (const key of Object.keys(json)) {
+      if (knownIdocs.includes(key) && !found.includes(key)) {
+        found.push(key);
       }
     }
 
-    search(obj);
     return found;
   }
 
-  // Validate segments
-  function validateSegments(json: any, idocType: string): SegmentValidation[] {
-    const segments = window.IDOC_SEGMENTS[idocType];
-    if (!segments) {
-      return [];
+  // Get the content under an IDOC key
+  function getIdocContent(json: any, idocCode: string): any {
+    function search(obj: any): any {
+      if (typeof obj !== 'object' || obj === null) return null;
+
+      for (const [key, value] of Object.entries(obj)) {
+        if (key === idocCode) {
+          return value;
+        }
+        const result = search(value);
+        if (result) return result;
+      }
+      return null;
+    }
+    return search(json);
+  }
+
+  // Recursively find all keys in an object (for detecting structures)
+  function getAllKeys(obj: any, parentKey: string = ''): Set<string> {
+    const keys = new Set<string>();
+
+    if (typeof obj !== 'object' || obj === null) return keys;
+
+    if (Array.isArray(obj)) {
+      obj.forEach(item => {
+        getAllKeys(item, parentKey).forEach(k => keys.add(k));
+      });
+      return keys;
     }
 
-    const results: SegmentValidation[] = [];
-    const foundSegments = findSegments(json, segments);
+    for (const [key, value] of Object.entries(obj)) {
+      keys.add(key);
+      // Also get nested keys
+      getAllKeys(value, key).forEach(k => keys.add(k));
+    }
 
-    // Validate each found segment
-    for (const [segName, instances] of foundSegments) {
-      const segDef = segments[segName];
-      if (!segDef) continue;
+    return keys;
+  }
 
+  // Find segment instances in JSON content
+  function findSegmentInstances(content: any, segmentName: string): any[] {
+    const instances: any[] = [];
+
+    function search(obj: any) {
+      if (typeof obj !== 'object' || obj === null) return;
+
+      if (Array.isArray(obj)) {
+        obj.forEach(item => search(item));
+        return;
+      }
+
+      for (const [key, value] of Object.entries(obj)) {
+        if (key === segmentName) {
+          if (Array.isArray(value)) {
+            instances.push(...value);
+          } else if (typeof value === 'object' && value !== null) {
+            instances.push(value);
+          }
+        }
+        search(value);
+      }
+    }
+
+    search(content);
+    return instances;
+  }
+
+  // Validate a single IDOC
+  function validateIdoc(json: any, idocCode: string): IdocValidation {
+    const segments = window.IDOC_SEGMENTS[idocCode];
+    const info = window.IDOC_INFO[idocCode] || { title: idocCode, icon: '📄' };
+    const idocContent = getIdocContent(json, idocCode);
+
+    const result: IdocValidation = {
+      idocCode,
+      idocTitle: info.title,
+      idocIcon: info.icon,
+      segments: [],
+      missingSegments: [],
+      unknownStructures: []
+    };
+
+    if (!segments || !idocContent) {
+      return result;
+    }
+
+    // Get all keys present in the IDOC content
+    const allKeysInContent = getAllKeys(idocContent);
+    const knownSegments = new Set(Object.keys(segments));
+
+    // Find unknown structures (keys that are not known segments and not primitive fields)
+    for (const key of allKeysInContent) {
+      if (!knownSegments.has(key)) {
+        // Check if this key contains objects/arrays (suggesting it's a structure)
+        const instances = findSegmentInstances(idocContent, key);
+        if (instances.length > 0 && instances.some(i => typeof i === 'object')) {
+          result.unknownStructures.push(key);
+        }
+      }
+    }
+
+    // Validate each defined segment
+    for (const [segName, segDef] of Object.entries(segments)) {
+      const instances = findSegmentInstances(idocContent, segName);
+
+      if (instances.length === 0) {
+        result.missingSegments.push(segName);
+        continue;
+      }
+
+      // Validate each instance of this segment
       for (const instance of instances) {
         if (typeof instance !== 'object' || instance === null) continue;
 
         const fieldResults: FieldValidation[] = [];
-        const unknown: string[] = [];
-        const definedFields = new Set(segDef.fields.map((f: any) => f.name));
+        const missingFields: string[] = [];
+        const unknownFields: string[] = [];
+        const definedFieldNames = new Set(segDef.fields.map((f: any) => f.name));
+        const providedFieldNames = new Set(Object.keys(instance));
 
-        // Validate defined fields
+        // Check each defined field
         for (const field of segDef.fields) {
           const value = instance[field.name];
           if (value !== undefined) {
@@ -506,102 +603,214 @@ const idocSegments = Object.fromEntries(
               message: validation.message,
               expected: field.type
             });
+          } else {
+            missingFields.push(field.name);
           }
         }
 
-        // Find unknown fields
-        for (const key of Object.keys(instance)) {
-          if (!definedFields.has(key)) {
-            unknown.push(key);
+        // Find unknown fields (not structures, just primitive values)
+        for (const key of providedFieldNames) {
+          if (!definedFieldNames.has(key)) {
+            const value = instance[key];
+            // Only count as unknown field if it's not an array/object (those are structures)
+            if (!Array.isArray(value) && (typeof value !== 'object' || value === null)) {
+              unknownFields.push(key);
+            }
           }
         }
 
-        if (fieldResults.length > 0 || unknown.length > 0) {
-          results.push({ segment: segName, fields: fieldResults, unknown });
-        }
+        result.segments.push({
+          segment: segName,
+          description: segDef.description,
+          found: true,
+          fields: fieldResults,
+          missingFields,
+          unknownFields
+        });
       }
     }
 
-    return results;
+    return result;
   }
 
-  // Render results
-  function renderResults(validations: SegmentValidation[]) {
-    let totalPass = 0;
-    let totalWarn = 0;
-    let totalFail = 0;
+  // Render all IDOC validations
+  function renderResults(validations: IdocValidation[]) {
+    let totalIdocs = validations.length;
+    let totalErrors = 0;
+    let totalWarnings = 0;
 
     validations.forEach(v => {
-      v.fields.forEach(f => {
-        if (f.status === 'pass') totalPass++;
-        else if (f.status === 'warn') totalWarn++;
-        else totalFail++;
+      // Estruturas não definidas = erro
+      totalErrors += v.unknownStructures.length;
+      // Estruturas ausentes = aviso
+      totalWarnings += v.missingSegments.length;
+      v.segments.forEach(s => {
+        // Campos extras (não definidos) = erro
+        totalErrors += s.unknownFields.length;
+        // Campos ausentes = aviso
+        totalWarnings += s.missingFields.length;
+        s.fields.forEach(f => {
+          if (f.status === 'fail') totalErrors++;
+          else if (f.status === 'warn') totalWarnings++;
+        });
       });
     });
 
-    const totalUnknown = validations.reduce((sum, v) => sum + v.unknown.length, 0);
-
-    // Summary
-    if (totalFail > 0) {
-      resultsSummary.textContent = `❌ ${totalFail} erros, ${totalWarn} avisos, ${totalPass} OK`;
+    // Summary - padronizado
+    if (totalErrors > 0) {
+      resultsSummary.textContent = `${totalIdocs} IDocs | ${totalErrors} erros, ${totalWarnings} avisos`;
       resultsSummary.className = 'results-summary error';
-    } else if (totalWarn > 0) {
-      resultsSummary.textContent = `⚠️ ${totalWarn} avisos, ${totalPass} OK`;
+    } else if (totalWarnings > 0) {
+      resultsSummary.textContent = `${totalIdocs} IDocs | ${totalWarnings} avisos`;
       resultsSummary.className = 'results-summary warning';
     } else {
-      resultsSummary.textContent = `✅ ${totalPass} campos válidos`;
+      resultsSummary.textContent = `${totalIdocs} IDocs validados com sucesso`;
       resultsSummary.className = 'results-summary success';
     }
 
-    // Render segments
     let html = '';
 
-    for (const validation of validations) {
-      const failCount = validation.fields.filter(f => f.status === 'fail').length;
-      const warnCount = validation.fields.filter(f => f.status === 'warn').length;
-      const badgeClass = failCount > 0 ? 'err' : warnCount > 0 ? 'warn' : 'ok';
-      const badgeText = failCount > 0 ? `${failCount} erros` : warnCount > 0 ? `${warnCount} avisos` : 'OK';
+    for (const idocVal of validations) {
+      // Contagem para o IDoc
+      let idocErrors = idocVal.unknownStructures.length;
+      let idocWarnings = idocVal.missingSegments.length;
+      idocVal.segments.forEach(s => {
+        idocErrors += s.unknownFields.length + s.fields.filter(f => f.status === 'fail').length;
+        idocWarnings += s.missingFields.length + s.fields.filter(f => f.status === 'warn').length;
+      });
 
-      html += `
-        <div class="segment-group">
-          <div class="segment-header">
-            <span>📦 ${validation.segment}</span>
-            <span class="segment-badge ${badgeClass}">${badgeText}</span>
-          </div>
-          <div class="segment-fields">
-            ${validation.fields.map(f => `
+      let idocBadge = '';
+      if (idocErrors > 0) {
+        idocBadge = `<span class="segment-badge err">${idocErrors} erros</span>`;
+      } else if (idocWarnings > 0) {
+        idocBadge = `<span class="segment-badge warn">${idocWarnings} avisos</span>`;
+      } else {
+        idocBadge = `<span class="segment-badge ok">OK</span>`;
+      }
+
+      html += `<div class="idoc-group">`;
+      html += `<div class="idoc-header">
+        <span>${idocVal.idocIcon} ${idocVal.idocCode}</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          ${idocBadge}
+          <span style="font-weight: 400; font-size: 0.85rem; opacity: 0.8;">${idocVal.idocTitle}</span>
+        </div>
+      </div>`;
+      html += `<div class="idoc-content">`;
+
+      // Estruturas não definidas (ERRO) - aberto por padrão
+      if (idocVal.unknownStructures.length > 0) {
+        html += `
+          <details class="collapsible error" open>
+            <summary>❌ Estruturas não definidas (${idocVal.unknownStructures.length})</summary>
+            <div class="collapsible-content">
+              <div class="missing-list">
+                ${idocVal.unknownStructures.map(s => `<span class="missing-tag">${s}</span>`).join('')}
+              </div>
+            </div>
+          </details>
+        `;
+      }
+
+      // Estruturas ausentes (AVISO) - fechado por padrão
+      if (idocVal.missingSegments.length > 0) {
+        html += `
+          <details class="collapsible warning">
+            <summary>⚠️ Estruturas ausentes (${idocVal.missingSegments.length})</summary>
+            <div class="collapsible-content">
+              <div class="missing-list">
+                ${idocVal.missingSegments.map(s => `<span class="missing-tag">${s}</span>`).join('')}
+              </div>
+            </div>
+          </details>
+        `;
+      }
+
+      // Segmentos encontrados
+      for (const seg of idocVal.segments) {
+        const errorCount = seg.fields.filter(f => f.status === 'fail').length + seg.unknownFields.length;
+        const warnCount = seg.fields.filter(f => f.status === 'warn').length + seg.missingFields.length;
+        const okCount = seg.fields.filter(f => f.status === 'pass').length;
+
+        let badge = '';
+        if (errorCount > 0 && warnCount > 0) {
+          badge = `<span class="segment-badge err">${errorCount} erros</span><span class="segment-badge warn">${warnCount} avisos</span>`;
+        } else if (errorCount > 0) {
+          badge = `<span class="segment-badge err">${errorCount} erros</span>`;
+        } else if (warnCount > 0) {
+          badge = `<span class="segment-badge warn">${warnCount} avisos</span>`;
+        } else if (okCount > 0) {
+          badge = `<span class="segment-badge ok">${okCount} OK</span>`;
+        }
+
+        html += `
+          <div class="segment-group">
+            <div class="segment-header">
+              <span>📦 ${seg.segment}</span>
+              <div class="segment-badges">${badge}</div>
+            </div>
+            <div class="segment-fields">
+        `;
+
+        // Campos extras não definidos (ERRO) - aberto por padrão
+        if (seg.unknownFields.length > 0) {
+          html += `
+            <details class="collapsible error" style="margin: 0 0 var(--spacing-sm) 0;" open>
+              <summary>❌ Campos extras (${seg.unknownFields.length})</summary>
+              <div class="collapsible-content">
+                <div class="missing-list">
+                  ${seg.unknownFields.map(f => `<span class="missing-tag">${f}</span>`).join('')}
+                </div>
+              </div>
+            </details>
+          `;
+        }
+
+        // Campos ausentes (AVISO) - fechado por padrão
+        if (seg.missingFields.length > 0) {
+          html += `
+            <details class="collapsible warning" style="margin: 0 0 var(--spacing-sm) 0;">
+              <summary>⚠️ Campos ausentes (${seg.missingFields.length})</summary>
+              <div class="collapsible-content">
+                <div class="missing-list">
+                  ${seg.missingFields.map(f => `<span class="missing-tag">${f}</span>`).join('')}
+                </div>
+              </div>
+            </details>
+          `;
+        }
+
+        // Campos validados
+        if (seg.fields.length > 0) {
+          for (const f of seg.fields) {
+            const icon = f.status === 'pass' ? '✅' : f.status === 'warn' ? '⚠️' : '❌';
+            html += `
               <div class="field-result ${f.status}">
-                <span class="field-status">${f.status === 'pass' ? '✅' : f.status === 'warn' ? '⚠️' : '❌'}</span>
+                <span class="field-status">${icon}</span>
                 <span class="field-name">${f.name}</span>
                 <span class="field-message">${f.message}</span>
               </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-    }
+            `;
+          }
+        }
 
-    if (totalUnknown > 0) {
-      const allUnknown = validations.flatMap(v => v.unknown);
-      html += `
-        <div class="unknown-fields">
-          <h4>⚠️ Campos não definidos no IDoc (${allUnknown.length})</h4>
-          <div class="unknown-list">
-            ${allUnknown.map(f => `<span class="unknown-tag">${f}</span>`).join('')}
-          </div>
-        </div>
-      `;
+        html += `</div></div>`;
+      }
+
+      html += `</div></div>`;
     }
 
     if (validations.length === 0) {
       html = `
-        <div class="unknown-fields">
-          <h4>⚠️ Nenhum campo do IDoc encontrado</h4>
-          <p style="margin: 0; font-size: 0.85rem;">
-            Verifique se o JSON contém segmentos válidos do IDoc selecionado ou
-            tente o formato "Flat" se os campos estão no nível raiz.
-          </p>
-        </div>
+        <details class="collapsible warning" open>
+          <summary>⚠️ Nenhum IDoc detectado no payload</summary>
+          <div class="collapsible-content">
+            <p style="margin: 0; font-size: 0.85rem;">
+              Verifique se o JSON contém pelo menos um IDoc válido no formato esperado.<br>
+              IDocs suportados: ${Object.keys(window.IDOC_SEGMENTS).join(', ')}
+            </p>
+          </div>
+        </details>
       `;
     }
 
@@ -609,12 +818,28 @@ const idocSegments = Object.fromEntries(
     resultsSection.classList.add('show');
   }
 
-  // Validate button
-  validateBtn.addEventListener('click', () => {
+  // Debounce function
+  function debounce(fn: Function, delay: number) {
+    let timer: number;
+    return (...args: any[]) => {
+      clearTimeout(timer);
+      timer = window.setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  // Validate function
+  function validate() {
+    const value = jsonInput.value.trim();
+
+    if (!value) {
+      resultsSection.classList.remove('show');
+      return;
+    }
+
     let json: any;
 
     try {
-      json = JSON.parse(jsonInput.value);
+      json = JSON.parse(value);
     } catch (e: any) {
       resultsSummary.textContent = '❌ JSON inválido';
       resultsSummary.className = 'results-summary error';
@@ -628,8 +853,21 @@ const idocSegments = Object.fromEntries(
       return;
     }
 
-    const idocType = idocSelect.value;
-    const validations = validateSegments(json, idocType);
+    // Detect all IDOCs in the payload
+    const detectedIdocs = detectIdocs(json);
+
+    // Validate each detected IDOC
+    const validations = detectedIdocs.map(idocCode => validateIdoc(json, idocCode));
+
     renderResults(validations);
+  }
+
+  // Auto-validate on input with debounce
+  const debouncedValidate = debounce(validate, 300);
+  jsonInput.addEventListener('input', debouncedValidate);
+
+  // Immediate validate on paste
+  jsonInput.addEventListener('paste', () => {
+    setTimeout(validate, 10);
   });
 </script>

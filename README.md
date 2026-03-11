@@ -12,7 +12,7 @@ Portal de documentação e ferramentas para integração SAP — IDoc, Master Da
 
 Este projeto é um portal estático construído com **Astro** + **Bun** para:
 
-- 📚 **Documentar estruturas IDoc** (DEBMAS, CREMAS, MATMAS, ARTMAS, etc.)
+- 📚 **Documentar estruturas IDoc** (DEBMAS07, CREMAS06, MATMAS05, ARTMAS09, etc.)
 - 🛠️ **Ferramentas de produtividade** (Validador, Mapper, SQL Builder, JSON Formatter)
 - 🎓 **Base de conhecimento** (Glossário, Boas Práticas, Troubleshooting)
 - 🌙 **Tema Dark/Light** com toggle e persistência
@@ -81,15 +81,14 @@ bun run format
 
 ### IDocs Documentados
 
-- **MATMAS** - Materiais
-- **ARTMAS** - Varejo
-- **DEBMAS** - Clientes
-- **CREMAS** - Fornecedores
-- **SRVMAS** - Serviços
-- **BPMAS** - Business Partners
-- **ADRMAS** - Endereços
-- **CLFMAS** - Características
-- **MATQM** - Quality Management
+- **MATMAS05** - Materiais
+- **ARTMAS09** - Varejo
+- **DEBMAS07** - Clientes
+- **CREMAS06** - Fornecedores
+- **BUPARTNER** - Business Partners
+- **ADRMAS03** - Endereços
+- **CLFMAS02** - Características
+- **MATQM01** - Quality Management
 
 ### Ferramentas
 
